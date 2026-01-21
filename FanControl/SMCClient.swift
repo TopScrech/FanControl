@@ -3,10 +3,6 @@ import IOKit
 import Darwin
 
 final class SMCClient {
-    enum Platform {
-        case intelLike, appleSiliconLike
-    }
-
     private static let serviceClasses = ["AppleSMC", "AppleSMCKeysEndpoint"]
     private static let userClientTypes: [UInt32] = [0, 1]
     
@@ -18,6 +14,7 @@ final class SMCClient {
         connection = try Self.openConnection()
         
         let fanType = (try? readKey("F0Ac").dataType.trimmingCharacters(in: .whitespaces)) ?? ""
+        
         if fanType == "flt" {
             platform = .appleSiliconLike
         } else {
@@ -28,51 +25,58 @@ final class SMCClient {
     deinit {
         IOServiceClose(connection)
     }
-
+    
     private static func openConnection() throws -> io_connect_t {
         var lastError: kern_return_t = KERN_SUCCESS
-
+        
         for serviceClass in serviceClasses {
             let matching = IOServiceMatching(serviceClass)
             var iterator: io_iterator_t = 0
             let matchResult = IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator)
+            
             guard matchResult == KERN_SUCCESS else {
                 lastError = matchResult
                 continue
             }
+            
             defer { IOObjectRelease(iterator) }
-
+            
             while true {
                 let service = IOIteratorNext(iterator)
                 guard service != 0 else { break }
                 defer { IOObjectRelease(service) }
-
+                
                 for userClientType in userClientTypes {
                     var conn: io_connect_t = 0
                     let openResult = IOServiceOpen(service, mach_task_self_, userClientType, &conn)
+                    
                     if openResult == KERN_SUCCESS {
                         return conn
                     }
+                    
                     lastError = openResult
                 }
             }
         }
-
+        
         if lastError == KERN_SUCCESS {
             throw SMCError.serviceNotFound
         }
+        
         throw SMCError.openFailed(lastError)
     }
     
     func readFans() throws -> [Fan] {
         try queue.sync {
             let count = Int(try readUInt8("FNum"))
+            
             return try (0..<count).map { id in
                 let min = try readRPM("F\(id)Mn")
                 let max = try readRPM("F\(id)Mx")
                 let current = try readRPM("F\(id)Ac")
                 let target = try readRPM("F\(id)Tg")
                 let mode = try readUInt8("F\(id)Md")
+                
                 return Fan(id: id, minRPM: min, maxRPM: max, currentRPM: current, targetRPM: target, mode: mode)
             }
         }
@@ -100,6 +104,7 @@ final class SMCClient {
     func setFanAuto(fanID: Int) throws {
         try queue.sync {
             try writeUInt8("F\(fanID)Md", value: 0)
+            
             if platform == .appleSiliconLike {
                 try writeUInt8("Ftst", value: 0)
             }
@@ -116,11 +121,13 @@ final class SMCClient {
     private func unlockForManualControl(fanID: Int) throws {
         let modeKey = "F\(fanID)Md"
         let currentMode = try readUInt8(modeKey)
+        
         guard currentMode == 3 else { return }
         
         try writeUInt8("Ftst", value: 1)
         
         let deadline = Date().addingTimeInterval(8)
+        
         while Date() < deadline {
             let mode = try readUInt8(modeKey)
             if mode == 0 { break }
@@ -138,6 +145,7 @@ private extension SMCClient {
     func readUInt8(_ key: String) throws -> UInt8 {
         let v = try readKey(key)
         guard let b = v.bytes.first else { throw SMCError.badValue(key) }
+        
         return b
     }
     
@@ -152,10 +160,12 @@ private extension SMCClient {
             
         case "flt":
             guard v.bytes.count >= 4 else { throw SMCError.badValue(key) }
+            
             let raw = UInt32(v.bytes[0])
             | (UInt32(v.bytes[1]) << 8)
             | (UInt32(v.bytes[2]) << 16)
             | (UInt32(v.bytes[3]) << 24)
+            
             return Double(Float(bitPattern: raw))
             
         default:
@@ -174,21 +184,25 @@ private extension SMCClient {
         switch dataType {
         case "fpe2":
             let raw = UInt16(max(0, min(65535, Int((value * 4.0).rounded()))))
+            
             let bytes: [UInt8] = [
                 UInt8((raw >> 8) & 0xFF),
                 UInt8(raw & 0xFF),
             ]
+            
             try writeKey(key, bytes: bytes)
             
         case "flt":
             let f = Float(value)
             let raw = f.bitPattern
+            
             let bytes: [UInt8] = [
                 UInt8(raw & 0xFF),
                 UInt8((raw >> 8) & 0xFF),
                 UInt8((raw >> 16) & 0xFF),
                 UInt8((raw >> 24) & 0xFF),
             ]
+            
             try writeKey(key, bytes: bytes)
             
         default:
@@ -210,6 +224,7 @@ private extension SMCClient {
         let dataType = fourCharString(info.dataType)
         let all = output.bytes.toArray()
         let size = Int(info.dataSize)
+        
         return SMCValue(key: key, dataType: dataType, bytes: Array(all.prefix(size)))
     }
     
@@ -223,9 +238,11 @@ private extension SMCClient {
         input.data8 = Self.cmdWriteBytes
         
         var payload = bytes
+        
         if payload.count < size {
             payload += Array(repeating: 0, count: size - payload.count)
         }
+        
         if payload.count > 32 {
             payload = Array(payload.prefix(32))
         }
@@ -243,6 +260,7 @@ private extension SMCClient {
         
         var output = SMCKeyData()
         try callSMC(&input, &output)
+        
         return output.keyInfo
     }
     
@@ -274,6 +292,7 @@ private extension SMCClient {
             UInt8((code >> 8) & 0xFF),
             UInt8(code & 0xFF),
         ]
+        
         return String(bytes: bytes, encoding: .ascii) ?? ""
     }
 }
@@ -294,15 +313,19 @@ private enum SMCError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .serviceNotFound:
-            return "AppleSMC service not found"
+            "AppleSMC service not found"
+            
         case .openFailed(let code):
-            return "Failed to open AppleSMC (kern=\(code))"
+            "Failed to open AppleSMC (kern=\(code))"
+            
         case .callFailed(let code):
-            return "SMC call failed (kern=\(code))"
+            "SMC call failed (kern=\(code))"
+            
         case .badValue(let key):
-            return "Bad SMC value for \(key)"
+            "Bad SMC value for \(key)"
+            
         case .unsupportedType(let type, let key):
-            return "Unsupported SMC type \(type) for \(key)"
+            "Unsupported SMC type \(type) for \(key)"
         }
     }
 }
@@ -368,11 +391,13 @@ private struct SMCBytes32 {
     
     mutating func setFromArray(_ bytes: [UInt8]) {
         var tmp = [UInt8](repeating: 0, count: 32)
+        
         for (i, b) in bytes.prefix(32).enumerated() {
             tmp[i] = b
         }
-        withUnsafeMutableBytes(of: &self) { buf in
-            buf.copyBytes(from: tmp)
+        
+        withUnsafeMutableBytes(of: &self) {
+            $0.copyBytes(from: tmp)
         }
     }
     
