@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 @Observable
 final class FanVM {
@@ -11,9 +12,10 @@ final class FanVM {
     private var holdingManualOverride = false
     
     init() {
+        Logger().info("Initializing FanVM")
+        
         do {
             smc = try SMCClient()
-            errorText = nil
         } catch {
             smc = nil
             errorText = error.localizedDescription
@@ -21,8 +23,10 @@ final class FanVM {
         
         refresh()
         
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { await self?.tick() }
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task {
+                await self?.tick()
+            }
         }
     }
     
@@ -42,6 +46,7 @@ final class FanVM {
                 errorText = error.localizedDescription
             }
         }
+        
         refresh()
     }
     
@@ -50,11 +55,9 @@ final class FanVM {
         
         do {
             fans = try smc.readFans()
+            
             if selectedFanID >= fans.count {
                 selectedFanID = 0
-            }
-            if errorText == nil || errorText?.isEmpty == false {
-                errorText = nil
             }
         } catch {
             errorText = error.localizedDescription
@@ -62,13 +65,22 @@ final class FanVM {
     }
     
     func setManualRPM(_ rpm: Double) async {
-        guard let smc, let fan = selectedFan else { return }
+        guard let smc else {
+            Logger().info("Invalid SMC")
+            return
+        }
+        
+        guard let fan = selectedFan else {
+            Logger().info("Fan not selected")
+            return
+        }
         
         do {
             try smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
             holdingManualOverride = true
             refresh()
         } catch {
+            Logger().error("\(error)")
             errorText = error.localizedDescription
         }
     }
