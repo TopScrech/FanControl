@@ -1,6 +1,4 @@
 import Foundation
-import IOKit
-import Darwin
 
 final class SMCClient {
     private static let serviceClasses = ["AppleSMC", "AppleSMCKeysEndpoint"]
@@ -8,7 +6,7 @@ final class SMCClient {
     
     private let connection: io_connect_t
     private let queue = DispatchQueue(label: "SMCClient.queue")
-    private var platform: Platform = .intelLike
+    private var platform: Platform = .appleSiliconLike
     
     init() throws {
         connection = try Self.openConnection()
