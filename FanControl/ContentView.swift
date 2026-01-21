@@ -1,7 +1,7 @@
 import ScrechKit
 
 struct ContentView: View {
-    @State private var model = FanVM()
+    @Bindable var model: FanVM
     @State private var targetRPM = 0.0
     
     var body: some View {

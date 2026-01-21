@@ -1,8 +1,10 @@
 import Foundation
+import OSLog
 
 final class SMCClient {
     private static let serviceClasses = ["AppleSMC", "AppleSMCKeysEndpoint"]
     private static let userClientTypes: [UInt32] = [0, 1]
+    private static let logger = Logger(subsystem: "FanControl", category: "SMCClient")
     
     private let connection: io_connect_t
     private let queue = DispatchQueue(label: "SMCClient.queue")
@@ -18,6 +20,9 @@ final class SMCClient {
         } else {
             platform = .intelLike
         }
+        
+        let platformName = platform == .appleSiliconLike ? "appleSiliconLike" : "intelLike"
+        Self.logger.info("SMC initialized platform=\(platformName, privacy: .public) fanType=\(fanType, privacy: .public)")
     }
     
     deinit {
@@ -85,6 +90,8 @@ final class SMCClient {
             let min = try readRPM("F\(fanID)Mn")
             let max = try readRPM("F\(fanID)Mx")
             let clamped = Swift.min(Swift.max(rpm, min), max)
+            let platformName = platform == .appleSiliconLike ? "appleSiliconLike" : "intelLike"
+            Self.logger.info("setFanManualRPM fan=\(fanID, privacy: .public) rpm=\(rpm, privacy: .public) clamped=\(clamped, privacy: .public) min=\(min, privacy: .public) max=\(max, privacy: .public) platform=\(platformName, privacy: .public)")
             
             if platform == .appleSiliconLike {
                 try unlockForManualControl(fanID: fanID)
@@ -101,6 +108,7 @@ final class SMCClient {
     
     func setFanAuto(fanID: Int) throws {
         try queue.sync {
+            Self.logger.info("setFanAuto fan=\(fanID, privacy: .public)")
             try writeUInt8("F\(fanID)Md", value: 0)
             
             if platform == .appleSiliconLike {
@@ -122,14 +130,24 @@ final class SMCClient {
         
         guard currentMode == 3 else { return }
         
+        Self.logger.info("unlockForManualControl fan=\(fanID, privacy: .public) currentMode=\(currentMode, privacy: .public)")
+        
         try writeUInt8("Ftst", value: 1)
         
         let deadline = Date().addingTimeInterval(8)
+        var unlocked = false
         
         while Date() < deadline {
             let mode = try readUInt8(modeKey)
-            if mode == 0 { break }
+            if mode == 0 {
+                unlocked = true
+                break
+            }
             usleep(200_000)
+        }
+        
+        if !unlocked {
+            Self.logger.error("unlockForManualControl timed out fan=\(fanID, privacy: .public)")
         }
     }
 }
@@ -272,14 +290,22 @@ private extension SMCClient {
             }
         }
         
-        guard result == KERN_SUCCESS else { throw SMCError.callFailed(result) }
+        guard result == KERN_SUCCESS else {
+            let keyCode = input.key
+            let cmd = input.data8
+            let key = fourCharString(keyCode)
+            Self.logger.error("SMC call failed cmd=\(cmd, privacy: .public) key=\(key, privacy: .public) kern=\(result, privacy: .public)")
+            throw SMCError.callFailed(result)
+        }
     }
     
     func fourCharCode(_ str: String) -> UInt32 {
         var result: UInt32 = 0
+        
         for u in str.utf8.prefix(4) {
             result = (result << 8) + UInt32(u)
         }
+        
         return result
     }
     

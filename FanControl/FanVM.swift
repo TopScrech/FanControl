@@ -7,18 +7,21 @@ final class FanVM {
     var selectedFanID = 0
     var errorText: String?
     
+    private static let logger = Logger(subsystem: "FanControl", category: "FanVM")
     private let smc: SMCClient?
     private var timer: Timer?
     private var holdingManualOverride = false
     
     init() {
-        Logger().info("Initializing FanVM")
+        Self.logger.info("Initializing FanVM")
         
         do {
             smc = try SMCClient()
+            Self.logger.info("SMC client ready")
         } catch {
             smc = nil
             errorText = error.localizedDescription
+            Self.logger.error("SMC client init failed: \(error.localizedDescription, privacy: .public)")
         }
         
         refresh()
@@ -31,6 +34,7 @@ final class FanVM {
     }
     
     deinit {
+        Self.logger.info("Deinitializing FanVM")
         timer?.invalidate()
     }
     
@@ -44,6 +48,7 @@ final class FanVM {
                 try smc?.keepAliveManualOverride()
             } catch {
                 errorText = error.localizedDescription
+                Self.logger.error("Manual keep-alive failed: \(error.localizedDescription, privacy: .public)")
             }
         }
         
@@ -61,38 +66,47 @@ final class FanVM {
             }
         } catch {
             errorText = error.localizedDescription
+            Self.logger.error("Refresh failed: \(error.localizedDescription, privacy: .public)")
         }
     }
     
     func setManualRPM(_ rpm: Double) async {
         guard let smc else {
-            Logger().info("Invalid SMC")
+            Self.logger.info("Manual request ignored: no SMC client")
             return
         }
         
         guard let fan = selectedFan else {
-            Logger().info("Fan not selected")
+            Self.logger.info("Manual request ignored: no selected fan")
             return
         }
         
         do {
+            Self.logger.info("Manual request fan=\(fan.id, privacy: .public) rpm=\(rpm, privacy: .public) mode=\(fan.mode, privacy: .public)")
             try smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
             holdingManualOverride = true
             refresh()
+            Self.logger.info("Manual applied fan=\(fan.id, privacy: .public) rpm=\(rpm, privacy: .public)")
         } catch {
-            Logger().error("\(error)")
+            Self.logger.error("Manual failed fan=\(fan.id, privacy: .public) rpm=\(rpm, privacy: .public) error=\(error.localizedDescription, privacy: .public)")
             errorText = error.localizedDescription
         }
     }
     
     func setAuto() async {
-        guard let smc, let fan = selectedFan else { return }
+        guard let smc, let fan = selectedFan else {
+            Self.logger.info("Auto request ignored: missing SMC or selected fan")
+            return
+        }
         
         do {
+            Self.logger.info("Auto request fan=\(fan.id, privacy: .public) mode=\(fan.mode, privacy: .public)")
             try smc.setFanAuto(fanID: fan.id)
             holdingManualOverride = false
             refresh()
+            Self.logger.info("Auto applied fan=\(fan.id, privacy: .public)")
         } catch {
+            Self.logger.error("Auto failed fan=\(fan.id, privacy: .public) error=\(error.localizedDescription, privacy: .public)")
             errorText = error.localizedDescription
         }
     }
