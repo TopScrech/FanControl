@@ -88,15 +88,27 @@ struct ContentView: View {
                                 Spacer()
                                 
                                 Button("Manual") {
-                                    Task { await model.setManualRPM(targetRPM) }
+                                    Task {
+                                        await model.setManualRPM(targetRPM)
+                                    }
                                 }
                                 
                                 Button("Auto") {
-                                    Task { await model.setAuto() }
+                                    Task {
+                                        await model.setAuto()
+                                    }
+                                }
+                                
+                                Button("Min") {
+                                    Task {
+                                        await model.setManualRPM(fan.minRPM)
+                                    }
                                 }
                                 
                                 Button("Full") {
-                                    Task { await model.setManualRPM(fan.maxRPM) }
+                                    Task {
+                                        await model.setManualRPM(fan.maxRPM)
+                                    }
                                 }
                             }
                         }
