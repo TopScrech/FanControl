@@ -1,4 +1,5 @@
 import Foundation
+import IOKit
 import OSLog
 
 final class SMCClient {
@@ -72,6 +73,8 @@ final class SMCClient {
     func readFans() throws -> [Fan] {
         try queue.sync {
             let count = Int(try readUInt8("FNum"))
+            let platformName = platform == .appleSiliconLike ? "appleSiliconLike" : "intelLike"
+            Self.logger.info("readFans count=\(count, privacy: .public) platform=\(platformName, privacy: .public)")
             
             return try (0..<count).map { id in
                 let min = try readRPM("F\(id)Mn")
@@ -101,7 +104,11 @@ final class SMCClient {
             try writeRPM("F\(fanID)Tg", value: clamped)
             
             if platform == .appleSiliconLike {
-                try writeUInt8("Ftst", value: 1)
+                do {
+                    try writeUInt8("Ftst", value: 1)
+                } catch {
+                    Self.logger.error("Ftst write failed: \(error.localizedDescription, privacy: .public)")
+                }
             }
         }
     }
@@ -112,7 +119,11 @@ final class SMCClient {
             try writeUInt8("F\(fanID)Md", value: 0)
             
             if platform == .appleSiliconLike {
-                try writeUInt8("Ftst", value: 0)
+                do {
+                    try writeUInt8("Ftst", value: 0)
+                } catch {
+                    Self.logger.error("Ftst write failed: \(error.localizedDescription, privacy: .public)")
+                }
             }
         }
     }
@@ -120,7 +131,11 @@ final class SMCClient {
     func keepAliveManualOverride() throws {
         try queue.sync {
             guard platform == .appleSiliconLike else { return }
-            try writeUInt8("Ftst", value: 1)
+            do {
+                try writeUInt8("Ftst", value: 1)
+            } catch {
+                Self.logger.error("Ftst write failed: \(error.localizedDescription, privacy: .public)")
+            }
         }
     }
     
@@ -131,8 +146,12 @@ final class SMCClient {
         guard currentMode == 3 else { return }
         
         Self.logger.info("unlockForManualControl fan=\(fanID, privacy: .public) currentMode=\(currentMode, privacy: .public)")
-        
-        try writeUInt8("Ftst", value: 1)
+
+        do {
+            try writeUInt8("Ftst", value: 1)
+        } catch {
+            Self.logger.error("Ftst write failed: \(error.localizedDescription, privacy: .public)")
+        }
         
         let deadline = Date().addingTimeInterval(8)
         var unlocked = false
