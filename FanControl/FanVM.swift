@@ -258,14 +258,13 @@ final class FanVM {
             let systemPlistExists = fm.fileExists(atPath: systemPlistPath)
 
             errorText = """
-Helper not found in app bundle.
+Helper not found in app bundle
 Bundle: \(bundlePath)
 Helper exists: \(helperExists)
 Plist exists: \(plistExists)
 System helper exists: \(systemHelperExists)
 System plist exists: \(systemPlistExists)
 """
-            
         case .notRegistered:
             errorText = "Helper not registered. Run from /Applications and try again"
             
