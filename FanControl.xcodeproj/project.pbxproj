@@ -469,7 +469,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FanControlHelper/Info.plist;
 				OTHER_CODE_SIGN_FLAGS = "--identifier dev.topscrech.FanControl.helper";
-				PRODUCT_BUNDLE_IDENTIFIER = dev.topscrech.FanControl.helper;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.topscrech.FanControl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_VERSION = 5.0;
@@ -487,7 +487,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FanControlHelper/Info.plist;
 				OTHER_CODE_SIGN_FLAGS = "--identifier dev.topscrech.FanControl.helper";
-				PRODUCT_BUNDLE_IDENTIFIER = dev.topscrech.FanControl.helper;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.topscrech.FanControl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_VERSION = 5.0;
