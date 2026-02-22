@@ -45,6 +45,8 @@
 
 /* Begin PBXFileReference section */
 		F3609F9B2F4BAD0300D5A1E1 /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
+		F3609FBC2F4BB4F000D5A1E1 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		F3609FBD2F4BB50200D5A1E1 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		F3A812002F2180AA00D96952 /* FanControl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FanControl.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B0001A2F5A000100000001 /* FanControlHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FanControlHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B0001A2F5A000100000002 /* FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist; sourceTree = SOURCE_ROOT; };
@@ -99,7 +101,9 @@
 		F3A811F72F2180AA00D96952 = {
 			isa = PBXGroup;
 			children = (
+				F3609FBC2F4BB4F000D5A1E1 /* README.md */,
 				F3609F9B2F4BAD0300D5A1E1 /* AGENTS.md */,
+				F3609FBD2F4BB50200D5A1E1 /* LICENSE.txt */,
 				F3A812022F2180AA00D96952 /* FanControl */,
 				F3B0001A2F5A000100000003 /* Shared */,
 				F3B0001A2F5A000100000004 /* FanControlHelper */,

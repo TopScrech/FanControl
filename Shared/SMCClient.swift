@@ -129,8 +129,9 @@ final class SMCClient {
     }
     
     func keepAliveManualOverride() throws {
-        try queue.sync {
+        queue.sync {
             guard platform == .appleSiliconLike else { return }
+            
             do {
                 try writeUInt8("Ftst", value: 1)
             } catch {
