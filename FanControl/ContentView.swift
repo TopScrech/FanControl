@@ -30,51 +30,12 @@ struct ContentView: View {
                 if let fan = model.selectedFan {
                     GroupBox {
                         VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Mode")
-                                
-                                Spacer()
-                                
-                                Text(fan.modeName)
-                                    .monospaced()
-                            }
-                            
-                            HStack {
-                                Text("Current")
-                                
-                                Spacer()
-                                
-                                Text(fan.currentRPM.formattedRPM)
-                                    .monospacedDigit()
-                            }
-                            
-                            HStack {
-                                Text("Target")
-                                
-                                Spacer()
-                                
-                                Text(fan.targetRPM.formattedRPM)
-                                    .monospacedDigit()
-                            }
-                            
-                            HStack {
-                                Text("Min")
-                                
-                                Spacer()
-                                
-                                Text(fan.minRPM.formattedRPM)
-                                    .monospacedDigit()
-                            }
-                            
-                            HStack {
-                                Text("Max")
-                                
-                                Spacer()
-                                
-                                Text(fan.maxRPM.formattedRPM)
-                                    .monospacedDigit()
-                            }
+                            LabeledContent("Mode", value: fan.modeName)
+                            LabeledContent("Target", value: fan.targetRPM.formattedRPM)
+                            LabeledContent("Min", value: fan.minRPM.formattedRPM)
+                            LabeledContent("Max", value: fan.maxRPM.formattedRPM)
                         }
+                        .monospacedDigit()
                     }
                     
                     GroupBox {
@@ -88,27 +49,19 @@ struct ContentView: View {
                                 Spacer()
                                 
                                 Button("Manual") {
-                                    Task {
-                                        await model.setManualRPM(targetRPM)
-                                    }
+                                    Task { await model.setManualRPM(targetRPM) }
                                 }
                                 
                                 Button("Auto") {
-                                    Task {
-                                        await model.setAuto()
-                                    }
+                                    Task { await model.setAuto() }
                                 }
                                 
                                 Button("Min") {
-                                    Task {
-                                        await model.setManualRPM(fan.minRPM)
-                                    }
+                                    Task { await model.setManualRPM(fan.minRPM) }
                                 }
                                 
                                 Button("Full") {
-                                    Task {
-                                        await model.setManualRPM(fan.maxRPM)
-                                    }
+                                    Task { await model.setManualRPM(fan.maxRPM) }
                                 }
                             }
                         }
