@@ -14,6 +14,16 @@
 - Run locally: open `FanControl.xcodeproj` in Xcode and use Product -> Run. CLI runs can use the built `.app` in DerivedData
 - Tests: no test target is configured yet; add one in Xcode before using `xcodebuild test`
 
+## Free Distribution Export (Outside App Store)
+- Use this minimal flow for free distribution to users outside the Mac App Store
+- Archive with `Release` and `generic/platform=macOS`
+- Export built products from Organizer to get `Products/Applications/FanControl.app`
+- Re-sign the exported `FanControl.app` and `Contents/Library/PrivilegedHelperTools/FanControlHelper` with `Developer ID Application`
+- Keep helper identifier as `dev.topscrech.FanControl.helper` when re-signing
+- Verify with `codesign --verify --deep --strict --verbose=2` and `spctl -a -vv`
+- Zip with `ditto -c -k --keepParent FanControl.app FanControl-macOS-DeveloperID.zip`
+- Notarization is optional for ad-hoc sharing, required for best Gatekeeper compatibility on other Macs
+
 ## Coding Style & Naming Conventions
 - Swift standard style: 4-space indentation, braces on the same line, trailing commas allowed in multi-line literals
 - Naming: `UpperCamelCase` for types (structs/classes/enums), `lowerCamelCase` for methods and properties, enum cases in `lowerCamelCase`
