@@ -474,6 +474,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FanControlHelper/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				OTHER_CODE_SIGN_FLAGS = "--identifier dev.topscrech.FanControl.helper";
 				PRODUCT_BUNDLE_IDENTIFIER = dev.topscrech.FanControl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -492,6 +493,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FanControlHelper/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				OTHER_CODE_SIGN_FLAGS = "--identifier dev.topscrech.FanControl.helper";
 				PRODUCT_BUNDLE_IDENTIFIER = dev.topscrech.FanControl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
