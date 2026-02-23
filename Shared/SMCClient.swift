@@ -147,7 +147,7 @@ final class SMCClient {
         guard currentMode == 3 else { return }
         
         Self.logger.info("unlockForManualControl fan=\(fanID, privacy: .public) currentMode=\(currentMode, privacy: .public)")
-
+        
         do {
             try writeUInt8("Ftst", value: 1)
         } catch {
