@@ -15,13 +15,16 @@
 - Tests: no test target is configured yet; add one in Xcode before using `xcodebuild test`
 
 ## Free Distribution Export (Outside App Store)
-- Use this minimal flow for free distribution to users outside the Mac App Store
-- Archive with `Release` and `generic/platform=macOS`
-- Export built products from Organizer to get `Products/Applications/FanControl.app`
-- Re-sign the exported `FanControl.app` and `Contents/Library/PrivilegedHelperTools/FanControlHelper` with `Developer ID Application`
+- Use this faster CLI-first flow for free distribution to users outside the Mac App Store
+- Archive once with `Release` and `generic/platform=macOS` to a known path, for example `~/Downloads/FanControl.xcarchive`
+- Skip Organizer export and take the app from `FanControl.xcarchive/Products/Applications/FanControl.app`
+- Copy the app to a working path, for example `~/Downloads/FanControl.app`, before re-signing
+- Re-sign `Contents/Library/PrivilegedHelperTools/FanControlHelper` first, then `FanControl.app`, with `Developer ID Application`
 - Keep helper identifier as `dev.topscrech.FanControl.helper` when re-signing
 - Verify with `codesign --verify --deep --strict --verbose=2` and `spctl -a -vv`
 - Zip with `ditto -c -k --keepParent FanControl.app FanControl-macOS-DeveloperID.zip`
+- Publish the zip with `gh release create` or `gh release upload` when shipping via GitHub releases
+- Cleanup after packaging by deleting `FanControl.xcarchive` and other temporary export artifacts
 - Notarization is optional for ad-hoc sharing, required for best Gatekeeper compatibility on other Macs
 
 ## Coding Style & Naming Conventions
