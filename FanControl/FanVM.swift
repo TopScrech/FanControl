@@ -4,6 +4,9 @@ import ServiceManagement
 
 @Observable
 final class FanVM {
+    private static let manualRetryAttempts = 15
+    private static let manualRetryInterval: Duration = .seconds(1)
+    
     var fans: [Fan] = []
     var selectedFanID = 0
     var errorText: String?
@@ -14,6 +17,7 @@ final class FanVM {
     private var timer: Timer?
     private var holdingManualOverride = false
     private var helperInstallInProgress = false
+    private var controlActionToken = 0
     private let isRoot = geteuid() == 0
     
     init() {
@@ -113,6 +117,8 @@ final class FanVM {
     }
     
     func setManualRPM(_ rpm: Double) async {
+        let actionToken = startControlAction()
+        
         guard let fan = selectedFan else {
             Self.logger.info("Manual request ignored: no selected fan")
             return
@@ -128,10 +134,46 @@ final class FanVM {
         
         do {
             Self.logger.info("Manual request fan=\(fan.id, privacy: .public) rpm=\(rpm, privacy: .public) mode=\(fan.mode, privacy: .public)")
-            try await smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
+            var successfulAttempts = 0
+            var lastAttemptError: Error?
+            
+            for attempt in 1...Self.manualRetryAttempts {
+                guard isControlActionCurrent(actionToken) else {
+                    Self.logger.info("Manual retries canceled fan=\(fan.id, privacy: .public)")
+                    return
+                }
+                
+                do {
+                    try await smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
+                    successfulAttempts += 1
+                    Self.logger.info("Manual signal sent fan=\(fan.id, privacy: .public) rpm=\(rpm, privacy: .public) attempt=\(attempt, privacy: .public)")
+                } catch {
+                    lastAttemptError = error
+                    Self.logger.error("Manual signal failed fan=\(fan.id, privacy: .public) rpm=\(rpm, privacy: .public) attempt=\(attempt, privacy: .public) error=\(error.localizedDescription, privacy: .public)")
+                }
+                
+                if attempt < Self.manualRetryAttempts {
+                    try await Task.sleep(for: Self.manualRetryInterval)
+                }
+            }
+            
+            guard isControlActionCurrent(actionToken) else {
+                Self.logger.info("Manual retries canceled fan=\(fan.id, privacy: .public)")
+                return
+            }
+            
+            guard successfulAttempts > 0 else {
+                if let lastAttemptError {
+                    errorText = lastAttemptError.localizedDescription
+                }
+                return
+            }
+            
             holdingManualOverride = true
             await refresh()
-            Self.logger.info("Manual applied fan=\(fan.id, privacy: .public) rpm=\(rpm, privacy: .public)")
+            Self.logger.info("Manual applied fan=\(fan.id, privacy: .public) rpm=\(rpm, privacy: .public) attempts=\(successfulAttempts, privacy: .public)")
+        } catch is CancellationError {
+            Self.logger.info("Manual retries canceled fan=\(fan.id, privacy: .public)")
         } catch {
             Self.logger.error("Manual failed fan=\(fan.id, privacy: .public) rpm=\(rpm, privacy: .public) error=\(error.localizedDescription, privacy: .public)")
             errorText = error.localizedDescription
@@ -139,6 +181,8 @@ final class FanVM {
     }
     
     func setAuto() async {
+        _ = startControlAction()
+        
         guard let fan = selectedFan else {
             Self.logger.info("Auto request ignored: missing SMC or selected fan")
             return
@@ -166,6 +210,15 @@ final class FanVM {
     
     private var activeService: SMCService? {
         localSMC ?? remoteSMC
+    }
+    
+    private func startControlAction() -> Int {
+        controlActionToken += 1
+        return controlActionToken
+    }
+    
+    private func isControlActionCurrent(_ token: Int) -> Bool {
+        controlActionToken == token
     }
     
     private var writeService: SMCService? {
