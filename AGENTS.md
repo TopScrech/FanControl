@@ -22,8 +22,8 @@
 - Re-sign `Contents/Library/PrivilegedHelperTools/FanControlHelper` first, then `FanControl.app`, with `Developer ID Application`
 - Keep helper identifier as `dev.topscrech.FanControl.helper` when re-signing
 - Verify with `codesign --verify --deep --strict --verbose=2` and `spctl -a -vv`
-- Zip with `ditto -c -k --keepParent FanControl.app FanControl-macOS-DeveloperID.zip`
-- Publish the zip with `gh release create` or `gh release upload` when shipping via GitHub releases
+- Zip with `ditto -c -k --keepParent FanControl.app v0_2_0.zip`, using the current project version in the filename format `vX_Y_Z.zip`
+- Publish the zip with `gh release create` or `gh release upload` when shipping via GitHub releases, and ensure the uploaded file name matches the current project version format (for example `v0_2_0.zip`)
 - Cleanup after packaging by deleting `FanControl.xcarchive` and other temporary export artifacts
 - Notarization is optional for ad-hoc sharing, required for best Gatekeeper compatibility on other Macs
 
