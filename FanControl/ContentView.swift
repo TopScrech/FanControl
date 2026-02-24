@@ -4,64 +4,44 @@ struct ContentView: View {
     @Bindable var model: FanVM
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(spacing: 14) {
             if let error = model.errorText {
-                Text(error)
-                    .foregroundStyle(.red)
-                    .textSelection(.enabled)
+                FanErrorBannerView(error: error)
             }
             
             if model.fans.isEmpty {
-                Text("No fans detected")
-                    .secondary()
+                FanEmptyStateView()
             } else {
-                Picker("Fan", selection: $model.selectedFanID) {
-                    ForEach(model.fans) {
-                        Text($0.displayName)
-                            .tag($0.id)
-                    }
-                }
-                .pickerStyle(.segmented)
+                FanPickerCardView(
+                    fans: model.fans,
+                    selectedFanID: $model.selectedFanID
+                )
                 
                 if let fan = model.selectedFan {
-                    GroupBox {
-                        VStack(alignment: .leading, spacing: 8) {
-                            LabeledContent("Mode", value: fan.modeName)
-                            LabeledContent("Current", value: fan.currentRPM.formattedRPM)
-                            LabeledContent("Target", value: fan.targetRPM.formattedRPM)
-                            LabeledContent("Min", value: fan.minRPM.formattedRPM)
-                            LabeledContent("Max", value: fan.maxRPM.formattedRPM)
+                    FanDetailsCardView(fan: fan)
+
+                    FanActionCardView(
+                        setAuto: {
+                            Task { await model.setAuto() }
+                        },
+                        setMin: {
+                            Task { await model.setManualRPM(fan.minRPM) }
+                        },
+                        setFull: {
+                            Task { await model.setManualRPM(fan.maxRPM) }
                         }
-                        .monospacedDigit()
-                    }
-                    
-                    GroupBox {
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                Button("Auto") {
-                                    Task { await model.setAuto() }
-                                }
-                                
-                                Button("Min") {
-                                    Task { await model.setManualRPM(fan.minRPM) }
-                                }
-                                
-                                Button("Full") {
-                                    Task { await model.setManualRPM(fan.maxRPM) }
-                                }
-                            }
-                        }
-                    }
+                    )
                 }
             }
         }
-        .padding(14)
-        .frame(width: 420)
-    }
-}
-
-private extension Double {
-    var formattedRPM: String {
-        "\(Int(self.rounded())) RPM"
+        .padding(16)
+        .frame(width: 430)
+        .background(
+            LinearGradient(
+                colors: [.clear, .black.opacity(0.04)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
 }
