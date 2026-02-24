@@ -172,7 +172,7 @@ final class FanVM {
         if let remoteSMC {
             return remoteSMC
         }
-
+        
         return isRoot ? localSMC : nil
     }
     
@@ -256,7 +256,7 @@ final class FanVM {
             let plistExists = fm.fileExists(atPath: plistPath)
             let systemHelperExists = fm.fileExists(atPath: systemHelperPath)
             let systemPlistExists = fm.fileExists(atPath: systemPlistPath)
-
+            
             errorText = """
 Helper not found in app bundle
 Bundle: \(bundlePath)
