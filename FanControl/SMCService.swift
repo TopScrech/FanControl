@@ -81,7 +81,7 @@ final class RemoteSMCService: SMCService {
                 finished = true
                 finish(result)
             }
-
+            
             Self.logger.info("Remote readFans request")
             DispatchQueue.global().asyncAfter(deadline: .now() + 2) {
                 finishOnce(.failure(SMCHelperClientError.remoteError("SMC helper readFans timeout")))
@@ -166,7 +166,7 @@ final class RemoteSMCService: SMCService {
             work(proxy, finishOnMain)
         }
     }
-
+    
     private func withProxyVoid(
         _ work: @escaping (FanControlXPCProtocol, @escaping (Result<Void, Error>) -> Void) -> Void
     ) async throws {

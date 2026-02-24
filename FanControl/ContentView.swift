@@ -19,7 +19,7 @@ struct ContentView: View {
                 
                 if let fan = model.selectedFan {
                     FanDetailsCardView(fan: fan)
-
+                    
                     FanActionCardView(
                         setAuto: {
                             Task { await model.setAuto() }
