@@ -1,0 +1,15 @@
+import Foundation
+
+enum SMCHelperClientError: LocalizedError {
+    case invalidProxy, remoteError(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidProxy:
+            "SMC helper connection unavailable"
+            
+        case .remoteError(let message):
+            message
+        }
+    }
+}
