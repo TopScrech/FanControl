@@ -18,12 +18,9 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
     
     var flagEmoji: String {
         switch self {
-        case .english:
-            "🇺🇸"
-        case .dutch:
-            "🇳🇱"
-        case .russian:
-            "🇷🇺"
+        case .english: "🇺🇸"
+        case .dutch: "🇳🇱"
+        case .russian: "🇷🇺"
         }
     }
     
@@ -70,12 +67,9 @@ enum AppLanguageManager {
     
     private static func option(for languageCode: String) -> AppLanguageOption {
         switch languageCode {
-        case "nl":
-            .dutch
-        case "ru":
-            .russian
-        default:
-            .english
+        case "nl": .dutch
+        case "ru": .russian
+        default: .english
         }
     }
     
