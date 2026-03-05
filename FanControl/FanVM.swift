@@ -490,6 +490,7 @@ final class FanVM {
         updateChangelogEntries = [
             UpdateChangelogEntry(
                 tagName: "v9.9.9-debug",
+                isPrerelease: true,
                 notes: String(localized: "Some release notes")
             )
         ]
@@ -869,6 +870,7 @@ final class FanVM {
     private func changelogEntry(for release: Release) -> UpdateChangelogEntry {
         UpdateChangelogEntry(
             tagName: release.tagName,
+            isPrerelease: release.isPrerelease,
             notes: releaseNotesText(for: release)
         )
     }

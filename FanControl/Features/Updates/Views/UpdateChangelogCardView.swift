@@ -5,8 +5,19 @@ struct UpdateChangelogCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(entry.tagName)
-                .font(.headline)
+            HStack(spacing: 8) {
+                Text(entry.tagName)
+                    .font(.headline)
+                
+                if entry.isPrerelease {
+                    Text("Pre-release")
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .foregroundStyle(.orange)
+                        .background(.orange.opacity(0.16), in: .capsule)
+                }
+            }
             
             Text(entry.notes)
                 .frame(maxWidth: .infinity, alignment: .leading)
