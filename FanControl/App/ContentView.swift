@@ -54,14 +54,17 @@ struct ContentView: View {
             }
         }
         .animation(.smooth(duration: 0.25), value: model.errorText)
-        .alert(
-            model.updatePromptTitle,
+        .sheet(
             isPresented: showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)
         ) {
-            Button("Not now", role: .cancel, action: cancelUpdate)
-            Button("Update", action: installPreparedUpdate)
-        } message: {
-            Text(model.updatePromptMessage)
+            UpdateSheetView(
+                title: model.updatePromptTitle,
+                summary: model.updatePromptSummary,
+                changelogEntries: model.updateChangelogEntries,
+                isInstalling: model.isCheckingForUpdates,
+                onNotNow: cancelUpdate,
+                onUpdate: installPreparedUpdate
+            )
         }
     }
     

@@ -13,6 +13,7 @@
 - Build (Release): `xcodebuild -project FanControl.xcodeproj -scheme FanControl -configuration Release -derivedDataPath ~/Library/Developer/Xcode/DerivedData/FanControl build`
 - Never use `-derivedDataPath ./build` (or any project-relative path) because it creates local DerivedData/build artifacts inside the repo
 - When creating a GitHub release, always produce a `Release` build, package `FanControl.app` as `FanControl-X.Y.Z.zip`, and upload that zip as the release asset
+- Publish all new GitHub releases as pre-releases first so they can be manually validated before general availability
 - Run locally: open `FanControl.xcodeproj` in Xcode and use Product -> Run. CLI runs can use the built `.app` in DerivedData
 - Tests: no test target is configured yet; add one in Xcode before using `xcodebuild test`
 
@@ -25,7 +26,7 @@
 - Keep helper identifier as `dev.topscrech.FanControl.helper` when re-signing
 - Verify with `codesign --verify --deep --strict --verbose=2` and `spctl -a -vv`
 - Zip with `ditto -c -k --keepParent FanControl.app FanControl-0.2.0.zip`, using the current project version in the filename format `FanControl-X.Y.Z.zip`
-- Publish the zip with `gh release create` or `gh release upload` when shipping via GitHub releases, and ensure the uploaded file name matches the required format (for example `FanControl-0.2.0.zip`)
+- Publish the zip with `gh release create` or `gh release upload` when shipping via GitHub releases, ensure the uploaded file name matches the required format (for example `FanControl-0.2.0.zip`), and create new releases as pre-releases first
 - Cleanup after packaging by deleting `FanControl.xcarchive` and other temporary export artifacts
 - Notarization is optional for ad-hoc sharing, required for best Gatekeeper compatibility on other Macs
 
