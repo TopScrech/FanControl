@@ -1,5 +1,5 @@
 {
-  "originHash" : "d70c80e562750e41f9ec184011221e1705693a613a43d1dcfb67ebd42a37d7c8",
+  "originHash" : "50bd9f6b9b802f500cb9d6c124d576b56cc434810dbc7c2df0c0bb21f2e5d69e",
   "pins" : [
     {
       "identity" : "autoupdate",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/TopScrech/AutoUpdate",
       "state" : {
         "branch" : "main",
-        "revision" : "cacb965f675f4dea40af5ec0ebe8dcb56df14472"
+        "revision" : "175f409b80b934c46941275f54f5627cbe4db4d7"
       }
     },
     {
