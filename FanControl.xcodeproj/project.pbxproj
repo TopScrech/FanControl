@@ -220,6 +220,7 @@
 				Base,
 				ru,
 				nl,
+				uk,
 			);
 			mainGroup = F3A811F72F2180AA00D96952;
 			minimizedProjectReferenceProxies = 1;
