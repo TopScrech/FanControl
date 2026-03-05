@@ -494,6 +494,7 @@ final class FanVM {
                 notes: String(localized: "Some release notes")
             )
         ]
+        
         isUpdatePromptPresented = true
     }
     
@@ -516,6 +517,7 @@ final class FanVM {
             ) {
                 $0.minRPM
             }
+            
             return
         }
         
@@ -532,6 +534,7 @@ final class FanVM {
             ) {
                 $0.maxRPM
             }
+            
             return
         }
         
