@@ -31,7 +31,7 @@ struct SettingsView: View {
             }
             
             Section("Launch") {
-                LaunchAtLogin.Toggle()
+                LaunchAtLogin.Toggle(LocalizedStringKey("Launch at login"))
                 
                 Toggle("Hide window on launch", isOn: $hideWindowOnLaunch)
             }
