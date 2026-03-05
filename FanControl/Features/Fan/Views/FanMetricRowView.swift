@@ -17,7 +17,7 @@ struct FanMetricRowView: View {
                 .truncationMode(.tail)
             
             Spacer(minLength: 0)
-
+            
             Text(value)
                 .multilineTextAlignment(.trailing)
         }

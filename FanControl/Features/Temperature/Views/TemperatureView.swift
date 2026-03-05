@@ -29,7 +29,7 @@ struct TemperatureView: View {
                     temperatureUnit: temperatureUnit,
                     showsTemperatureTenths: temperaturePrecision.showsTenths
                 )
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

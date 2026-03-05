@@ -1,95 +1,30 @@
 import ScrechKit
 import CoreSMC
-import LaunchAtLogin
 
 struct SettingsView: View {
     @Bindable var model: FanVM
     
-    @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
-    @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
-    @AppStorage("hideWindowOnLaunch") private var hideWindowOnLaunch = false
     @AppStorage(AppLanguageOption.storageKey) private var preferredAppLanguageRawValue = AppLanguageManager.defaultOption.rawValue
     
     var body: some View {
         Form {
-            Section {
-                ShareWebsiteButtonView()
-            }
+            SettingsShareSectionView()
+            SettingsLanguageSectionView(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
+            SettingsLaunchSectionView()
+            SettingsTemperatureSectionView()
             
-            Section("Language") {
-                Picker("App language", selection: $preferredAppLanguageRawValue) {
-                    ForEach(AppLanguageOption.allCases) { option in
-                        Text("\(option.flagEmoji) \(option.displayName)")
-                            .tag(option.rawValue)
-                    }
-                }
-                .pickerStyle(.menu)
-                .onChange(of: preferredAppLanguageRawValue) { _, newValue in
-                    let selectedOption = AppLanguageManager.option(from: newValue)
-                    AppLanguageManager.apply(option: selectedOption)
-                }
-            }
-            
-            Section("Launch") {
-                LaunchAtLogin.Toggle()
-                
-                Toggle("Hide window on launch", isOn: $hideWindowOnLaunch)
-            }
-            
-            Section("Temperature") {
-                Picker("Measurement unit", selection: $temperatureUnitRawValue) {
-                    ForEach(TemperatureUnit.allCases) {
-                        Text($0.title)
-                            .tag($0.rawValue)
-                    }
-                }
-                .pickerStyle(.menu)
-                
-                Picker("Precision", selection: $temperaturePrecisionRawValue) {
-                    ForEach(TemperaturePrecision.allCases) {
-                        Text($0.title)
-                            .tag($0.rawValue)
-                    }
-                }
-                .pickerStyle(.menu)
-            }
-            
-            Section("Updates") {
-                LabeledContent("Version", value: model.appVersionDescription)
-                
-                Button(action: checkForUpdates) {
-                    LabeledContent("Check for updates") {
-                        if model.isCheckingForUpdates {
-                            ProgressView()
-                                .controlSize(.small)
-                        } else {
-                            Image(systemName: "arrow.trianglehead.clockwise")
-                        }
-                    }
-                }
-                .disabled(model.isCheckingForUpdates)
-            }
+            SettingsUpdatesSectionView(
+                appVersionDescription: model.appVersionDescription,
+                isCheckingForUpdates: model.isCheckingForUpdates,
+                onCheckForUpdates: checkForUpdates
+            )
             
             if model.isDebugSectionVisible {
-                Section("Debug") {
-                    LabeledContent("Device", value: model.processorName)
-                    
-                    Button(action: model.presentFakeUpdatePrompt) {
-                        LabeledContent {
-                            Image(systemName: "arrow.trianglehead.clockwise")
-                        } label: {
-                            Text("Show fake update alert")
-                        }
-                    }
-                    
-                    Button(action: copyDebugText) {
-                        LabeledContent {
-                            Image(systemName: "document.on.document")
-                        } label: {
-                            Text("Copy all sensor data")
-                        }
-                    }
-                }
+                SettingsDebugSectionView(
+                    processorName: model.processorName,
+                    onPresentFakeUpdatePrompt: model.presentFakeUpdatePrompt,
+                    onCopyDebugText: copyDebugText
+                )
             }
         }
         .navigationTitle("Settings")

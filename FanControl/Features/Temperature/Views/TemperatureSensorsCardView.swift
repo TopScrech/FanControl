@@ -16,7 +16,10 @@ struct TemperatureSensorsCardView: View {
                     ForEach(sensors) {
                         FanMetricRowView(
                             $0.displayName,
-                            value: $0.celsius.formattedTemperature(in: temperatureUnit, showsTenths: showsTemperatureTenths)
+                            value: $0.celsius.formattedTemperature(
+                                in: temperatureUnit,
+                                showsTenths: showsTemperatureTenths
+                            )
                         )
                     }
                 }

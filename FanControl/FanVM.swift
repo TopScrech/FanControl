@@ -122,7 +122,10 @@ final class FanVM {
     
     var selectedFan: Fan? {
         guard !controlsAllFans else { return nil }
-        return fans.first(where: { $0.id == selectedFanID })
+        
+        return fans.first {
+            $0.id == selectedFanID
+        }
     }
     
     var controlsAllFans: Bool {
@@ -130,7 +133,9 @@ final class FanVM {
     }
     
     var isAnyFanSpinning: Bool {
-        fans.contains { $0.currentRPM > 0 }
+        fans.contains {
+            $0.currentRPM > 0
+        }
     }
     
     var allFansID: Int {
@@ -849,14 +854,17 @@ final class FanVM {
             
         case .notFound:
             let bundlePath = Bundle.main.bundleURL.path
+            
             let helperPath = Bundle.main.bundleURL
                 .appendingPathComponent("Contents/Library/PrivilegedHelperTools/FanControlHelper")
                 .path
+            
             let plistPath = Bundle.main.bundleURL
                 .appendingPathComponent(
                     "Contents/Library/LaunchDaemons/\(FanControlXPCConstants.launchdPlistName)"
                 )
                 .path
+            
             let systemHelperPath = "/Library/PrivilegedHelperTools/FanControlHelper"
             let systemPlistPath = "/Library/LaunchDaemons/\(FanControlXPCConstants.launchdPlistName)"
             let fm = FileManager.default
@@ -885,6 +893,7 @@ System plist exists: %@
                 String(describing: systemHelperExists),
                 String(describing: systemPlistExists)
             )
+            
         case .notRegistered:
             message = String(localized: "Helper not registered. Run from /Applications and try again")
             

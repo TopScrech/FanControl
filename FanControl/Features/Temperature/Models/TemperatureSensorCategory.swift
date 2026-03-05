@@ -16,14 +16,9 @@ enum TemperatureSensorCategory: String, CaseIterable, Identifiable {
         let normalizedName = sensor.displayName.lowercased()
         
         switch self {
-        case .battery:
-            return normalizedName.contains("battery")
-            
-        case .cpu:
-            return normalizedName.contains("cpu")
-            
-        case .gpu:
-            return normalizedName.contains("gpu")
+        case .battery: return normalizedName.contains("battery")
+        case .cpu: return normalizedName.contains("cpu")
+        case .gpu: return normalizedName.contains("gpu")
         }
     }
 }
