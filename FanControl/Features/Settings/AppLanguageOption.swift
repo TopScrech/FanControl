@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum AppLanguageOption: String, CaseIterable, Identifiable {
-    case english, dutch, russian
+    case english, dutch, russian, ukrainian
     
     static let storageKey = "preferredAppLanguageOption"
     static let appleLanguagesKey = "AppleLanguages"
@@ -13,6 +13,7 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         case .english: "English"
         case .dutch: "Nederlands"
         case .russian: "Русский"
+        case .ukrainian: "Українська"
         }
     }
     
@@ -21,6 +22,7 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         case .english: "🇺🇸"
         case .dutch: "🇳🇱"
         case .russian: "🇷🇺"
+        case .ukrainian: "🇺🇦"
         }
     }
     
@@ -29,6 +31,7 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         case .english: Locale(identifier: "en")
         case .dutch: Locale(identifier: "nl")
         case .russian: Locale(identifier: "ru")
+        case .ukrainian: Locale(identifier: "uk")
         }
     }
     
@@ -37,12 +40,13 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         case .english: "en"
         case .dutch: "nl"
         case .russian: "ru"
+        case .ukrainian: "uk"
         }
     }
 }
 
 enum AppLanguageManager {
-    private static let supportedLanguageCodes = ["en", "nl", "ru"]
+    private static let supportedLanguageCodes = ["en", "nl", "ru", "uk"]
     private static let fallbackLanguageCode = "en"
     
     static var defaultOption: AppLanguageOption {
@@ -69,6 +73,7 @@ enum AppLanguageManager {
         switch languageCode {
         case "nl": .dutch
         case "ru": .russian
+        case "uk": .ukrainian
         default: .english
         }
     }
