@@ -3,8 +3,10 @@ import SwiftUI
 @main
 struct FanControlApp: App {
     @State private var model = FanVM()
+    
     @AppStorage("hideWindowOnLaunch") private var hideWindowOnLaunch = false
     @AppStorage(AppLanguageOption.storageKey) private var preferredAppLanguageRawValue = AppLanguageManager.defaultOption.rawValue
+    
     @State private var didApplyLaunchWindowPreference = false
     
     var body: some Scene {
