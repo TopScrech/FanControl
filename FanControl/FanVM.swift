@@ -38,6 +38,7 @@ final class FanVM {
     var appVersionDescription: String {
         let info = Bundle.main.infoDictionary
         let version = info?["CFBundleShortVersionString"] as? String ?? String(localized: "Unknown")
+        
         guard version.hasPrefix("v") else { return "v\(version)" }
         return version
     }
@@ -57,6 +58,7 @@ final class FanVM {
         
         let template = String(localized: "Version %@ is ready. Do you want to install it now?")
         let baseMessage = String(format: template, locale: .current, preparedUpdate.release.tagName)
+        
         guard let releaseNotes = releaseNotesText(for: preparedUpdate) else {
             return baseMessage
         }
@@ -232,9 +234,11 @@ final class FanVM {
             let machineName = hardwareOverview.machineName?.trimmingCharacters(in: .whitespacesAndNewlines)
             let rawMachineModel = hardwareOverview.machineModel?.trimmingCharacters(in: .whitespacesAndNewlines)
             let machineModel = rawMachineModel.map(formatMachineModelIdentifier)
+            
             let chipName = normalizeChipName(
                 hardwareOverview.chipType ?? sysctlString("machdep.cpu.brand_string")
             )
+            
             let modelSize = rawMachineModel.flatMap { macBookSizeLabel(for: $0) }
             
             if let machineName, !machineName.isEmpty, let chipName, !chipName.isEmpty {
@@ -336,14 +340,10 @@ final class FanVM {
     
     nonisolated private static func macBookSizeLabel(for machineModel: String) -> String? {
         switch machineModel {
-        case "Mac15,3", "Mac15,4", "Mac15,5", "Mac15,6", "Mac15,7", "Mac15,8", "Mac15,9", "Mac16,3", "Mac16,5":
-            return "16"
-        case "Mac14,5", "Mac14,9", "Mac14,10", "Mac15,10", "Mac16,1", "Mac16,2", "Mac16,4":
-            return "14"
-        case "Mac14,2", "Mac14,15", "Mac15,12", "Mac15,13":
-            return "13"
-        default:
-            return nil
+        case "Mac15,3", "Mac15,4", "Mac15,5", "Mac15,6", "Mac15,7", "Mac15,8", "Mac15,9", "Mac16,3", "Mac16,5": "16"
+        case "Mac14,5", "Mac14,9", "Mac14,10", "Mac15,10", "Mac16,1", "Mac16,2", "Mac16,4": "14"
+        case "Mac14,2", "Mac14,15", "Mac15,12", "Mac15,13": "13"
+        default: nil
         }
     }
     
