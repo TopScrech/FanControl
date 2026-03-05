@@ -48,7 +48,7 @@ final class FanVM {
     
     var updatePromptMessage: String {
         if showsFakeUpdatePrompt {
-            return String(localized: "Version v9.9.9-debug is ready. Do you want to install it now?")
+            return "Version v9.9.9-debug is ready. Do you want to install it now?\n\nRelease notes\n- Some release notes"
         }
         
         guard let preparedUpdate else {
@@ -56,7 +56,13 @@ final class FanVM {
         }
         
         let template = String(localized: "Version %@ is ready. Do you want to install it now?")
-        return String(format: template, locale: .current, preparedUpdate.release.tagName)
+        let baseMessage = String(format: template, locale: .current, preparedUpdate.release.tagName)
+        guard let releaseNotes = releaseNotesText(for: preparedUpdate) else {
+            return baseMessage
+        }
+        
+        let releaseNotesTitle = String(localized: "Release notes")
+        return "\(baseMessage)\n\n\(releaseNotesTitle)\n\(releaseNotes)"
     }
     
     private static let logger = Logger(subsystem: "FanControl", category: "FanVM")
@@ -796,6 +802,12 @@ final class FanVM {
     
     private func clearPreparedUpdate() {
         preparedUpdate = nil
+    }
+    
+    private func releaseNotesText(for preparedUpdate: PreparedUpdate) -> String? {
+        let notes = preparedUpdate.release.body.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !notes.isEmpty else { return nil }
+        return notes
     }
     
     private func ensureHelperConnected() async -> SMAppService.Status {
