@@ -27,6 +27,9 @@ struct FanControlApp: App {
         .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(after: .appSettings) {
+                Button("Check for updates", action: checkForUpdates)
+                    .disabled(model.isCheckingForUpdates)
+                
                 Button("Show Debug Section", action: model.revealDebugSection)
                     .keyboardShortcut("d", modifiers: [.command])
             }
@@ -68,5 +71,11 @@ struct FanControlApp: App {
         let app = NSApplication.shared
         let window = app.keyWindow ?? app.mainWindow ?? app.windows.first { $0.isVisible }
         window?.orderOut(nil)
+    }
+    
+    private func checkForUpdates() {
+        Task {
+            await model.checkForUpdatesNow()
+        }
     }
 }
