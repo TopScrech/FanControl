@@ -13,11 +13,11 @@ enum TemperatureUnit: String, CaseIterable, Identifiable {
         }
     }
     
-    var pickerTitle: String {
+    var symbol: String {
         switch self {
-        case .celsius: "\(String(localized: "Celsius")) (°C)"
-        case .fahrenheit: "\(String(localized: "Fahrenheit")) (°F)"
-        case .kelvin: "\(String(localized: "Kelvin")) (K)"
+        case .celsius: "°C"
+        case .fahrenheit: "°F"
+        case .kelvin: "K"
         }
     }
 }
