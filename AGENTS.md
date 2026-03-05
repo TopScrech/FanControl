@@ -12,7 +12,7 @@
 - Build (Debug): `xcodebuild -project FanControl.xcodeproj -scheme FanControl -configuration Debug -derivedDataPath ~/Library/Developer/Xcode/DerivedData/FanControl build`
 - Build (Release): `xcodebuild -project FanControl.xcodeproj -scheme FanControl -configuration Release -derivedDataPath ~/Library/Developer/Xcode/DerivedData/FanControl build`
 - Never use `-derivedDataPath ./build` (or any project-relative path) because it creates local DerivedData/build artifacts inside the repo
-- When creating a GitHub release, always produce a `Release` build, package `FanControl.app` as `vX_Y_Z.zip`, and upload that zip as the release asset
+- When creating a GitHub release, always produce a `Release` build, package `FanControl.app` as `FanControl-X.Y.Z.zip`, and upload that zip as the release asset
 - Run locally: open `FanControl.xcodeproj` in Xcode and use Product -> Run. CLI runs can use the built `.app` in DerivedData
 - Tests: no test target is configured yet; add one in Xcode before using `xcodebuild test`
 
@@ -24,8 +24,8 @@
 - Re-sign `Contents/Library/PrivilegedHelperTools/FanControlHelper` first, then `FanControl.app`, with `Developer ID Application`
 - Keep helper identifier as `dev.topscrech.FanControl.helper` when re-signing
 - Verify with `codesign --verify --deep --strict --verbose=2` and `spctl -a -vv`
-- Zip with `ditto -c -k --keepParent FanControl.app v0_2_0.zip`, using the current project version in the filename format `vX_Y_Z.zip`
-- Publish the zip with `gh release create` or `gh release upload` when shipping via GitHub releases, and ensure the uploaded file name matches the current project version format (for example `v0_2_0.zip`)
+- Zip with `ditto -c -k --keepParent FanControl.app FanControl-0.2.0.zip`, using the current project version in the filename format `FanControl-X.Y.Z.zip`
+- Publish the zip with `gh release create` or `gh release upload` when shipping via GitHub releases, and ensure the uploaded file name matches the required format (for example `FanControl-0.2.0.zip`)
 - Cleanup after packaging by deleting `FanControl.xcarchive` and other temporary export artifacts
 - Notarization is optional for ad-hoc sharing, required for best Gatekeeper compatibility on other Macs
 
