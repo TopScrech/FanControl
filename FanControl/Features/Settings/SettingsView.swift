@@ -4,8 +4,6 @@ import CoreSMC
 struct SettingsView: View {
     @Bindable var model: FanVM
     
-    @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
-    @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     @AppStorage(AppLanguageOption.storageKey) private var preferredAppLanguageRawValue = AppLanguageManager.defaultOption.rawValue
     
     var body: some View {
@@ -13,11 +11,7 @@ struct SettingsView: View {
             SettingsShareSectionView()
             SettingsLanguageSectionView(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
             SettingsLaunchSectionView()
-            
-            SettingsTemperatureSectionView(
-                temperatureUnitRawValue: $temperatureUnitRawValue,
-                temperaturePrecisionRawValue: $temperaturePrecisionRawValue
-            )
+            SettingsTemperatureSectionView()
             
             SettingsUpdatesSectionView(
                 appVersionDescription: model.appVersionDescription,

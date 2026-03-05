@@ -1,9 +1,9 @@
-import ScrechKit
+import SwiftUI
 
 struct SettingsTemperatureSectionView: View {
-    @Binding var temperatureUnitRawValue: String
-    @Binding var temperaturePrecisionRawValue: String
-
+    @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
+    @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
+    
     var body: some View {
         Section("Temperature") {
             Picker("Measurement unit", selection: $temperatureUnitRawValue) {
@@ -13,7 +13,7 @@ struct SettingsTemperatureSectionView: View {
                 }
             }
             .pickerStyle(.menu)
-
+            
             Picker("Precision", selection: $temperaturePrecisionRawValue) {
                 ForEach(TemperaturePrecision.allCases) {
                     Text($0.title)
