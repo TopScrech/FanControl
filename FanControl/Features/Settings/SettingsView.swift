@@ -39,7 +39,7 @@ struct SettingsView: View {
             Section("Temperature") {
                 Picker("Measurement unit", selection: $temperatureUnitRawValue) {
                     ForEach(TemperatureUnit.allCases) {
-                        Text($0.title)
+                        Text($0.pickerTitle)
                             .tag($0.rawValue)
                     }
                 }
