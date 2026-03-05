@@ -11,7 +11,8 @@
             "value" : "%1$@ %2$@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%lld RPM" : {
       "comment" : "A button that, when pressed, sets the fan speed to a specific RPM. The button's label displays the RPM value.",
