@@ -10,7 +10,7 @@ Controls fan speed using a privileged helper for secure SMC write access
 
 ## Build command
 
-Requires Xcode 26.4+ and access to a private [CoreSMC](https://github.com/TopScrech/CoreSMC) library
+Requires Xcode 26.4+ and private access to the [CoreSMC](https://github.com/TopScrech/CoreSMC) library
 
 Archive & save to Downloads
 ```
