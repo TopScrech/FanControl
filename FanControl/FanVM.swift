@@ -6,8 +6,11 @@ import AutoUpdate
 
 @Observable
 final class FanVM {
+    private static let updateRepositoryOwner = "TopScrech"
+    private static let updateRepositoryName = "FanControl"
     private static let allFansSelectionID = -1
     private static let selectedFanIDDefaultsKey = "selectedFanID"
+    private static let allowPrereleaseUpdatesDefaultsKey = "allowPrereleaseUpdates"
     private static let manualRetryAttempts = 15
     private static let manualRetryInterval: Duration = .seconds(1)
     private static let presetStepRPM = 500
@@ -22,6 +25,7 @@ final class FanVM {
     var controlAttemptTargetMode: FanControlMode?
     var isCheckingForUpdates = false
     var updateStatusText = String(localized: "Not checked yet")
+    var updateChangelogEntries: [UpdateChangelogEntry] = []
     var isUpdatePromptPresented = false
     var isSettingsOpen = false
     var isDebugSectionVisible = false
@@ -29,6 +33,17 @@ final class FanVM {
     var selectedFanID = 0 {
         didSet {
             UserDefaults.standard.set(selectedFanID, forKey: Self.selectedFanIDDefaultsKey)
+        }
+    }
+    
+    var allowsPrereleaseUpdates = UserDefaults.standard.bool(forKey: FanVM.allowPrereleaseUpdatesDefaultsKey) {
+        didSet {
+            UserDefaults.standard.set(allowsPrereleaseUpdates, forKey: Self.allowPrereleaseUpdatesDefaultsKey)
+            
+            let allowsPrereleaseUpdates = allowsPrereleaseUpdates
+            Task {
+                await appUpdater.setAllowPrereleases(allowsPrereleaseUpdates)
+            }
         }
     }
     
@@ -47,30 +62,23 @@ final class FanVM {
         String(localized: "Update available")
     }
     
-    var updatePromptMessage: String {
-        if showsFakeUpdatePrompt {
-            return "Version v9.9.9-debug is ready. Do you want to install it now?\n\nRelease notes\n- Some release notes"
-        }
-        
-        guard let preparedUpdate else {
-            return String(localized: "A new version of FanControl is ready. Do you want to install it now?")
-        }
-        
+    var updatePromptSummary: String {
         let template = String(localized: "Version %@ is ready. Do you want to install it now?")
-        let baseMessage = String(format: template, locale: .current, preparedUpdate.release.tagName)
-        
-        guard let releaseNotes = releaseNotesText(for: preparedUpdate) else {
-            return baseMessage
+        return String(format: template, locale: .current, updateTargetVersionTag)
+    }
+    
+    var updateTargetVersionTag: String {
+        if showsFakeUpdatePrompt {
+            return "v9.9.9-debug"
         }
         
-        let releaseNotesTitle = String(localized: "Release notes")
-        return "\(baseMessage)\n\n\(releaseNotesTitle)\n\(releaseNotes)"
+        return preparedUpdate?.release.tagName ?? String(localized: "Unknown")
     }
     
     private static let logger = Logger(subsystem: "FanControl", category: "FanVM")
     private let localSMC: LocalSMCService?
     private var remoteSMC: RemoteSMCService?
-    private let appUpdater = AppUpdater(owner: "TopScrech", repository: "FanControl")
+    private let appUpdater = AppUpdater(owner: FanVM.updateRepositoryOwner, repository: FanVM.updateRepositoryName)
     private var preparedUpdate: PreparedUpdate?
     private var showsFakeUpdatePrompt = false
     private var automaticUpdateTask: Task<Void, Never>?
@@ -109,6 +117,7 @@ final class FanVM {
         connectHelperIfAvailable()
         
         Task {
+            await appUpdater.setAllowPrereleases(allowsPrereleaseUpdates)
             await startAutomaticUpdateChecks()
             await checkForUpdatesOnLaunch()
             await refresh()
@@ -409,6 +418,7 @@ final class FanVM {
                 
             case .prepared(let preparedUpdate):
                 await setPreparedUpdate(preparedUpdate)
+                updateChangelogEntries = await loadUpdateChangelogEntries(for: preparedUpdate.release)
                 let template = String(localized: "Update available: %@")
                 updateStatusText = String(format: template, locale: .current, preparedUpdate.release.tagName)
                 Self.logger.info("Update prepared tag=\(preparedUpdate.release.tagName)")
@@ -427,6 +437,7 @@ final class FanVM {
         
         if showsFakeUpdatePrompt {
             showsFakeUpdatePrompt = false
+            updateChangelogEntries = []
             isUpdatePromptPresented = false
             return
         }
@@ -456,6 +467,7 @@ final class FanVM {
         
         if showsFakeUpdatePrompt {
             showsFakeUpdatePrompt = false
+            updateChangelogEntries = []
             return
         }
         
@@ -475,6 +487,12 @@ final class FanVM {
     
     func presentFakeUpdatePrompt() {
         showsFakeUpdatePrompt = true
+        updateChangelogEntries = [
+            UpdateChangelogEntry(
+                tagName: "v9.9.9-debug",
+                notes: String(localized: "Some release notes")
+            )
+        ]
         isUpdatePromptPresented = true
     }
     
@@ -783,6 +801,7 @@ final class FanVM {
                 
             case .prepared(let preparedUpdate):
                 await setPreparedUpdate(preparedUpdate)
+                updateChangelogEntries = await loadUpdateChangelogEntries(for: preparedUpdate.release)
                 let template = String(localized: "Update available: %@")
                 updateStatusText = String(format: template, locale: .current, preparedUpdate.release.tagName)
                 isUpdatePromptPresented = true
@@ -802,11 +821,78 @@ final class FanVM {
     
     private func clearPreparedUpdate() {
         preparedUpdate = nil
+        updateChangelogEntries = []
     }
     
-    private func releaseNotesText(for preparedUpdate: PreparedUpdate) -> String? {
-        let notes = preparedUpdate.release.body.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !notes.isEmpty else { return nil }
+    private func loadUpdateChangelogEntries(for targetRelease: Release) async -> [UpdateChangelogEntry] {
+        guard
+            let currentVersion = currentAppSemanticVersion(),
+            let targetVersion = targetRelease.semanticVersion
+        else {
+            return [changelogEntry(for: targetRelease)]
+        }
+        
+        do {
+            let releases = try await GitHubReleaseProvider(session: .shared).releases(
+                owner: Self.updateRepositoryOwner,
+                repository: Self.updateRepositoryName
+            )
+            
+            let changelogEntries = releases
+                .compactMap { release -> (Release, SemanticVersion)? in
+                    guard let version = release.semanticVersion else { return nil }
+                    return (release, version)
+                }
+                .filter { release, version in
+                    version > currentVersion &&
+                    version <= targetVersion &&
+                    (allowsPrereleaseUpdates || !release.isPrerelease)
+                }
+                .sorted { lhs, rhs in
+                    lhs.1 < rhs.1
+                }
+                .map {
+                    changelogEntry(for: $0.0)
+                }
+            
+            if changelogEntries.isEmpty {
+                return [changelogEntry(for: targetRelease)]
+            }
+            
+            return changelogEntries
+        } catch {
+            Self.logger.error("Failed to fetch intermediate changelogs: \(error.localizedDescription)")
+            return [changelogEntry(for: targetRelease)]
+        }
+    }
+    
+    private func changelogEntry(for release: Release) -> UpdateChangelogEntry {
+        UpdateChangelogEntry(
+            tagName: release.tagName,
+            notes: releaseNotesText(for: release)
+        )
+    }
+    
+    private func currentAppSemanticVersion() -> SemanticVersion? {
+        let info = Bundle.main.infoDictionary
+        
+        guard let version = (
+            info?["CFBundleShortVersionString"] as? String ??
+            info?["CFBundleVersion"] as? String
+        ) else {
+            return nil
+        }
+        
+        return try? SemanticVersion(parsing: version)
+    }
+    
+    private func releaseNotesText(for release: Release) -> String {
+        let notes = release.body.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if notes.isEmpty {
+            return String(localized: "No release notes")
+        }
+        
         return notes
     }
     
