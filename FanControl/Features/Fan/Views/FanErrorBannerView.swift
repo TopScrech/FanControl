@@ -25,7 +25,7 @@ struct FanErrorBannerView: View {
                 .help("Dismiss")
                 .padding(.top, 2)
                 .padding(.leading, 2)
-                .foregroundStyle(.secondary)
+                .secondary()
         }
         .padding(10)
         .background(.red.opacity(0.12), in: .rect(cornerRadius: 10))

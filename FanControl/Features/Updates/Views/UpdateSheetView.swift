@@ -14,7 +14,7 @@ struct UpdateSheetView: View {
                 .title2(.semibold)
             
             Text(summary)
-                .foregroundStyle(.secondary)
+                .secondary()
             
             Text("Release notes")
                 .headline()
