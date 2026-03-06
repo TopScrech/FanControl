@@ -70,8 +70,8 @@ struct FanControlApp: App {
     private func applyLaunchWindowPreference() async {
         guard !didApplyLaunchWindowPreference else { return }
         didApplyLaunchWindowPreference = true
-        guard hideWindowOnLaunch else { return }
         
+        guard hideWindowOnLaunch else { return }
         await Task.yield()
         
         let app = NSApplication.shared
