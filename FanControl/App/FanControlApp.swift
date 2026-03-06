@@ -8,6 +8,10 @@ struct FanControlApp: App {
     @AppStorage(AppLanguageOption.storageKey) private var preferredAppLanguageRawValue = AppLanguageManager.defaultOption.rawValue
     
     @State private var didApplyLaunchWindowPreference = false
+
+    init() {
+        AppDownloadsMovePrompter.promptIfNeeded()
+    }
     
     var body: some Scene {
         WindowGroup(id: "main") {
