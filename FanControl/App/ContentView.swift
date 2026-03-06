@@ -35,11 +35,12 @@ struct ContentView: View {
             
             HStack(alignment: .top, spacing: 12) {
                 FanControlsView(model: model)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
                 
                 FanSensorsColumnView(sensors: model.temperatureSensors)
                     .frame(width: 280)
-                    .frame(maxHeight: .infinity, alignment: .top)
+                    .fanCardSurface()
+                    .frame(maxHeight: 400, alignment: .topLeading)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }

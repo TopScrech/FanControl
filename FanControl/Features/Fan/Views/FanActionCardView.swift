@@ -84,6 +84,7 @@ struct FanActionCardView: View {
         .controlSize(.large)
         .animation(.easeInOut(duration: 0.2), value: activeMode)
         .animation(.easeInOut(duration: 0.2), value: isSendingAttempts)
+        .frame(maxHeight: .infinity)
         .fanCardSurface()
     }
 }

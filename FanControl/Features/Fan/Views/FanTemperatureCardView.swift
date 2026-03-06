@@ -50,7 +50,6 @@ struct FanTemperatureCardView: View {
                 }
             }
         }
-        .fanCardSurface()
     }
     
     private var averageRows: [TemperatureAverageRow] {
