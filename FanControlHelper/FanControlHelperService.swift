@@ -35,21 +35,6 @@ final class FanControlHelperService: NSObject, FanControlXPCProtocol {
         }
     }
     
-    func readTemperatureSensors(withReply reply: @escaping ([TemperatureSensorSnapshot]?, String?) -> Void) {
-        guard let smc else {
-            reply(nil, initError ?? "SMC unavailable")
-            return
-        }
-        
-        do {
-            let sensors = try smc.readTemperatureSensors()
-            reply(sensors.map(TemperatureSensorSnapshot.init(sensor:)), nil)
-        } catch {
-            Self.logger.error("readTemperatureSensors failed: \(error.localizedDescription)")
-            reply(nil, error.localizedDescription)
-        }
-    }
-    
     func setManualRPM(fanID: Int, rpm: Double, withReply reply: @escaping (String?) -> Void) {
         guard let smc else {
             reply(initError ?? "SMC unavailable")

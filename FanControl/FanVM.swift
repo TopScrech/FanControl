@@ -18,6 +18,7 @@ final class FanVM {
     private static let errorDisplaySeconds = 5.0
     private static let errorDisplayDuration: Duration = .seconds(errorDisplaySeconds)
     private static let updateCheckIntervalSeconds = 24.0 * 60 * 60
+    private static let licenseOfflineGracePeriodSeconds = 7.0 * 24 * 60 * 60
     
     var fans: [Fan] = []
     var temperatureSensors: [TemperatureSensor] = []
@@ -48,6 +49,11 @@ final class FanVM {
     }
     
     var errorText: String?
+    var licenseEmail = ""
+    var licenseKey = ""
+    var isCheckingLicense = false
+    var isLicenseActive = false
+    var licenseStatusText = String(localized: "No saved license")
     let processorName: String
     
     var appVersionDescription: String {
@@ -78,7 +84,10 @@ final class FanVM {
     private static let logger = Logger(subsystem: "FanControl", category: "FanVM")
     private let localSMC: LocalSMCService?
     private var remoteSMC: RemoteSMCService?
+    private let temperatureSensorService = ISMCTemperatureSensorService()
     private let appUpdater = AppUpdater(owner: FanVM.updateRepositoryOwner, repository: FanVM.updateRepositoryName)
+    private let licenseVerificationService = LicenseVerificationService()
+    private let licenseCredentialStore = LicenseCredentialStore()
     private var preparedUpdate: PreparedUpdate?
     private var showsFakeUpdatePrompt = false
     private var automaticUpdateTask: Task<Void, Never>?
@@ -113,6 +122,8 @@ final class FanVM {
                 presentError(localError)
             }
         }
+
+        loadStoredLicenseState()
         
         connectHelperIfAvailable()
         
@@ -120,6 +131,7 @@ final class FanVM {
             await appUpdater.setAllowPrereleases(allowsPrereleaseUpdates)
             await startAutomaticUpdateChecks()
             await checkForUpdatesOnLaunch()
+            await verifySavedLicenseOnLaunch()
             await refresh()
         }
         
@@ -154,9 +166,17 @@ final class FanVM {
             $0.currentRPM > 0
         }
     }
+
+    var canUsePresetControl: Bool {
+        isLicenseActive
+    }
     
     var allFansID: Int {
         Self.allFansSelectionID
+    }
+
+    var showsAllFansOption: Bool {
+        fans.count > 1
     }
     
     var controlMinRPM: Double? {
@@ -376,29 +396,45 @@ final class FanVM {
     }
     
     func refresh() async {
-        guard let smc = activeService else {
-            Self.logger.info("Refresh skipped: no active SMC service")
-            return
+        Self.logger.info("Refresh starting")
+        
+        var refreshError: Error?
+        
+        if let smc = activeService {
+            do {
+                let snapshots = try await smc.readFans()
+                Self.logger.info("Refresh readFans count=\(snapshots.count)")
+                fans = snapshots
+                
+                if fans.isEmpty {
+                    selectedFanID = Self.allFansSelectionID
+                } else if fans.count == 1 {
+                    selectedFanID = fans[0].id
+                } else if !controlsAllFans, !fans.contains(where: { $0.id == selectedFanID }) {
+                    selectedFanID = fans[0].id
+                }
+            } catch {
+                refreshError = error
+                Self.logger.error("Refresh readFans failed: \(error.localizedDescription)")
+            }
+        } else {
+            Self.logger.info("Refresh fan read skipped: no active SMC service")
         }
         
         do {
-            Self.logger.info("Refresh starting")
-            let snapshots = try await smc.readFans()
-            Self.logger.info("Refresh readFans count=\(snapshots.count)")
-            let sensors = try await smc.readTemperatureSensors()
+            let sensors = try await temperatureSensorService.readTemperatureSensors()
             Self.logger.info("Refresh readTemperatureSensors count=\(sensors.count)")
-            fans = snapshots
             temperatureSensors = sensors
-            
-            if fans.isEmpty {
-                selectedFanID = Self.allFansSelectionID
-            } else if !controlsAllFans, !fans.contains(where: { $0.id == selectedFanID }) {
-                selectedFanID = fans[0].id
-            }
         } catch {
-            presentError(error.localizedDescription)
+            if refreshError == nil {
+                refreshError = error
+            }
             temperatureSensors = []
-            Self.logger.error("Refresh failed: \(error.localizedDescription)")
+            Self.logger.error("Refresh readTemperatureSensors failed: \(error.localizedDescription)")
+        }
+        
+        if let refreshError {
+            presentError(refreshError.localizedDescription)
         }
     }
     
@@ -490,13 +526,61 @@ final class FanVM {
         updateChangelogEntries = [
             UpdateChangelogEntry(
                 tagName: "v9.9.9-debug",
+                isPrerelease: true,
                 notes: String(localized: "Some release notes")
             )
         ]
+        
         isUpdatePromptPresented = true
+    }
+
+    func verifyLicenseNow() async {
+        let email = self.licenseEmail.trimmingCharacters(in: .whitespacesAndNewlines)
+        let licenseKey = self.licenseKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !email.isEmpty, !licenseKey.isEmpty else {
+            licenseStatusText = String(localized: "Email and license key are required")
+            isLicenseActive = false
+            return
+        }
+
+        await verifyLicense(
+            email: email,
+            licenseKey: licenseKey,
+            shouldSaveCredentials: true
+        )
+    }
+
+    func clearSavedLicense() async {
+        do {
+            if let savedCredentials = licenseCredentialStore.loadCredentials() {
+                guard let deviceIdentifier = MacDeviceIdentityProvider.deviceIdentifier() else {
+                    presentError("Could not identify this Mac for license reset")
+                    return
+                }
+
+                _ = try await licenseVerificationService.removeDevice(
+                    email: savedCredentials.email,
+                    licenseKey: savedCredentials.licenseKey,
+                    deviceIdentifier: deviceIdentifier
+                )
+            }
+
+            try licenseCredentialStore.clearCredentials()
+            licenseEmail = ""
+            licenseKey = ""
+            isLicenseActive = false
+            licenseStatusText = String(localized: "No saved license")
+        } catch {
+            presentError(error.localizedDescription)
+        }
     }
     
     func setManualRPM(_ rpm: Double, targetMode: FanControlMode = .preset) async {
+        if targetMode == .preset, !isLicenseActive {
+            presentError(String(localized: "Preset control requires an active license"))
+            return
+        }
+
         await applyManualRPM(
             requestSummary: "Manual request rpm=\(rpm)",
             actionSummary: "Manual applied rpm=\(rpm)",
@@ -515,6 +599,7 @@ final class FanVM {
             ) {
                 $0.minRPM
             }
+            
             return
         }
         
@@ -531,6 +616,7 @@ final class FanVM {
             ) {
                 $0.maxRPM
             }
+            
             return
         }
         
@@ -785,6 +871,17 @@ final class FanVM {
     private func checkForUpdatesOnLaunch() async {
         await checkForUpdatesAutomatically()
     }
+
+    private func verifySavedLicenseOnLaunch() async {
+        guard let savedCredentials = licenseCredentialStore.loadCredentials() else { return }
+        licenseEmail = savedCredentials.email
+        licenseKey = savedCredentials.licenseKey
+        await verifyLicense(
+            email: savedCredentials.email,
+            licenseKey: savedCredentials.licenseKey,
+            shouldSaveCredentials: false
+        )
+    }
     
     private func checkForUpdatesAutomatically() async {
         guard !isCheckingForUpdates else { return }
@@ -869,6 +966,7 @@ final class FanVM {
     private func changelogEntry(for release: Release) -> UpdateChangelogEntry {
         UpdateChangelogEntry(
             tagName: release.tagName,
+            isPrerelease: release.isPrerelease,
             notes: releaseNotesText(for: release)
         )
     }
@@ -894,6 +992,134 @@ final class FanVM {
         }
         
         return notes
+    }
+
+    private func verifyLicense(
+        email: String,
+        licenseKey: String,
+        shouldSaveCredentials: Bool
+    ) async {
+        guard !isCheckingLicense else { return }
+
+        isCheckingLicense = true
+        defer { isCheckingLicense = false }
+
+        let deviceName = MacDeviceIdentityProvider.deviceName()
+        let deviceIdentifier = MacDeviceIdentityProvider.deviceIdentifier()
+        let osVersion = MacDeviceIdentityProvider.osVersion()
+
+        do {
+            let verifiedAt = Date()
+            let result = try await licenseVerificationService.verify(
+                email: email,
+                licenseKey: licenseKey,
+                deviceName: deviceName,
+                deviceIdentifier: deviceIdentifier,
+                os: osVersion
+            )
+
+            licenseCredentialStore.saveLastCheck(reason: result.reason, date: verifiedAt)
+            licenseStatusText = Self.licenseStatusText(reason: result.reason, date: verifiedAt)
+            isLicenseActive = result.valid
+
+            if result.reason == .active {
+                licenseCredentialStore.saveLastActiveValidationDate(verifiedAt)
+            } else {
+                licenseCredentialStore.clearLastActiveValidationDate()
+            }
+
+            if shouldSaveCredentials, result.valid {
+                try licenseCredentialStore.saveCredentials(
+                    email: email,
+                    licenseKey: licenseKey
+                )
+            }
+        } catch {
+            if applyOfflineGracePeriodIfAvailable() {
+                return
+            }
+
+            isLicenseActive = false
+            licenseStatusText = expiredLicenseGracePeriodStatusText() ?? String(localized: "License check failed")
+            presentError(error.localizedDescription)
+        }
+    }
+
+    private func loadStoredLicenseState() {
+        guard let savedCredentials = licenseCredentialStore.loadCredentials() else {
+            licenseStatusText = String(localized: "No saved license")
+            isLicenseActive = false
+            return
+        }
+
+        licenseEmail = savedCredentials.email
+        licenseKey = savedCredentials.licenseKey
+        licenseStatusText = String(localized: "Saved license will be checked on launch")
+
+        if let reason = licenseCredentialStore.loadLastCheckReason(),
+           let date = licenseCredentialStore.loadLastCheckDate() {
+            licenseStatusText = Self.licenseStatusText(reason: reason, date: date)
+            isLicenseActive = reason == .active
+        }
+
+        if isLicenseActive {
+            if !applyOfflineGracePeriodIfAvailable() {
+                isLicenseActive = false
+                licenseStatusText = expiredLicenseGracePeriodStatusText() ?? String(localized: "License check required")
+            }
+        }
+    }
+
+    private static func licenseStatusText(reason: LicenseVerificationReason, date: Date) -> String {
+        let checkedAtText = date.formatted(date: .abbreviated, time: .shortened)
+        return "\(reason.localizedStatusText) (\(checkedAtText))"
+    }
+
+    private func applyOfflineGracePeriodIfAvailable() -> Bool {
+        guard let lastActiveValidationDate = licenseCredentialStore.loadLastActiveValidationDate() else {
+            return false
+        }
+
+        let gracePeriodDeadline = lastActiveValidationDate.addingTimeInterval(Self.licenseOfflineGracePeriodSeconds)
+        let now = Date()
+        guard now <= gracePeriodDeadline else {
+            return false
+        }
+
+        isLicenseActive = true
+        licenseStatusText = Self.offlineGracePeriodStatusText(
+            lastActiveValidationDate: lastActiveValidationDate,
+            gracePeriodDeadline: gracePeriodDeadline
+        )
+        return true
+    }
+
+    private func expiredLicenseGracePeriodStatusText() -> String? {
+        guard let lastActiveValidationDate = licenseCredentialStore.loadLastActiveValidationDate() else {
+            return nil
+        }
+
+        let gracePeriodDeadline = lastActiveValidationDate.addingTimeInterval(Self.licenseOfflineGracePeriodSeconds)
+        guard Date() > gracePeriodDeadline else { return nil }
+        return Self.offlineGracePeriodExpiredStatusText(gracePeriodDeadline: gracePeriodDeadline)
+    }
+
+    private static func offlineGracePeriodStatusText(
+        lastActiveValidationDate: Date,
+        gracePeriodDeadline: Date
+    ) -> String {
+        let lastVerifiedText = lastActiveValidationDate.formatted(date: .abbreviated, time: .shortened)
+        let deadlineText = gracePeriodDeadline.formatted(date: .abbreviated, time: .shortened)
+        return String(
+            localized: "License active offline until \(deadlineText) (last verified \(lastVerifiedText))"
+        )
+    }
+
+    private static func offlineGracePeriodExpiredStatusText(gracePeriodDeadline: Date) -> String {
+        let deadlineText = gracePeriodDeadline.formatted(date: .abbreviated, time: .shortened)
+        return String(
+            localized: "License deactivated after no verification for 7 days (deadline \(deadlineText))"
+        )
     }
     
     private func ensureHelperConnected() async -> SMAppService.Status {

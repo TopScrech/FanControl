@@ -61,20 +61,6 @@ final class RemoteSMCService: SMCService {
         }
     }
     
-    func readTemperatureSensors() async throws -> [TemperatureSensor] {
-        try await withProxy { proxy, finish in
-            proxy.readTemperatureSensors { snapshots, error in
-                if let error {
-                    finish(.failure(SMCHelperClientError.remoteError(error)))
-                    return
-                }
-                
-                let sensors = (snapshots ?? []).map(TemperatureSensor.init(snapshot:))
-                finish(.success(sensors))
-            }
-        }
-    }
-    
     func setFanManualRPM(fanID: Int, rpm: Double) async throws {
         try await withProxyVoid { proxy, finish in
             proxy.setManualRPM(fanID: fanID, rpm: rpm) { error in

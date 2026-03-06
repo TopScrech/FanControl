@@ -25,12 +25,12 @@ struct FanErrorBannerView: View {
                 .help("Dismiss")
                 .padding(.top, 2)
                 .padding(.leading, 2)
-                .foregroundStyle(.secondary)
+                .secondary()
         }
         .padding(10)
         .background(.red.opacity(0.12), in: .rect(cornerRadius: 10))
         .overlay {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: 10)
                 .stroke(.red.opacity(0.25), lineWidth: 1)
         }
     }

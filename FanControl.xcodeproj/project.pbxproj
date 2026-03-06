@@ -151,6 +151,7 @@
 				F3A811FD2F2180AA00D96952 /* Frameworks */,
 				F3A811FE2F2180AA00D96952 /* Resources */,
 				F3B0001A2F5A000100000008 /* Copy Helper */,
+				F3D9A0052F70000100A0B001 /* Embed iSMC */,
 				F3B0001A2F5A000100000009 /* Copy LaunchDaemons */,
 			);
 			buildRules = (
@@ -250,6 +251,43 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		F3D9A0052F70000100A0B001 /* Embed iSMC */ = {
+			isa = PBXShellScriptBuildPhase;
+			inputPaths = (
+				"$(PROJECT_DIR)/Vendor/iSMC/iSMC",
+			);
+			name = "Embed iSMC";
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/iSMC",
+				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/PrivilegedHelperTools/iSMC",
+			);
+			shellPath = /bin/sh;
+			shellScript = (
+				"#!/bin/bash",
+				"set -euo pipefail",
+				"",
+				"source_binary=\"$PROJECT_DIR/Vendor/iSMC/iSMC\"",
+				"resource_binary=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/iSMC\"",
+				"helper_binary=\"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Library/PrivilegedHelperTools/iSMC\"",
+				"",
+				"if [ ! -x \"$source_binary\" ]; then",
+				"echo \"error: Missing vendored iSMC executable at $source_binary\"",
+				"exit 1",
+				"fi",
+				"",
+				"mkdir -p \"$(dirname \"$resource_binary\")\"",
+				"cp \"$source_binary\" \"$resource_binary\"",
+				"chmod 755 \"$resource_binary\"",
+				"",
+				"mkdir -p \"$(dirname \"$helper_binary\")\"",
+				"cp \"$source_binary\" \"$helper_binary\"",
+				"chmod 755 \"$helper_binary\"",
+				"",
+			);
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		F3A811FC2F2180AA00D96952 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -330,7 +368,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -396,7 +434,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;

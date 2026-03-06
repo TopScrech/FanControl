@@ -2,6 +2,7 @@ import ScrechKit
 
 struct ContentView: View {
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
     
     @Bindable var model: FanVM
     let showsHideWindowButton: Bool
@@ -12,6 +13,17 @@ struct ContentView: View {
             HStack {
                 Text("FanControl")
                     .title3(.semibold)
+                
+                if showsHideWindowButton && !model.isLicenseActive {
+                    Button("License inactive", action: openLicenseSettings)
+                        .caption()
+                        .bold()
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .foregroundStyle(.orange)
+                        .background(.orange.opacity(0.16), in: .capsule)
+                        .buttonStyle(.plain)
+                }
                 
                 Spacer(minLength: 0)
                 
@@ -33,11 +45,20 @@ struct ContentView: View {
                     )
             }
             
-            FanControlsView(model: model)
+            HStack(alignment: .top, spacing: 12) {
+                FanControlsView(model: model)
+                    .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
+                
+                FanSensorsColumnView(sensors: model.temperatureSensors)
+                    .frame(width: 280)
+                    .fanCardSurface()
+                    .frame(maxHeight: 400, alignment: .topLeading)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
-        .frame(width: 350)
+        .frame(width: 680)
         .background {
             ZStack {
                 LinearGradient(
@@ -54,9 +75,7 @@ struct ContentView: View {
             }
         }
         .animation(.smooth(duration: 0.25), value: model.errorText)
-        .sheet(
-            isPresented: showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)
-        ) {
+        .sheet(showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)) {
             UpdateSheetView(
                 title: model.updatePromptTitle,
                 summary: model.updatePromptSummary,
@@ -91,4 +110,7 @@ struct ContentView: View {
         NSApplication.shared.keyWindow?.orderOut(nil)
     }
     
+    private func openLicenseSettings() {
+        openSettings()
+    }
 }

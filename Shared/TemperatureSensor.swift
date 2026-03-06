@@ -1,11 +1,9 @@
-import CoreSMC
-
-extension TemperatureSensor {
-    nonisolated init(snapshot: TemperatureSensorSnapshot) {
-        self.init(
-            key: snapshot.key,
-            celsius: snapshot.celsius,
-            displayName: snapshot.displayName
-        )
+struct TemperatureSensor: Identifiable, Equatable, Sendable {
+    let key: String
+    let celsius: Double
+    let displayName: String
+    
+    var id: String {
+        "\(displayName):\(key)"
     }
 }

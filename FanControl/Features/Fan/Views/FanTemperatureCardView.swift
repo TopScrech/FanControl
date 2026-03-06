@@ -1,13 +1,10 @@
 import ScrechKit
-import CoreSMC
 
 struct FanTemperatureCardView: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     
     let sensors: [TemperatureSensor]
-    
-    @State private var showsMoreSensors = false
     
     private var temperatureUnit: TemperatureUnit {
         TemperatureUnit(rawValue: temperatureUnitRawValue) ?? .celsius
@@ -17,30 +14,11 @@ struct FanTemperatureCardView: View {
         TemperaturePrecision(rawValue: temperaturePrecisionRawValue) ?? .whole
     }
     
-    private var otherSensors: [TemperatureSensor] {
-        sensors.filter { sensor in
-            !TemperatureSensorCategory.allCases.contains {
-                $0.contains(sensor: sensor)
-            }
-        }
-    }
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 Label("Sensors", systemImage: "thermometer.medium")
                     .headline()
-                
-                Spacer(minLength: 0)
-                
-                if !otherSensors.isEmpty {
-                    Button(showsMoreSensors ? "Show less" : "Show more") {
-                        showsMoreSensors.toggle()
-                    }
-                    .buttonStyle(.plain)
-                    .footnote()
-                    .secondary()
-                }
             }
             
             VStack(alignment: .leading, spacing: 8) {
@@ -50,35 +28,29 @@ struct FanTemperatureCardView: View {
             }
             .monospacedDigit()
             
-            VStack(alignment: .leading, spacing: 0) {
-                if showsMoreSensors {
+            VStack(alignment: .leading, spacing: 8) {
+                if sensors.isEmpty {
+                    Text("No sensors available")
+                        .secondary()
+                } else {
+                    Divider()
+                        .overlay(.primary.opacity(0.22))
+                    
                     VStack(alignment: .leading, spacing: 8) {
-                        if otherSensors.isEmpty {
-                            Text("No sensors available")
-                                .secondary()
-                        } else {
-                            Divider()
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                ForEach(otherSensors) {
-                                    FanMetricRowView(
-                                        $0.displayName,
-                                        value: $0.celsius.formattedTemperature(
-                                            in: temperatureUnit,
-                                            showsTenths: temperaturePrecision.showsTenths
-                                        )
-                                    )
-                                }
-                            }
-                            .monospacedDigit()
+                        ForEach(sensors) {
+                            FanMetricRowView(
+                                $0.displayName,
+                                value: $0.celsius.formattedTemperature(
+                                    in: temperatureUnit,
+                                    showsTenths: temperaturePrecision.showsTenths
+                                )
+                            )
                         }
                     }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .monospacedDigit()
                 }
             }
-            .animation(.smooth(duration: 0.25), value: showsMoreSensors)
         }
-        .fanCardSurface()
     }
     
     private var averageRows: [TemperatureAverageRow] {

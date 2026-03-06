@@ -9,7 +9,7 @@ struct FanCardSurface: ViewModifier {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.thinMaterial, in: .rect(cornerRadius: 14))
             .overlay {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: 14)
                     .stroke(.white.opacity(0.16), lineWidth: 1)
             }
             .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)

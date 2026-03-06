@@ -8,6 +8,10 @@ struct FanControlApp: App {
     @AppStorage(AppLanguageOption.storageKey) private var preferredAppLanguageRawValue = AppLanguageManager.defaultOption.rawValue
     
     @State private var didApplyLaunchWindowPreference = false
+
+    init() {
+        AppDownloadsMovePrompter.promptIfNeeded()
+    }
     
     var body: some Scene {
         WindowGroup(id: "main") {
@@ -17,7 +21,7 @@ struct FanControlApp: App {
                 showsUpdateAlert: true
             )
             .environment(\.locale, appLocale)
-            .frame(minHeight: 450, idealHeight: 600, maxHeight: 700)
+            .frame(minHeight: 460, idealHeight: 460, maxHeight: 600)
             .task {
                 let selectedOption = preferredAppLanguage
                 preferredAppLanguageRawValue = selectedOption.rawValue
@@ -66,8 +70,8 @@ struct FanControlApp: App {
     private func applyLaunchWindowPreference() async {
         guard !didApplyLaunchWindowPreference else { return }
         didApplyLaunchWindowPreference = true
-        guard hideWindowOnLaunch else { return }
         
+        guard hideWindowOnLaunch else { return }
         await Task.yield()
         
         let app = NSApplication.shared
