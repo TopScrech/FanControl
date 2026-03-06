@@ -7,11 +7,11 @@ struct UpdateChangelogCardView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Text(entry.tagName)
-                    .font(.headline)
+                    .headline()
                 
                 if entry.isPrerelease {
                     Text("Pre-release")
-                        .font(.caption.weight(.semibold))
+                        .caption(.semibold)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
                         .foregroundStyle(.orange)

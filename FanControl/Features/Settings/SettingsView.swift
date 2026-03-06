@@ -9,6 +9,7 @@ struct SettingsView: View {
     var body: some View {
         Form {
             SettingsShareSectionView()
+            SettingsLicenseSectionView(model: model)
             SettingsLanguageSectionView(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
             SettingsLaunchSectionView()
             SettingsTemperatureSectionView()

@@ -2,6 +2,7 @@ import ScrechKit
 
 struct FanActionCardView: View {
     let canSetManual: Bool
+    let canUsePresets: Bool
     let presetRPMs: [Int]
     let activeMode: FanControlMode?
     let isSendingAttempts: Bool
@@ -40,6 +41,7 @@ struct FanActionCardView: View {
                 }
                 
                 FanPresetMenuView(
+                    canUsePresets: canUsePresets,
                     presetRPMs: presetRPMs,
                     activeMode: activeMode,
                     setPreset: setPreset

@@ -2,6 +2,7 @@ import ScrechKit
 
 struct ContentView: View {
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
     
     @Bindable var model: FanVM
     let showsHideWindowButton: Bool
@@ -12,6 +13,17 @@ struct ContentView: View {
             HStack {
                 Text("FanControl")
                     .title3(.semibold)
+                
+                if showsHideWindowButton && !model.isLicenseActive {
+                    Button("License inactive", action: openLicenseSettings)
+                        .caption()
+                        .bold()
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .foregroundStyle(.orange)
+                        .background(.orange.opacity(0.16), in: .capsule)
+                        .buttonStyle(.plain)
+                }
                 
                 Spacer(minLength: 0)
                 
@@ -98,4 +110,7 @@ struct ContentView: View {
         NSApplication.shared.keyWindow?.orderOut(nil)
     }
     
+    private func openLicenseSettings() {
+        openSettings()
+    }
 }

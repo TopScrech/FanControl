@@ -23,6 +23,7 @@ struct FanControlsView: View {
                 
                 FanActionCardView(
                     canSetManual: model.controlMinRPM != nil && model.controlMaxRPM != nil,
+                    canUsePresets: model.canUsePresetControl,
                     presetRPMs: model.controlPresetRPMs,
                     activeMode: model.activeControlMode,
                     isSendingAttempts: model.showsControlAttemptProgress

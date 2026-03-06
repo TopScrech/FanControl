@@ -17,7 +17,7 @@ struct UpdateSheetView: View {
                 .foregroundStyle(.secondary)
             
             Text("Release notes")
-                .font(.headline)
+                .headline()
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
