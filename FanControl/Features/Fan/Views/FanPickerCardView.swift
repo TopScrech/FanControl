@@ -4,6 +4,7 @@ import CoreSMC
 struct FanPickerCardView: View {
     let fans: [Fan]
     let allFansID: Int
+    let showsAllFansOption: Bool
     @Binding var selectedFanID: Int
     
     var body: some View {
@@ -12,8 +13,10 @@ struct FanPickerCardView: View {
                 .headline()
             
             Picker("Fan", selection: $selectedFanID) {
-                Text("All")
-                    .tag(allFansID)
+                if showsAllFansOption {
+                    Text("All")
+                        .tag(allFansID)
+                }
                 
                 ForEach(fans) {
                     Text($0.localizedDisplayName)

@@ -12,6 +12,7 @@ struct FanControlsView: View {
                     FanPickerCardView(
                         fans: model.fans,
                         allFansID: model.allFansID,
+                        showsAllFansOption: model.showsAllFansOption,
                         selectedFanID: $model.selectedFanID
                     )
                     

@@ -159,6 +159,10 @@ final class FanVM {
     var allFansID: Int {
         Self.allFansSelectionID
     }
+
+    var showsAllFansOption: Bool {
+        fans.count > 1
+    }
     
     var controlMinRPM: Double? {
         let targetFans = selectedFansForControl
@@ -389,6 +393,8 @@ final class FanVM {
                 
                 if fans.isEmpty {
                     selectedFanID = Self.allFansSelectionID
+                } else if fans.count == 1 {
+                    selectedFanID = fans[0].id
                 } else if !controlsAllFans, !fans.contains(where: { $0.id == selectedFanID }) {
                     selectedFanID = fans[0].id
                 }
