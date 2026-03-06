@@ -25,6 +25,10 @@ struct FanControlsView: View {
                     canSetManual: model.controlMinRPM != nil && model.controlMaxRPM != nil,
                     canUsePresets: model.canUsePresetControl,
                     presetRPMs: model.controlPresetRPMs,
+                    sensors: model.temperatureSensors,
+                    selectedCustomPreset: model.selectedCustomPresetDraft,
+                    isCustomPresetActive: model.selectedCustomPresetIsActive,
+                    customPresetPercentageText: model.selectedCustomPresetPercentageText,
                     activeMode: model.activeControlMode,
                     isSendingAttempts: model.showsControlAttemptProgress
                 ) {
@@ -35,6 +39,8 @@ struct FanControlsView: View {
                     Task { await model.setControlMax() }
                 } setPreset: { rpm in
                     Task { await model.setManualRPM(Double(rpm)) }
+                } setCustomPreset: { draft in
+                    Task { await model.setCustomPreset(draft) }
                 }
             }
         }
