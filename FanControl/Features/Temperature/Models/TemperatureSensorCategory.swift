@@ -1,5 +1,4 @@
 import Foundation
-import CoreSMC
 
 enum TemperatureSensorCategory: String, CaseIterable, Identifiable {
     case battery, cpu, gpu

@@ -1,5 +1,4 @@
 import ScrechKit
-import CoreSMC
 
 struct TemperatureView: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue

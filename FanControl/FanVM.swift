@@ -78,6 +78,7 @@ final class FanVM {
     private static let logger = Logger(subsystem: "FanControl", category: "FanVM")
     private let localSMC: LocalSMCService?
     private var remoteSMC: RemoteSMCService?
+    private let temperatureSensorService = ISMCTemperatureSensorService()
     private let appUpdater = AppUpdater(owner: FanVM.updateRepositoryOwner, repository: FanVM.updateRepositoryName)
     private var preparedUpdate: PreparedUpdate?
     private var showsFakeUpdatePrompt = false
@@ -376,29 +377,43 @@ final class FanVM {
     }
     
     func refresh() async {
-        guard let smc = activeService else {
-            Self.logger.info("Refresh skipped: no active SMC service")
-            return
+        Self.logger.info("Refresh starting")
+        
+        var refreshError: Error?
+        
+        if let smc = activeService {
+            do {
+                let snapshots = try await smc.readFans()
+                Self.logger.info("Refresh readFans count=\(snapshots.count)")
+                fans = snapshots
+                
+                if fans.isEmpty {
+                    selectedFanID = Self.allFansSelectionID
+                } else if !controlsAllFans, !fans.contains(where: { $0.id == selectedFanID }) {
+                    selectedFanID = fans[0].id
+                }
+            } catch {
+                refreshError = error
+                Self.logger.error("Refresh readFans failed: \(error.localizedDescription)")
+            }
+        } else {
+            Self.logger.info("Refresh fan read skipped: no active SMC service")
         }
         
         do {
-            Self.logger.info("Refresh starting")
-            let snapshots = try await smc.readFans()
-            Self.logger.info("Refresh readFans count=\(snapshots.count)")
-            let sensors = try await smc.readTemperatureSensors()
+            let sensors = try await temperatureSensorService.readTemperatureSensors()
             Self.logger.info("Refresh readTemperatureSensors count=\(sensors.count)")
-            fans = snapshots
             temperatureSensors = sensors
-            
-            if fans.isEmpty {
-                selectedFanID = Self.allFansSelectionID
-            } else if !controlsAllFans, !fans.contains(where: { $0.id == selectedFanID }) {
-                selectedFanID = fans[0].id
-            }
         } catch {
-            presentError(error.localizedDescription)
+            if refreshError == nil {
+                refreshError = error
+            }
             temperatureSensors = []
-            Self.logger.error("Refresh failed: \(error.localizedDescription)")
+            Self.logger.error("Refresh readTemperatureSensors failed: \(error.localizedDescription)")
+        }
+        
+        if let refreshError {
+            presentError(refreshError.localizedDescription)
         }
     }
     

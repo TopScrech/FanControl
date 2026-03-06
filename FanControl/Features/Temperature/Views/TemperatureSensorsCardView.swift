@@ -1,5 +1,4 @@
 import ScrechKit
-import CoreSMC
 
 struct TemperatureSensorsCardView: View {
     let sensors: [TemperatureSensor]

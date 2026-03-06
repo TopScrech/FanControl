@@ -1,5 +1,4 @@
 import ScrechKit
-import CoreSMC
 
 struct FanTemperatureCardView: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
@@ -17,14 +16,6 @@ struct FanTemperatureCardView: View {
         TemperaturePrecision(rawValue: temperaturePrecisionRawValue) ?? .whole
     }
     
-    private var otherSensors: [TemperatureSensor] {
-        sensors.filter { sensor in
-            !TemperatureSensorCategory.allCases.contains {
-                $0.contains(sensor: sensor)
-            }
-        }
-    }
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
@@ -33,7 +24,7 @@ struct FanTemperatureCardView: View {
                 
                 Spacer(minLength: 0)
                 
-                if !otherSensors.isEmpty {
+                if !sensors.isEmpty {
                     Button(showsMoreSensors ? "Show less" : "Show more") {
                         showsMoreSensors.toggle()
                     }
@@ -53,14 +44,14 @@ struct FanTemperatureCardView: View {
             VStack(alignment: .leading, spacing: 0) {
                 if showsMoreSensors {
                     VStack(alignment: .leading, spacing: 8) {
-                        if otherSensors.isEmpty {
+                        if sensors.isEmpty {
                             Text("No sensors available")
                                 .secondary()
                         } else {
                             Divider()
                             
                             VStack(alignment: .leading, spacing: 8) {
-                                ForEach(otherSensors) {
+                                ForEach(sensors) {
                                     FanMetricRowView(
                                         $0.displayName,
                                         value: $0.celsius.formattedTemperature(
