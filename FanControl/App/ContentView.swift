@@ -56,8 +56,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 16)
+        .padding()
         .frame(width: 680)
         .background {
             ZStack {
