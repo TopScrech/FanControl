@@ -17,7 +17,7 @@ struct FanControlApp: App {
                 showsUpdateAlert: true
             )
             .environment(\.locale, appLocale)
-            .frame(minHeight: 450, idealHeight: 600, maxHeight: 700)
+            .frame(minHeight: 460, idealHeight: 460, maxHeight: 600)
             .task {
                 let selectedOption = preferredAppLanguage
                 preferredAppLanguageRawValue = selectedOption.rawValue

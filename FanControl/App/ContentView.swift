@@ -33,11 +33,19 @@ struct ContentView: View {
                     )
             }
             
-            FanControlsView(model: model)
+            HStack(alignment: .top, spacing: 12) {
+                FanControlsView(model: model)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                
+                FanSensorsColumnView(sensors: model.temperatureSensors)
+                    .frame(width: 280)
+                    .frame(maxHeight: .infinity, alignment: .top)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
-        .frame(width: 350)
+        .frame(width: 680)
         .background {
             ZStack {
                 LinearGradient(
@@ -54,9 +62,7 @@ struct ContentView: View {
             }
         }
         .animation(.smooth(duration: 0.25), value: model.errorText)
-        .sheet(
-            isPresented: showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)
-        ) {
+        .sheet(showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)) {
             UpdateSheetView(
                 title: model.updatePromptTitle,
                 summary: model.updatePromptSummary,

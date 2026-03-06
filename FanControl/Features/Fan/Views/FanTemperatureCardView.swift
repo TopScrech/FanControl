@@ -6,8 +6,6 @@ struct FanTemperatureCardView: View {
     
     let sensors: [TemperatureSensor]
     
-    @State private var showsMoreSensors = false
-    
     private var temperatureUnit: TemperatureUnit {
         TemperatureUnit(rawValue: temperatureUnitRawValue) ?? .celsius
     }
@@ -21,17 +19,6 @@ struct FanTemperatureCardView: View {
             HStack(spacing: 10) {
                 Label("Sensors", systemImage: "thermometer.medium")
                     .headline()
-                
-                Spacer(minLength: 0)
-                
-                if !sensors.isEmpty {
-                    Button(showsMoreSensors ? "Show less" : "Show more") {
-                        showsMoreSensors.toggle()
-                    }
-                    .buttonStyle(.plain)
-                    .footnote()
-                    .secondary()
-                }
             }
             
             VStack(alignment: .leading, spacing: 8) {
@@ -41,33 +28,27 @@ struct FanTemperatureCardView: View {
             }
             .monospacedDigit()
             
-            VStack(alignment: .leading, spacing: 0) {
-                if showsMoreSensors {
+            VStack(alignment: .leading, spacing: 8) {
+                if sensors.isEmpty {
+                    Text("No sensors available")
+                        .secondary()
+                } else {
+                    Divider()
+                    
                     VStack(alignment: .leading, spacing: 8) {
-                        if sensors.isEmpty {
-                            Text("No sensors available")
-                                .secondary()
-                        } else {
-                            Divider()
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                ForEach(sensors) {
-                                    FanMetricRowView(
-                                        $0.displayName,
-                                        value: $0.celsius.formattedTemperature(
-                                            in: temperatureUnit,
-                                            showsTenths: temperaturePrecision.showsTenths
-                                        )
-                                    )
-                                }
-                            }
-                            .monospacedDigit()
+                        ForEach(sensors) {
+                            FanMetricRowView(
+                                $0.displayName,
+                                value: $0.celsius.formattedTemperature(
+                                    in: temperatureUnit,
+                                    showsTenths: temperaturePrecision.showsTenths
+                                )
+                            )
                         }
                     }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .monospacedDigit()
                 }
             }
-            .animation(.smooth(duration: 0.25), value: showsMoreSensors)
         }
         .fanCardSurface()
     }
