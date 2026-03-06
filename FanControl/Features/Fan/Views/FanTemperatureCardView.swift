@@ -34,6 +34,7 @@ struct FanTemperatureCardView: View {
                         .secondary()
                 } else {
                     Divider()
+                        .overlay(.primary.opacity(0.22))
                     
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(sensors) {
