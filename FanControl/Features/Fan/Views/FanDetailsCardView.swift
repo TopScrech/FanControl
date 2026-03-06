@@ -10,11 +10,11 @@ struct FanDetailsCardView: View {
                 .headline()
             
             VStack(alignment: .leading, spacing: 8) {
-                FanMetricRowView("Mode", value: fan.modeName)
-                FanMetricRowView("Current", value: fan.currentRPM.formattedRPM)
-                FanMetricRowView("Target", value: fan.targetRPM.formattedRPM)
-                FanMetricRowView("Min", value: fan.minRPM.formattedRPM)
-                FanMetricRowView("Max", value: fan.maxRPM.formattedRPM)
+                FanMetricRowView(String(localized: "Mode"), value: fan.modeName)
+                FanMetricRowView(String(localized: "Current"), value: fan.currentRPM.formattedRPM)
+                FanMetricRowView(String(localized: "Target"), value: fan.targetRPM.formattedRPM)
+                FanMetricRowView(String(localized: "Min"), value: fan.minRPM.formattedRPM)
+                FanMetricRowView(String(localized: "Max"), value: fan.maxRPM.formattedRPM)
             }
             .monospacedDigit()
         }
