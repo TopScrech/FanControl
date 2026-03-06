@@ -1,6 +1,8 @@
 import ScrechKit
 
 struct TemperatureRangeSliderView: View {
+    @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
+    
     let bounds: ClosedRange<Int>
     @Binding var minimumValue: Int
     @Binding var maximumValue: Int
@@ -10,47 +12,57 @@ struct TemperatureRangeSliderView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(.primary.opacity(0.12))
-                        .frame(height: trackHeight)
-                    
-                    Capsule()
-                        .fill(Color.accentColor)
-                        .frame(
-                            width: selectedTrackWidth(in: geometry.size.width),
-                            height: trackHeight
+            HStack {
+                Text(displayTemperature(bounds.lowerBound))
+                
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(.primary.opacity(0.12))
+                            .frame(height: trackHeight)
+                        
+                        Capsule()
+                            .fill(Color.accentColor)
+                            .frame(
+                                width: selectedTrackWidth(in: geometry.size.width),
+                                height: trackHeight
+                            )
+                            .offset(x: minimumThumbPosition(in: geometry.size.width))
+                        
+                        thumb(
+                            value: minimumValue,
+                            width: geometry.size.width,
+                            update: updateMinimumValue(_:width:)
                         )
-                        .offset(x: minimumThumbPosition(in: geometry.size.width))
-                    
-                    thumb(
-                        value: minimumValue,
-                        width: geometry.size.width,
-                        update: updateMinimumValue(_:width:)
-                    )
-                    
-                    thumb(
-                        value: maximumValue,
-                        width: geometry.size.width,
-                        update: updateMaximumValue(_:width:)
-                    )
+                        
+                        thumb(
+                            value: maximumValue,
+                            width: geometry.size.width,
+                            update: updateMaximumValue(_:width:)
+                        )
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                
+                Text(displayTemperature(bounds.upperBound))
             }
             .frame(height: 28)
             
             HStack {
-                Text("Min \(minimumValue)°C")
-                    .secondary()
+                Text("Min \(displayTemperature(minimumValue))")
                 
                 Spacer(minLength: 0)
                 
-                Text("Max \(maximumValue)°C")
-                    .secondary()
+                Text("Max \(displayTemperature(maximumValue))")
             }
+            .secondary()
             .caption()
+            .monospacedDigit()
         }
+    }
+    
+    private var temperatureUnit: TemperatureUnit {
+        TemperatureUnit(rawValue: temperatureUnitRawValue) ?? .celsius
     }
     
     private func thumb(
@@ -108,5 +120,24 @@ struct TemperatureRangeSliderView: View {
     
     private func updateMaximumValue(_ locationX: CGFloat, width: CGFloat) {
         maximumValue = max(value(for: locationX, width: width), minimumValue)
+    }
+    
+    private func displayTemperature(_ celsiusValue: Int) -> String {
+        "\(displayTemperatureValue(celsiusValue))\(temperatureUnit.symbol)"
+    }
+    
+    private func displayTemperatureValue(_ celsiusValue: Int) -> String {
+        let value = switch temperatureUnit {
+        case .celsius:
+            Double(celsiusValue)
+            
+        case .fahrenheit:
+            Double(celsiusValue) * 9 / 5 + 32
+            
+        case .kelvin:
+            Double(celsiusValue) + 273.15
+        }
+        
+        return value.formatted(.number.precision(.fractionLength(0)))
     }
 }

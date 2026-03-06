@@ -30,6 +30,7 @@ struct FanPresetMenuView: View {
                 .buttonStyle(.bordered)
             }
         }
+        .monospacedDigit()
         .frame(maxWidth: .infinity)
         .disabled(presetRPMs.isEmpty && sensors.isEmpty)
         .help(
