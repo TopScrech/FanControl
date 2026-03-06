@@ -17,6 +17,8 @@ enum MacDeviceIdentityProvider {
 
     nonisolated static func osVersion() -> String {
         ProcessInfo.processInfo.operatingSystemVersionString
+            .replacing("Version ", with: "macOS ")
+            .replacing("(Build ", with: "(")
     }
 
     nonisolated static func deviceIdentifier() -> String? {

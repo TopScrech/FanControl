@@ -550,8 +550,21 @@ final class FanVM {
         )
     }
 
-    func clearSavedLicense() {
+    func clearSavedLicense() async {
         do {
+            if let savedCredentials = licenseCredentialStore.loadCredentials() {
+                guard let deviceIdentifier = MacDeviceIdentityProvider.deviceIdentifier() else {
+                    presentError("Could not identify this Mac for license reset")
+                    return
+                }
+
+                _ = try await licenseVerificationService.removeDevice(
+                    email: savedCredentials.email,
+                    licenseKey: savedCredentials.licenseKey,
+                    deviceIdentifier: deviceIdentifier
+                )
+            }
+
             try licenseCredentialStore.clearCredentials()
             licenseEmail = ""
             licenseKey = ""
