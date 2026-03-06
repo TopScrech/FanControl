@@ -6,7 +6,7 @@ enum SMCHelperClientError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidProxy:
-            "SMC helper connection unavailable"
+            String(localized: "SMC helper connection unavailable")
             
         case .remoteError(let message):
             message

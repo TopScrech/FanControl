@@ -10,13 +10,13 @@ enum AppDownloadsMovePrompter {
         let alert = NSAlert()
         alert.alertStyle = .informational
         alert.messageText = destinationAppExists
-        ? "Replace the copy in /Applications?"
-        : "Move FanControl to /Applications?"
+        ? String(localized: "Replace the copy in /Applications?")
+        : String(localized: "Move FanControl to /Applications?")
         alert.informativeText = destinationAppExists
-        ? "FanControl is running from Downloads. Move it to /Applications and replace the existing copy so the helper can install correctly"
-        : "FanControl is running from Downloads. Move it to /Applications so the helper can install correctly"
-        alert.addButton(withTitle: "Move to Applications")
-        alert.addButton(withTitle: "Not Now")
+        ? String(localized: "FanControl is running from Downloads. Move it to /Applications and replace the existing copy so the helper can install correctly")
+        : String(localized: "FanControl is running from Downloads. Move it to /Applications so the helper can install correctly")
+        alert.addButton(withTitle: String(localized: "Move to Applications"))
+        alert.addButton(withTitle: String(localized: "Not now"))
         
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         
@@ -82,9 +82,9 @@ enum AppDownloadsMovePrompter {
     private static func presentMoveFailureAlert(for error: Error) {
         let alert = NSAlert()
         alert.alertStyle = .critical
-        alert.messageText = "Couldn’t move FanControl to /Applications"
+        alert.messageText = String(localized: "Couldn’t move FanControl to /Applications")
         alert.informativeText = error.localizedDescription
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: String(localized: "OK"))
         alert.runModal()
     }
 }
