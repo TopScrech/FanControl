@@ -1,4 +1,11 @@
 import AppKit
+import Security
+
+@_silgen_name("SecTranslocateCreateOriginalPathForURL")
+private func secTranslocateCreateOriginalPathForURL(
+    _ translocatedPath: CFURL,
+    _ error: UnsafeMutablePointer<Unmanaged<CFError>?>?
+) -> Unmanaged<CFURL>?
 
 @MainActor
 enum AppDownloadsMovePrompter {
@@ -23,17 +30,29 @@ enum AppDownloadsMovePrompter {
         moveToApplicationsAndRelaunch()
     }
     
-    private static var bundleURL: URL {
+    private static var runningBundleURL: URL {
         Bundle.main.bundleURL.standardizedFileURL.resolvingSymlinksInPath()
+    }
+
+    private static var sourceBundleURL: URL {
+        var error: Unmanaged<CFError>?
+        guard let originalURL = secTranslocateCreateOriginalPathForURL(
+            runningBundleURL as CFURL,
+            &error
+        )?.takeRetainedValue() as URL? else {
+            return runningBundleURL
+        }
+        
+        return originalURL.standardizedFileURL.resolvingSymlinksInPath()
     }
     
     private static var destinationURL: URL {
-        URL(filePath: "/Applications").appending(path: bundleURL.lastPathComponent)
+        URL(filePath: "/Applications").appending(path: sourceBundleURL.lastPathComponent)
     }
     
     private static var isRunningFromDownloads: Bool {
         let downloadsURL = URL.downloadsDirectory.standardizedFileURL.resolvingSymlinksInPath()
-        return bundleURL.pathComponents.starts(with: downloadsURL.pathComponents)
+        return sourceBundleURL.pathComponents.starts(with: downloadsURL.pathComponents)
     }
     
     private static var destinationAppExists: Bool {
@@ -53,14 +72,14 @@ enum AppDownloadsMovePrompter {
     private static func installApp() throws -> URL {
         let fileManager = FileManager.default
         
-        guard bundleURL != destinationURL else {
+        guard sourceBundleURL != destinationURL else {
             return destinationURL
         }
         
         if destinationAppExists {
             let resultingURL = try fileManager.replaceItemAt(
                 destinationURL,
-                withItemAt: bundleURL,
+                withItemAt: sourceBundleURL,
                 backupItemName: nil,
                 options: []
             )
@@ -68,7 +87,7 @@ enum AppDownloadsMovePrompter {
             return resultingURL?.standardizedFileURL ?? destinationURL
         }
         
-        try fileManager.moveItem(at: bundleURL, to: destinationURL)
+        try fileManager.moveItem(at: sourceBundleURL, to: destinationURL)
         return destinationURL
     }
     
