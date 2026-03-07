@@ -18,6 +18,11 @@ struct SettingsView: View {
                 appVersionDescription: model.appVersionDescription,
                 isCheckingForUpdates: model.isCheckingForUpdates,
                 allowsPrereleaseUpdates: $model.allowsPrereleaseUpdates,
+                usesGitHubProxy: $model.usesGitHubProxy,
+                gitHubProxyURLString: $model.gitHubProxyURLString,
+                showsResetGitHubProxyURLButton: model.showsResetGitHubProxyURLButton,
+                defaultGitHubProxyURLString: FanVM.defaultGitHubProxyURLString,
+                onResetGitHubProxyURL: model.resetGitHubProxyURL,
                 onCheckForUpdates: checkForUpdates
             )
             
@@ -47,7 +52,6 @@ struct SettingsView: View {
         ) {
             UpdateSheetView(
                 title: model.updatePromptTitle,
-                summary: model.updatePromptSummary,
                 changelogEntries: model.updateChangelogEntries,
                 isInstalling: model.isCheckingForUpdates,
                 onNotNow: cancelUpdate,
