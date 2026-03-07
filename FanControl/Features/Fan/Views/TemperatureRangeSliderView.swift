@@ -123,7 +123,7 @@ struct TemperatureRangeSliderView: View {
     }
     
     private func displayTemperature(_ celsiusValue: Int) -> String {
-        "\(displayTemperatureValue(celsiusValue))\(temperatureUnit.symbol)"
+        "\(displayTemperatureValue(celsiusValue)) \(temperatureUnit.symbol)"
     }
     
     private func displayTemperatureValue(_ celsiusValue: Int) -> String {
