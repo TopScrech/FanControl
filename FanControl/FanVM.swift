@@ -1069,7 +1069,7 @@ final class FanVM {
     }
     
     private func installPreparedUpdateOnTerminationIfAvailable() async {
-        guard let preparedUpdate = await preparedUpdateForTermination() else { return }
+        guard let preparedUpdate else { return }
         
         isUpdatePromptPresented = false
         let tagName = preparedUpdate.release.tagName
@@ -1084,28 +1084,6 @@ final class FanVM {
             await appUpdater.discardPreparedUpdate(preparedUpdate)
             clearPreparedUpdate()
             Self.logger.error("Termination update install failed: \(error.localizedDescription)")
-        }
-    }
-    
-    private func preparedUpdateForTermination() async -> PreparedUpdate? {
-        if let preparedUpdate {
-            return preparedUpdate
-        }
-        
-        do {
-            switch try await appUpdater.prepareUpdateIfAvailable() {
-            case .upToDate:
-                Self.logger.info("No update available on termination")
-                return nil
-                
-            case .prepared(let preparedUpdate):
-                await setPreparedUpdate(preparedUpdate)
-                Self.logger.info("Prepared update on termination tag=\(preparedUpdate.release.tagName)")
-                return preparedUpdate
-            }
-        } catch {
-            Self.logger.error("Termination update check failed: \(error.localizedDescription)")
-            return nil
         }
     }
     
