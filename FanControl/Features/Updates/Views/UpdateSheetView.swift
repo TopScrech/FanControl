@@ -2,7 +2,6 @@ import ScrechKit
 
 struct UpdateSheetView: View {
     let title: String
-    let summary: String
     let changelogEntries: [UpdateChangelogEntry]
     let isInstalling: Bool
     let onNotNow: () -> Void
@@ -12,10 +11,7 @@ struct UpdateSheetView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text(title)
                 .title2(.semibold)
-            
-            Text(summary)
-                .secondary()
-            
+
             Text("Release notes")
                 .headline()
             
