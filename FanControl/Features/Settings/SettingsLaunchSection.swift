@@ -1,7 +1,7 @@
 import ScrechKit
 import LaunchAtLogin
 
-struct SettingsLaunchSectionView: View {
+struct SettingsLaunchSection: View {
     @AppStorage("hideWindowOnLaunch") private var hideWindowOnLaunch = false
     
     var body: some View {

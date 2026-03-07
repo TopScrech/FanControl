@@ -1,9 +1,9 @@
 import ScrechKit
 
-struct SettingsShareSectionView: View {
+struct SettingsShareSection: View {
     var body: some View {
         Section {
-            ShareWebsiteButtonView()
+            ShareWebsiteButton()
         }
     }
 }
