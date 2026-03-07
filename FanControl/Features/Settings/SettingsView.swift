@@ -8,13 +8,13 @@ struct SettingsView: View {
     
     var body: some View {
         Form {
-            SettingsShareSectionView()
-            SettingsLicenseSectionView(model: model)
-            SettingsLanguageSectionView(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
-            SettingsLaunchSectionView()
-            SettingsTemperatureSectionView()
+            SettingsShareSection()
+            SettingsLicenseSection(model: model)
+            SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
+            SettingsLaunchSection()
+            SettingsTemperatureSection()
             
-            SettingsUpdatesSectionView(
+            SettingsUpdatesSection(
                 appVersionDescription: model.appVersionDescription,
                 isCheckingForUpdates: model.isCheckingForUpdates,
                 allowsPrereleaseUpdates: $model.allowsPrereleaseUpdates,
@@ -22,7 +22,7 @@ struct SettingsView: View {
             )
             
             if model.isDebugSectionVisible {
-                SettingsDebugSectionView(
+                SettingsDebugSection(
                     processorName: model.processorName,
                     onPresentFakeUpdatePrompt: model.presentFakeUpdatePrompt,
                     onCopyDebugText: copyDebugText

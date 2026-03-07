@@ -4,12 +4,17 @@ struct FanActionCardView: View {
     let canSetManual: Bool
     let canUsePresets: Bool
     let presetRPMs: [Int]
+    let sensors: [TemperatureSensor]
+    let selectedCustomPreset: FanCustomPresetDraft
+    let isCustomPresetActive: Bool
+    let customPresetPercentageText: String?
     let activeMode: FanControlMode?
     let isSendingAttempts: Bool
     let setAuto: () -> Void
     let setMin: () -> Void
     let setFull: () -> Void
     let setPreset: (Int) -> Void
+    let setCustomPreset: (FanCustomPresetDraft) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -43,8 +48,13 @@ struct FanActionCardView: View {
                 FanPresetMenuView(
                     canUsePresets: canUsePresets,
                     presetRPMs: presetRPMs,
+                    sensors: sensors,
+                    selectedCustomPreset: selectedCustomPreset,
+                    isCustomPresetActive: isCustomPresetActive,
+                    customPresetPercentageText: customPresetPercentageText,
                     activeMode: activeMode,
-                    setPreset: setPreset
+                    setPreset: setPreset,
+                    setCustomPreset: setCustomPreset
                 )
                 .frame(maxWidth: .infinity)
             }

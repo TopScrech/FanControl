@@ -28,14 +28,14 @@ struct FanTemperatureCardView: View {
             }
             .monospacedDigit()
             
-            VStack(alignment: .leading, spacing: 8) {
-                if sensors.isEmpty {
-                    Text("No sensors available")
-                        .secondary()
-                } else {
-                    Divider()
-                        .overlay(.primary.opacity(0.22))
-                    
+            Divider()
+                .overlay(.primary.opacity(0.22))
+            
+            if sensors.isEmpty {
+                Text("No sensors available")
+                    .secondary()
+            } else {
+                ScrollView {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(sensors) {
                             FanMetricRowView(
@@ -48,9 +48,13 @@ struct FanTemperatureCardView: View {
                         }
                     }
                     .monospacedDigit()
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .scrollIndicators(.hidden)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
     
     private var averageRows: [TemperatureAverageRow] {

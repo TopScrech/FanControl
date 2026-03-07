@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct ShareWebsiteButtonView: View {
+struct ShareWebsiteButton: View {
     private let websiteURL = URL(string: "https://fancontrol.dev")!
     
     var body: some View {

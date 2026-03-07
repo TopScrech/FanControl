@@ -2,13 +2,14 @@ import SwiftUI
 
 @main
 struct FanControlApp: App {
+    @NSApplicationDelegateAdaptor(AppTerminationDelegate.self) private var appTerminationDelegate
     @State private var model = FanVM()
     
     @AppStorage("hideWindowOnLaunch") private var hideWindowOnLaunch = false
     @AppStorage(AppLanguageOption.storageKey) private var preferredAppLanguageRawValue = AppLanguageManager.defaultOption.rawValue
     
     @State private var didApplyLaunchWindowPreference = false
-
+    
     init() {
         AppDownloadsMovePrompter.promptIfNeeded()
     }
@@ -23,6 +24,7 @@ struct FanControlApp: App {
             .environment(\.locale, appLocale)
             .frame(minHeight: 460, idealHeight: 460, maxHeight: 600)
             .task {
+                configureTerminationDelegate()
                 let selectedOption = preferredAppLanguage
                 preferredAppLanguageRawValue = selectedOption.rawValue
                 AppLanguageManager.apply(option: selectedOption)
@@ -55,6 +57,9 @@ struct FanControlApp: App {
                 showsUpdateAlert: false
             )
             .environment(\.locale, appLocale)
+            .task {
+                configureTerminationDelegate()
+            }
         }
         .menuBarExtraStyle(.window)
     }
@@ -82,6 +87,12 @@ struct FanControlApp: App {
     private func checkForUpdates() {
         Task {
             await model.checkForUpdatesNow()
+        }
+    }
+    
+    private func configureTerminationDelegate() {
+        appTerminationDelegate.onTerminate = {
+            await model.prepareForTermination()
         }
     }
 }

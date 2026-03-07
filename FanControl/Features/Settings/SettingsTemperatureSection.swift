@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct SettingsTemperatureSectionView: View {
+struct SettingsTemperatureSection: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     

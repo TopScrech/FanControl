@@ -1,3 +1,3 @@
 enum FanControlMode: Equatable {
-    case auto, min, max, preset
+    case auto, min, max, preset, custom
 }

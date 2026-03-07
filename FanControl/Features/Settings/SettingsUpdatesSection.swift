@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct SettingsUpdatesSectionView: View {
+struct SettingsUpdatesSection: View {
     let appVersionDescription: String
     let isCheckingForUpdates: Bool
     @Binding var allowsPrereleaseUpdates: Bool

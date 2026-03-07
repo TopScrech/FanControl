@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct SettingsDebugSectionView: View {
+struct SettingsDebugSection: View {
     let processorName: String
     let onPresentFakeUpdatePrompt: () -> Void
     let onCopyDebugText: () -> Void

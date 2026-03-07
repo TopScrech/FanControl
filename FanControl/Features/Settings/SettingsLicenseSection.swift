@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct SettingsLicenseSectionView: View {
+struct SettingsLicenseSection: View {
     @Bindable var model: FanVM
     @State private var isResetConfirmationPresented = false
     
