@@ -77,7 +77,6 @@ struct ContentView: View {
         .sheet(showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)) {
             UpdateSheetView(
                 title: model.updatePromptTitle,
-                summary: model.updatePromptSummary,
                 changelogEntries: model.updateChangelogEntries,
                 isInstalling: model.isCheckingForUpdates,
                 onNotNow: cancelUpdate,

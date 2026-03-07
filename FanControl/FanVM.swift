@@ -11,6 +11,8 @@ final class FanVM {
     private static let allFansSelectionID = -1
     private static let selectedFanIDDefaultsKey = "selectedFanID"
     private static let allowPrereleaseUpdatesDefaultsKey = "allowPrereleaseUpdates"
+    private static let useGitHubProxyDefaultsKey = "useGitHubProxy"
+    private static let gitHubProxyURLDefaultsKey = "gitHubProxyURL"
     private static let customPresetsDefaultsKey = "customPresets"
     private static let manualRetryAttempts = 15
     private static let manualRetryInterval: Duration = .seconds(1)
@@ -22,6 +24,7 @@ final class FanVM {
     private static let licenseOfflineGracePeriodSeconds = 7.0 * 24 * 60 * 60
     private static let defaultCustomPresetMinimumTemperature = 40
     private static let defaultCustomPresetMaximumTemperature = 80
+    static let defaultGitHubProxyURLString = "https://gh-proxy.com"
     
     var fans: [Fan] = []
     var temperatureSensors: [TemperatureSensor] = []
@@ -51,6 +54,28 @@ final class FanVM {
         }
     }
     
+    var usesGitHubProxy = UserDefaults.standard.bool(forKey: FanVM.useGitHubProxyDefaultsKey) {
+        didSet {
+            UserDefaults.standard.set(usesGitHubProxy, forKey: Self.useGitHubProxyDefaultsKey)
+            
+            let resolvedGitHubProxyURL = gitHubProxyURL
+            Task {
+                await appUpdater.setGitHubProxyURL(resolvedGitHubProxyURL)
+            }
+        }
+    }
+    
+    var gitHubProxyURLString = UserDefaults.standard.string(forKey: FanVM.gitHubProxyURLDefaultsKey) ?? FanVM.defaultGitHubProxyURLString {
+        didSet {
+            UserDefaults.standard.set(gitHubProxyURLString, forKey: Self.gitHubProxyURLDefaultsKey)
+            
+            let resolvedGitHubProxyURL = gitHubProxyURL
+            Task {
+                await appUpdater.setGitHubProxyURL(resolvedGitHubProxyURL)
+            }
+        }
+    }
+    
     var errorText: String?
     var licenseEmail = ""
     var licenseKey = ""
@@ -58,7 +83,7 @@ final class FanVM {
     var isLicenseActive = false {
         didSet {
             guard isLicenseActive != oldValue else { return }
-
+            
             if !isLicenseActive {
                 Task {
                     await disableCustomPresetsForInactiveLicense()
@@ -78,11 +103,7 @@ final class FanVM {
     }
     
     var updatePromptTitle: String {
-        String(localized: "Update available")
-    }
-    
-    var updatePromptSummary: String {
-        let template = String(localized: "Version %@ is ready. Do you want to install it now?")
+        let template = String(localized: "Update %@ available")
         return String(format: template, locale: .current, updateTargetVersionTag)
     }
     
@@ -94,11 +115,19 @@ final class FanVM {
         return preparedUpdate?.release.tagName ?? String(localized: "Unknown")
     }
     
+    var showsResetGitHubProxyURLButton: Bool {
+        gitHubProxyURLString != Self.defaultGitHubProxyURLString
+    }
+    
     private static let logger = Logger(subsystem: "FanControl", category: "FanVM")
     private let localSMC: LocalSMCService?
     private var remoteSMC: RemoteSMCService?
     private let temperatureSensorService = ISMCTemperatureSensorService()
-    private let appUpdater = AppUpdater(owner: FanVM.updateRepositoryOwner, repository: FanVM.updateRepositoryName)
+    private let appUpdater = AppUpdater(
+        owner: FanVM.updateRepositoryOwner,
+        repository: FanVM.updateRepositoryName,
+        gitHubProxyURL: FanVM.storedGitHubProxyURL()
+    )
     private let licenseVerificationService = LicenseVerificationService()
     private let licenseCredentialStore = LicenseCredentialStore()
     private var preparedUpdate: PreparedUpdate?
@@ -137,13 +166,13 @@ final class FanVM {
                 presentError(localError)
             }
         }
-
+        
         loadStoredLicenseState()
         
         connectHelperIfAvailable()
         
         Task {
-            await appUpdater.setAllowPrereleases(allowsPrereleaseUpdates)
+            await configureAppUpdater()
             await startAutomaticUpdateChecks()
             await checkForUpdatesOnLaunch()
             await verifySavedLicenseOnLaunch()
@@ -182,7 +211,7 @@ final class FanVM {
             $0.currentRPM > 0
         }
     }
-
+    
     var canUsePresetControl: Bool {
         isLicenseActive
     }
@@ -190,7 +219,7 @@ final class FanVM {
     var allFansID: Int {
         Self.allFansSelectionID
     }
-
+    
     var showsAllFansOption: Bool {
         fans.count > 1
     }
@@ -227,42 +256,46 @@ final class FanVM {
         
         return Array(stride(from: start, through: end, by: Self.presetStepRPM))
     }
-
+    
+    func resetGitHubProxyURL() {
+        gitHubProxyURLString = Self.defaultGitHubProxyURLString
+    }
+    
     var selectedCustomPresetDraft: FanCustomPresetDraft {
         let targetFans = selectedFansForControl
         guard !targetFans.isEmpty else { return defaultCustomPresetDraft() }
-
+        
         if let sharedPreset = sharedCustomPreset(for: targetFans) {
             return draft(from: sharedPreset)
         }
-
+        
         if let firstPreset = targetFans.compactMap({ customPreset(for: $0.id) }).first {
             return draft(from: firstPreset)
         }
-
+        
         return defaultCustomPresetDraft()
     }
-
+    
     var selectedCustomPresetIsActive: Bool {
         let targetFans = selectedFansForControl
         guard !targetFans.isEmpty else { return false }
-
+        
         return targetFans.allSatisfy {
             customPreset(for: $0.id)?.isEnabled == true
         }
     }
-
+    
     var selectedCustomPresetPercentageText: String? {
         let draft = selectedCustomPresetDraft
-
+        
         guard let sensor = temperatureSensors.first(where: { $0.key == draft.sensorKey }) else {
             return nil
         }
-
+        
         let minimumTemperature = Double(draft.minimumTemperature)
         let maximumTemperature = Double(draft.maximumTemperature)
         let percentage: Double
-
+        
         if sensor.celsius <= minimumTemperature {
             percentage = 0
         } else if maximumTemperature <= minimumTemperature || sensor.celsius >= maximumTemperature {
@@ -270,7 +303,7 @@ final class FanVM {
         } else {
             percentage = (sensor.celsius - minimumTemperature) / (maximumTemperature - minimumTemperature)
         }
-
+        
         return percentage.formatted(.percent.precision(.fractionLength(0)))
     }
     
@@ -408,6 +441,55 @@ final class FanVM {
             chipType: first["chip_type"] as? String ?? first["cpu_type"] as? String,
             machineModel: first["machine_model"] as? String
         )
+    }
+    
+    nonisolated private static func updateCodeSigningValidation() -> AppUpdater.CodeSigningValidation {
+        guard let authority = currentCodeSigningAuthority() else {
+            return .required
+        }
+        
+        guard authority.hasPrefix("Developer ID Application:") else {
+            let logger = Logger(subsystem: "FanControl", category: "FanVM")
+            logger.info("Skipping update code signing identity match for local authority \(authority, privacy: .public)")
+            return .skipped
+        }
+        
+        return .required
+    }
+    
+    nonisolated private static func currentCodeSigningAuthority() -> String? {
+        let process = Process()
+        process.executableURL = URL(filePath: "/usr/bin/codesign")
+        process.arguments = ["-dvvv", Bundle.main.bundleURL.path(percentEncoded: false)]
+        
+        let standardError = Pipe()
+        process.standardOutput = Pipe()
+        process.standardError = standardError
+        
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            return nil
+        }
+        
+        guard process.terminationStatus == 0 else {
+            return nil
+        }
+        
+        let description = String(
+            decoding: standardError.fileHandleForReading.readDataToEndOfFile(),
+            as: UTF8.self
+        )
+        
+        guard let authorityLine = description
+            .split(separator: "\n")
+            .first(where: { $0.hasPrefix("Authority=") })
+        else {
+            return nil
+        }
+        
+        return String(authorityLine.dropFirst("Authority=".count))
     }
     
     nonisolated private static func normalizeChipName(_ rawValue: String?) -> String? {
@@ -596,7 +678,7 @@ final class FanVM {
         
         isUpdatePromptPresented = true
     }
-
+    
     func verifyLicenseNow() async {
         let email = self.licenseEmail.trimmingCharacters(in: .whitespacesAndNewlines)
         let licenseKey = self.licenseKey.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -605,14 +687,14 @@ final class FanVM {
             isLicenseActive = false
             return
         }
-
+        
         await verifyLicense(
             email: email,
             licenseKey: licenseKey,
             shouldSaveCredentials: true
         )
     }
-
+    
     func clearSavedLicense() async {
         do {
             if let savedCredentials = licenseCredentialStore.loadCredentials() {
@@ -620,14 +702,14 @@ final class FanVM {
                     presentError("Could not identify this Mac for license reset")
                     return
                 }
-
+                
                 _ = try await licenseVerificationService.removeDevice(
                     email: savedCredentials.email,
                     licenseKey: savedCredentials.licenseKey,
                     deviceIdentifier: deviceIdentifier
                 )
             }
-
+            
             try licenseCredentialStore.clearCredentials()
             licenseEmail = ""
             licenseKey = ""
@@ -643,7 +725,7 @@ final class FanVM {
             presentError(String(localized: "Preset control requires an active license"))
             return
         }
-
+        
         await applyManualRPM(
             requestSummary: "Manual request rpm=\(rpm)",
             actionSummary: "Manual applied rpm=\(rpm)",
@@ -652,27 +734,27 @@ final class FanVM {
             rpm
         }
     }
-
+    
     func setCustomPreset(_ draft: FanCustomPresetDraft) async {
         guard isLicenseActive else {
             presentError(String(localized: "Preset control requires an active license"))
             return
         }
-
+        
         let targetFans = selectedFansForControl
-
+        
         guard !targetFans.isEmpty else {
             Self.logger.info("Custom preset request ignored: no selected fan targets")
             return
         }
-
+        
         let normalizedDraft = normalizedCustomPresetDraft(draft)
-
+        
         guard let sensor = resolvedTemperatureSensor(for: normalizedDraft.sensorKey) else {
             presentError(String(localized: "No temperature sensors available"))
             return
         }
-
+        
         let targetFanIDs = targetFans.map(\.id)
         storeCustomPresetConfiguration(
             fanIDs: targetFanIDs,
@@ -680,29 +762,29 @@ final class FanVM {
             draft: normalizedDraft,
             isEnabled: false
         )
-
+        
         let actionToken = startControlAction()
         let helperStatus = await ensureHelperConnected()
-
+        
         guard let smc = writeService else {
             setWriteUnavailableError(status: helperStatus)
             Self.logger.info("Custom preset request ignored: no writable SMC client")
             return
         }
-
+        
         do {
             var successfulSignals = 0
             var lastAttemptError: Error?
-
+            
             beginControlAttemptProgress(targetMode: .custom)
             defer { endControlAttemptProgress() }
-
+            
             for attempt in 1...Self.manualRetryAttempts {
                 guard isControlActionCurrent(actionToken) else {
                     Self.logger.info("Custom preset retries canceled")
                     return
                 }
-
+                
                 for fan in targetFans {
                     let targetRPM = targetRPM(
                         for: fan,
@@ -710,7 +792,7 @@ final class FanVM {
                         minimumTemperature: normalizedDraft.minimumTemperature,
                         maximumTemperature: normalizedDraft.maximumTemperature
                     )
-
+                    
                     do {
                         try await smc.setFanManualRPM(fanID: fan.id, rpm: targetRPM)
                         successfulSignals += 1
@@ -724,35 +806,35 @@ final class FanVM {
                         )
                     }
                 }
-
+                
                 if attempt < Self.manualRetryAttempts {
                     try await Task.sleep(for: Self.manualRetryInterval)
                 }
             }
-
+            
             guard isControlActionCurrent(actionToken) else {
                 Self.logger.info("Custom preset retries canceled")
                 return
             }
-
+            
             guard successfulSignals > 0 else {
                 if let lastAttemptError {
                     presentError(lastAttemptError.localizedDescription)
                 }
-
+                
                 return
             }
-
+            
             setCustomPresetEnabled(true, fanIDs: targetFanIDs)
             holdingManualOverride = true
             await refresh()
             Self.logger.info(
                 "Custom preset applied fans=\(String(describing: targetFanIDs)) sensor=\(sensor.key) signals=\(successfulSignals)"
             )
-
+            
         } catch is CancellationError {
             Self.logger.info("Custom preset retries canceled")
-
+            
         } catch {
             Self.logger.error("Custom preset failed error=\(error.localizedDescription)")
             presentError(error.localizedDescription)
@@ -944,25 +1026,25 @@ final class FanVM {
         await refresh()
         Self.logger.info("Auto applied fans=\(String(describing: fanIDs))")
     }
-
+    
     func prepareForTermination() async {
         let targetFans = fans
-
+        
         guard !targetFans.isEmpty else { return }
-
+        
         let fanIDs = targetFans.map(\.id)
         let helperStatus = await ensureHelperConnected()
-
+        
         guard let smc = writeService else {
             Self.logger.error("Termination auto reset skipped: no writable SMC client status=\(String(describing: helperStatus))")
             return
         }
-
+        
         setCustomPresetEnabled(false, fanIDs: fanIDs)
-
+        
         var successfulSignals = 0
         var lastAttemptError: Error?
-
+        
         for fanID in fanIDs {
             do {
                 try await smc.setFanAuto(fanID: fanID)
@@ -972,9 +1054,9 @@ final class FanVM {
                 Self.logger.error("Termination auto reset failed fan=\(fanID) error=\(error.localizedDescription)")
             }
         }
-
+        
         holdingManualOverride = hasEnabledCustomPresets
-
+        
         if successfulSignals == 0, let lastAttemptError {
             Self.logger.error("Termination auto reset failed error=\(lastAttemptError.localizedDescription)")
         }
@@ -1025,7 +1107,7 @@ final class FanVM {
         if customPreset?.isEnabled == true, holdingManualOverride {
             return .custom
         }
-
+        
         if (fan.mode == 0 || fan.mode == 3) && !holdingManualOverride {
             return .auto
         }
@@ -1049,7 +1131,7 @@ final class FanVM {
         if fans.allSatisfy({ customPreset(for: $0.id)?.isEnabled == true }) && holdingManualOverride {
             return .custom
         }
-
+        
         if fans.allSatisfy({ ($0.mode == 0 || $0.mode == 3) && !holdingManualOverride }) {
             return .auto
         }
@@ -1077,38 +1159,38 @@ final class FanVM {
     private static func rpmMatches(_ lhs: Double, _ rhs: Double) -> Bool {
         abs(lhs - rhs) <= rpmMatchTolerance
     }
-
+    
     private static func loadCustomPresets() -> [Int: FanCustomPreset] {
         guard let data = UserDefaults.standard.data(forKey: Self.customPresetsDefaultsKey) else {
             return [:]
         }
-
+        
         guard let presets = try? JSONDecoder().decode([FanCustomPreset].self, from: data) else {
             return [:]
         }
-
+        
         return Dictionary(uniqueKeysWithValues: presets.map { ($0.fanID, $0) })
     }
-
+    
     private func persistCustomPresets() {
         let presets = customPresetsByFanID.values.sorted {
             $0.fanID < $1.fanID
         }
-
+        
         guard let data = try? JSONEncoder().encode(presets) else { return }
         UserDefaults.standard.set(data, forKey: Self.customPresetsDefaultsKey)
     }
-
+    
     private var hasEnabledCustomPresets: Bool {
         customPresetsByFanID.values.contains {
             $0.isEnabled
         }
     }
-
+    
     private func customPreset(for fanID: Int) -> FanCustomPreset? {
         customPresetsByFanID[fanID]
     }
-
+    
     private func defaultCustomPresetDraft() -> FanCustomPresetDraft {
         FanCustomPresetDraft(
             sensorKey: temperatureSensors.first?.key ?? "",
@@ -1116,18 +1198,18 @@ final class FanVM {
             maximumTemperature: Self.defaultCustomPresetMaximumTemperature
         )
     }
-
+    
     private func draft(from preset: FanCustomPreset) -> FanCustomPresetDraft {
         let defaultDraft = defaultCustomPresetDraft()
         let sensorKey = resolvedSensorKey(preferred: preset.sensorKey) ?? defaultDraft.sensorKey
-
+        
         return FanCustomPresetDraft(
             sensorKey: sensorKey,
             minimumTemperature: preset.minimumTemperature,
             maximumTemperature: preset.maximumTemperature
         )
     }
-
+    
     private func normalizedCustomPresetDraft(_ draft: FanCustomPresetDraft) -> FanCustomPresetDraft {
         let minimumTemperature = min(
             max(draft.minimumTemperature, FanCustomPreset.temperatureBounds.lowerBound),
@@ -1138,21 +1220,21 @@ final class FanVM {
             FanCustomPreset.temperatureBounds.upperBound
         )
         let sensorKey = resolvedSensorKey(preferred: draft.sensorKey) ?? ""
-
+        
         return FanCustomPresetDraft(
             sensorKey: sensorKey,
             minimumTemperature: minimumTemperature,
             maximumTemperature: maximumTemperature
         )
     }
-
+    
     private func sharedCustomPreset(for fans: [Fan]) -> FanCustomPreset? {
         let presets = fans.compactMap {
             customPreset(for: $0.id)
         }
-
+        
         guard presets.count == fans.count, let firstPreset = presets.first else { return nil }
-
+        
         guard presets.allSatisfy({
             $0.sensorKey == firstPreset.sensorKey &&
             $0.minimumTemperature == firstPreset.minimumTemperature &&
@@ -1161,26 +1243,26 @@ final class FanVM {
         }) else {
             return nil
         }
-
+        
         return firstPreset
     }
-
+    
     private func resolvedSensorKey(preferred sensorKey: String) -> String? {
         if temperatureSensors.contains(where: { $0.key == sensorKey }) {
             return sensorKey
         }
-
+        
         return temperatureSensors.first?.key
     }
-
+    
     private func resolvedTemperatureSensor(for sensorKey: String) -> TemperatureSensor? {
         if let matchedSensor = temperatureSensors.first(where: { $0.key == sensorKey }) {
             return matchedSensor
         }
-
+        
         return temperatureSensors.first
     }
-
+    
     private func storeCustomPresetConfiguration(
         fanIDs: [Int],
         sensor: TemperatureSensor,
@@ -1197,13 +1279,13 @@ final class FanVM {
                 isEnabled: isEnabled
             )
         }
-
+        
         persistCustomPresets()
     }
-
+    
     private func setCustomPresetEnabled(_ isEnabled: Bool, fanIDs: [Int]) {
         var needsSave = false
-
+        
         for fanID in fanIDs {
             guard var preset = customPresetsByFanID[fanID] else { continue }
             guard preset.isEnabled != isEnabled else { continue }
@@ -1211,12 +1293,12 @@ final class FanVM {
             customPresetsByFanID[fanID] = preset
             needsSave = true
         }
-
+        
         if needsSave {
             persistCustomPresets()
         }
     }
-
+    
     private func targetRPM(
         for fan: Fan,
         sensorTemperature: Double,
@@ -1227,46 +1309,46 @@ final class FanVM {
         let maximumRPM = fan.maxRPM
         let minimumTemperature = Double(minimumTemperature)
         let maximumTemperature = Double(maximumTemperature)
-
+        
         if sensorTemperature <= minimumTemperature {
             return minimumRPM
         }
-
+        
         if maximumTemperature <= minimumTemperature || sensorTemperature >= maximumTemperature {
             return maximumRPM
         }
-
+        
         let progress = (sensorTemperature - minimumTemperature) / (maximumTemperature - minimumTemperature)
         let interpolatedRPM = minimumRPM + progress * (maximumRPM - minimumRPM)
         return min(max(interpolatedRPM.rounded(), minimumRPM), maximumRPM)
     }
-
+    
     private func applyActiveCustomPresetsIfNeeded(refreshAfterApply: Bool = false) async {
         guard isLicenseActive else { return }
-
+        
         let activeFans: [(Fan, FanCustomPreset)] = fans.compactMap { fan in
             guard let preset = customPreset(for: fan.id), preset.isEnabled else { return nil }
             return (fan, preset)
         }
-
+        
         guard !activeFans.isEmpty else { return }
-
+        
         let helperStatus = await ensureHelperConnected()
-
+        
         guard let smc = writeService else {
             setWriteUnavailableError(status: helperStatus)
             return
         }
-
+        
         holdingManualOverride = true
         var successfulSignals = 0
         var lastAttemptError: Error?
-
+        
         for (fan, preset) in activeFans {
             guard let sensor = temperatureSensors.first(where: { $0.key == preset.sensorKey }) else {
                 continue
             }
-
+            
             let targetRPM = targetRPM(
                 for: fan,
                 sensorTemperature: sensor.celsius,
@@ -1274,12 +1356,12 @@ final class FanVM {
                 maximumTemperature: preset.maximumTemperature
             )
             let needsManualSignal =
-                fan.mode == 0 ||
-                fan.mode == 3 ||
-                !Self.rpmMatches(fan.targetRPM, targetRPM)
-
+            fan.mode == 0 ||
+            fan.mode == 3 ||
+            !Self.rpmMatches(fan.targetRPM, targetRPM)
+            
             guard needsManualSignal else { continue }
-
+            
             do {
                 try await smc.setFanManualRPM(fanID: fan.id, rpm: targetRPM)
                 successfulSignals += 1
@@ -1293,42 +1375,42 @@ final class FanVM {
                 )
             }
         }
-
+        
         if successfulSignals > 0 {
             holdingManualOverride = true
-
+            
             if refreshAfterApply {
                 await refresh()
             }
-
+            
             return
         }
-
+        
         if let lastAttemptError {
             presentError(lastAttemptError.localizedDescription)
         }
     }
-
+    
     private func disableCustomPresetsForInactiveLicense() async {
         let activeFanIDs = customPresetsByFanID.values.compactMap {
             $0.isEnabled ? $0.fanID : nil
         }
-
+        
         guard !activeFanIDs.isEmpty else { return }
-
+        
         setCustomPresetEnabled(false, fanIDs: activeFanIDs)
         holdingManualOverride = hasEnabledCustomPresets
-
+        
         let helperStatus = await ensureHelperConnected()
-
+        
         guard let smc = writeService else {
             setWriteUnavailableError(status: helperStatus)
             return
         }
-
+        
         var successfulSignals = 0
         var lastAttemptError: Error?
-
+        
         for fanID in activeFanIDs {
             do {
                 try await smc.setFanAuto(fanID: fanID)
@@ -1340,14 +1422,14 @@ final class FanVM {
                 )
             }
         }
-
+        
         holdingManualOverride = hasEnabledCustomPresets
-
+        
         if successfulSignals > 0 {
             await refresh()
             return
         }
-
+        
         if let lastAttemptError {
             presentError(lastAttemptError.localizedDescription)
         }
@@ -1384,10 +1466,16 @@ final class FanVM {
         Self.logger.info("Automatic update checks started")
     }
     
+    private func configureAppUpdater() async {
+        await appUpdater.setAllowPrereleases(allowsPrereleaseUpdates)
+        await appUpdater.setGitHubProxyURL(gitHubProxyURL)
+        await appUpdater.setCodeSigningValidation(Self.updateCodeSigningValidation())
+    }
+    
     private func checkForUpdatesOnLaunch() async {
         await checkForUpdatesAutomatically()
     }
-
+    
     private func verifySavedLicenseOnLaunch() async {
         guard let savedCredentials = licenseCredentialStore.loadCredentials() else { return }
         licenseEmail = savedCredentials.email
@@ -1446,7 +1534,10 @@ final class FanVM {
         }
         
         do {
-            let releases = try await GitHubReleaseProvider(session: .shared).releases(
+            let releases = try await GitHubReleaseProvider(
+                session: .shared,
+                proxyURL: gitHubProxyURL
+            ).releases(
                 owner: Self.updateRepositoryOwner,
                 repository: Self.updateRepositoryName
             )
@@ -1462,7 +1553,7 @@ final class FanVM {
                     (allowsPrereleaseUpdates || !release.isPrerelease)
                 }
                 .sorted { lhs, rhs in
-                    lhs.1 < rhs.1
+                    lhs.1 > rhs.1
                 }
                 .map {
                     changelogEntry(for: $0.0)
@@ -1487,6 +1578,33 @@ final class FanVM {
         )
     }
     
+    private var gitHubProxyURL: URL? {
+        Self.gitHubProxyURL(from: gitHubProxyURLString, isEnabled: usesGitHubProxy)
+    }
+    
+    private static func storedGitHubProxyURL() -> URL? {
+        let isEnabled = UserDefaults.standard.bool(forKey: Self.useGitHubProxyDefaultsKey)
+        let proxyURLString = UserDefaults.standard.string(forKey: Self.gitHubProxyURLDefaultsKey) ?? Self.defaultGitHubProxyURLString
+        return gitHubProxyURL(from: proxyURLString, isEnabled: isEnabled)
+    }
+    
+    private static func gitHubProxyURL(from proxyURLString: String, isEnabled: Bool) -> URL? {
+        guard isEnabled else { return nil }
+        
+        let trimmedProxyURLString = proxyURLString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard
+            let components = URLComponents(string: trimmedProxyURLString),
+            let scheme = components.scheme,
+            let host = components.host,
+            !scheme.isEmpty,
+            !host.isEmpty
+        else {
+            return nil
+        }
+        
+        return components.url
+    }
+    
     private func currentAppSemanticVersion() -> SemanticVersion? {
         let info = Bundle.main.infoDictionary
         
@@ -1509,21 +1627,21 @@ final class FanVM {
         
         return notes
     }
-
+    
     private func verifyLicense(
         email: String,
         licenseKey: String,
         shouldSaveCredentials: Bool
     ) async {
         guard !isCheckingLicense else { return }
-
+        
         isCheckingLicense = true
         defer { isCheckingLicense = false }
-
+        
         let deviceName = MacDeviceIdentityProvider.deviceName()
         let deviceIdentifier = MacDeviceIdentityProvider.deviceIdentifier()
         let osVersion = MacDeviceIdentityProvider.osVersion()
-
+        
         do {
             let verifiedAt = Date()
             let result = try await licenseVerificationService.verify(
@@ -1533,17 +1651,17 @@ final class FanVM {
                 deviceIdentifier: deviceIdentifier,
                 os: osVersion
             )
-
+            
             licenseCredentialStore.saveLastCheck(reason: result.reason, date: verifiedAt)
             licenseStatusText = Self.licenseStatusText(reason: result.reason, date: verifiedAt)
             isLicenseActive = result.valid
-
+            
             if result.reason == .active {
                 licenseCredentialStore.saveLastActiveValidationDate(verifiedAt)
             } else {
                 licenseCredentialStore.clearLastActiveValidationDate()
             }
-
+            
             if shouldSaveCredentials, result.valid {
                 try licenseCredentialStore.saveCredentials(
                     email: email,
@@ -1554,30 +1672,30 @@ final class FanVM {
             if applyOfflineGracePeriodIfAvailable() {
                 return
             }
-
+            
             isLicenseActive = false
             licenseStatusText = expiredLicenseGracePeriodStatusText() ?? String(localized: "License check failed")
             presentError(error.localizedDescription)
         }
     }
-
+    
     private func loadStoredLicenseState() {
         guard let savedCredentials = licenseCredentialStore.loadCredentials() else {
             licenseStatusText = String(localized: "No saved license")
             isLicenseActive = false
             return
         }
-
+        
         licenseEmail = savedCredentials.email
         licenseKey = savedCredentials.licenseKey
         licenseStatusText = String(localized: "Saved license will be checked on launch")
-
+        
         if let reason = licenseCredentialStore.loadLastCheckReason(),
            let date = licenseCredentialStore.loadLastCheckDate() {
             licenseStatusText = Self.licenseStatusText(reason: reason, date: date)
             isLicenseActive = reason == .active
         }
-
+        
         if isLicenseActive {
             if !applyOfflineGracePeriodIfAvailable() {
                 isLicenseActive = false
@@ -1585,23 +1703,23 @@ final class FanVM {
             }
         }
     }
-
+    
     private static func licenseStatusText(reason: LicenseVerificationReason, date: Date) -> String {
         let checkedAtText = date.formatted(date: .abbreviated, time: .shortened)
         return "\(reason.localizedStatusText) (\(checkedAtText))"
     }
-
+    
     private func applyOfflineGracePeriodIfAvailable() -> Bool {
         guard let lastActiveValidationDate = licenseCredentialStore.loadLastActiveValidationDate() else {
             return false
         }
-
+        
         let gracePeriodDeadline = lastActiveValidationDate.addingTimeInterval(Self.licenseOfflineGracePeriodSeconds)
         let now = Date()
         guard now <= gracePeriodDeadline else {
             return false
         }
-
+        
         isLicenseActive = true
         licenseStatusText = Self.offlineGracePeriodStatusText(
             lastActiveValidationDate: lastActiveValidationDate,
@@ -1609,17 +1727,17 @@ final class FanVM {
         )
         return true
     }
-
+    
     private func expiredLicenseGracePeriodStatusText() -> String? {
         guard let lastActiveValidationDate = licenseCredentialStore.loadLastActiveValidationDate() else {
             return nil
         }
-
+        
         let gracePeriodDeadline = lastActiveValidationDate.addingTimeInterval(Self.licenseOfflineGracePeriodSeconds)
         guard Date() > gracePeriodDeadline else { return nil }
         return Self.offlineGracePeriodExpiredStatusText(gracePeriodDeadline: gracePeriodDeadline)
     }
-
+    
     private static func offlineGracePeriodStatusText(
         lastActiveValidationDate: Date,
         gracePeriodDeadline: Date
@@ -1630,7 +1748,7 @@ final class FanVM {
             localized: "License active offline until \(deadlineText) (last verified \(lastVerifiedText))"
         )
     }
-
+    
     private static func offlineGracePeriodExpiredStatusText(gracePeriodDeadline: Date) -> String {
         let deadlineText = gracePeriodDeadline.formatted(date: .abbreviated, time: .shortened)
         return String(
