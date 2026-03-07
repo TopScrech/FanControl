@@ -8,16 +8,11 @@ Controls fan speed using a privileged helper for secure SMC write access
 ## Supported platforms
 - macOS 14+
 
-## Build command
+## Build
 
-Requires Xcode 26.4+
+Requires Xcode 26.4+ and access to a private CoreSMC library
 
 `iSMC` is bundled from `Vendor/iSMC/iSMC`, so users do not need to install it separately
-
-Archive & save to Downloads
-```
-bash -lc 'set -euo pipefail; cd "/Users/topscrech/Library/Mobile Documents/com~apple~CloudDocs/Projects/App Store/FanControl"; ARCH="$HOME/Downloads/FanControl.xcarchive"; APP="$HOME/Downloads/FanControl.app"; xcodebuild -project "./FanControl.xcodeproj" -scheme "FanControl" -configuration Release -destination "generic/platform=macOS" archive -archivePath "$ARCH"; rm -rf "$APP"; cp -R "$ARCH/Products/Applications/FanControl.app" "$APP"; ZIP="$HOME/Downloads/v$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist" | tr "." "_").zip"; rm -f "$ZIP"; ditto -c -k --keepParent "$APP" "$ZIP"; rm -rf "$ARCH"'
-```
 
 ## Related links
 - [Front-end](https://fancontrol.dev)

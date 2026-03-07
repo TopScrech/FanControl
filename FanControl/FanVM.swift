@@ -128,6 +128,7 @@ final class FanVM {
         repository: FanVM.updateRepositoryName,
         gitHubProxyURL: FanVM.storedGitHubProxyURL()
     )
+    private let preparedUpdateInstaller = PreparedUpdateInstaller()
     private let licenseVerificationService = LicenseVerificationService()
     private let licenseCredentialStore = LicenseCredentialStore()
     private var preparedUpdate: PreparedUpdate?
@@ -1028,6 +1029,11 @@ final class FanVM {
     }
     
     func prepareForTermination() async {
+        await resetFansForTermination()
+        await installPreparedUpdateOnTerminationIfAvailable()
+    }
+    
+    private func resetFansForTermination() async {
         let targetFans = fans
         
         guard !targetFans.isEmpty else { return }
@@ -1059,6 +1065,47 @@ final class FanVM {
         
         if successfulSignals == 0, let lastAttemptError {
             Self.logger.error("Termination auto reset failed error=\(lastAttemptError.localizedDescription)")
+        }
+    }
+    
+    private func installPreparedUpdateOnTerminationIfAvailable() async {
+        guard let preparedUpdate = await preparedUpdateForTermination() else { return }
+        
+        isUpdatePromptPresented = false
+        let tagName = preparedUpdate.release.tagName
+        let installingTemplate = String(localized: "Installing %@")
+        updateStatusText = String(format: installingTemplate, locale: .current, tagName)
+        
+        do {
+            try preparedUpdateInstaller.install(preparedUpdate)
+            clearPreparedUpdate()
+            Self.logger.info("Installed update on termination tag=\(tagName)")
+        } catch {
+            await appUpdater.discardPreparedUpdate(preparedUpdate)
+            clearPreparedUpdate()
+            Self.logger.error("Termination update install failed: \(error.localizedDescription)")
+        }
+    }
+    
+    private func preparedUpdateForTermination() async -> PreparedUpdate? {
+        if let preparedUpdate {
+            return preparedUpdate
+        }
+        
+        do {
+            switch try await appUpdater.prepareUpdateIfAvailable() {
+            case .upToDate:
+                Self.logger.info("No update available on termination")
+                return nil
+                
+            case .prepared(let preparedUpdate):
+                await setPreparedUpdate(preparedUpdate)
+                Self.logger.info("Prepared update on termination tag=\(preparedUpdate.release.tagName)")
+                return preparedUpdate
+            }
+        } catch {
+            Self.logger.error("Termination update check failed: \(error.localizedDescription)")
+            return nil
         }
     }
     
