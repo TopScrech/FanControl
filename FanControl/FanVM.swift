@@ -132,6 +132,7 @@ final class FanVM {
     private let licenseVerificationService = LicenseVerificationService()
     private let licenseCredentialStore = LicenseCredentialStore()
     private var preparedUpdate: PreparedUpdate?
+    private var isInstallingPreparedUpdate = false
     private var showsFakeUpdatePrompt = false
     private var automaticUpdateTask: Task<Void, Never>?
     private var timer: Timer?
@@ -633,8 +634,15 @@ final class FanVM {
         defer { isCheckingForUpdates = false }
         
         do {
-            try await appUpdater.installAndRelaunch(preparedUpdate)
+            isInstallingPreparedUpdate = true
+            await resetFansForTermination()
+            let installedAppURL = try preparedUpdateInstaller.install(preparedUpdate)
+            clearPreparedUpdate()
+            try relaunchInstalledApp(at: installedAppURL)
+            Self.logger.info("Update install succeeded tag=\(preparedUpdate.release.tagName)")
+            Darwin.exit(EXIT_SUCCESS)
         } catch {
+            isInstallingPreparedUpdate = false
             await appUpdater.discardPreparedUpdate(preparedUpdate)
             clearPreparedUpdate()
             updateStatusText = String(localized: "Update failed")
@@ -1029,8 +1037,8 @@ final class FanVM {
     }
     
     func prepareForTermination() async {
+        guard !isInstallingPreparedUpdate else { return }
         await resetFansForTermination()
-        await installPreparedUpdateOnTerminationIfAvailable()
     }
     
     private func resetFansForTermination() async {
@@ -1068,23 +1076,11 @@ final class FanVM {
         }
     }
     
-    private func installPreparedUpdateOnTerminationIfAvailable() async {
-        guard let preparedUpdate else { return }
-        
-        isUpdatePromptPresented = false
-        let tagName = preparedUpdate.release.tagName
-        let installingTemplate = String(localized: "Installing %@")
-        updateStatusText = String(format: installingTemplate, locale: .current, tagName)
-        
-        do {
-            try preparedUpdateInstaller.install(preparedUpdate)
-            clearPreparedUpdate()
-            Self.logger.info("Installed update on termination tag=\(tagName)")
-        } catch {
-            await appUpdater.discardPreparedUpdate(preparedUpdate)
-            clearPreparedUpdate()
-            Self.logger.error("Termination update install failed: \(error.localizedDescription)")
-        }
+    private func relaunchInstalledApp(at installedAppURL: URL) throws {
+        let process = Process()
+        process.executableURL = URL(filePath: "/usr/bin/open")
+        process.arguments = [installedAppURL.path(percentEncoded: false)]
+        try process.run()
     }
     
     private var activeService: SMCService? {

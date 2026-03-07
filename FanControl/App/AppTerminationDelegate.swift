@@ -11,7 +11,7 @@ final class AppTerminationDelegate: NSObject, NSApplicationDelegate {
     private var terminationTimeoutTask: Task<Void, Never>?
     
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard !isHandlingTermination else { return .terminateLater }
+        guard !isHandlingTermination else { return .terminateNow }
         
         guard let onTerminate else {
             return .terminateNow

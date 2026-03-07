@@ -13,7 +13,7 @@ struct PreparedUpdateInstaller {
         }
     }
     
-    func install(_ preparedUpdate: PreparedUpdate) throws {
+    func install(_ preparedUpdate: PreparedUpdate) throws -> URL {
         guard Bundle(url: preparedUpdate.bundleURL) != nil else {
             throw InstallError.invalidBundle
         }
@@ -24,5 +24,6 @@ struct PreparedUpdateInstaller {
         try fileManager.removeItem(at: installedBundleURL)
         try fileManager.moveItem(at: preparedUpdate.bundleURL, to: installedBundleURL)
         try? fileManager.removeItem(at: preparedUpdate.temporaryDirectoryURL)
+        return installedBundleURL
     }
 }
