@@ -7,7 +7,6 @@ private func secTranslocateCreateOriginalPathForURL(
     _ error: UnsafeMutablePointer<Unmanaged<CFError>?>?
 ) -> Unmanaged<CFURL>?
 
-@MainActor
 enum AppDownloadsMovePrompter {
     static func promptIfNeeded() {
         guard isRunningFromDownloads else { return }

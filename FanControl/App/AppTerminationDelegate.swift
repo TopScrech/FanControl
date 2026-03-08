@@ -1,6 +1,5 @@
 import AppKit
 
-@MainActor
 final class AppTerminationDelegate: NSObject, NSApplicationDelegate {
     private static let terminationGracePeriod: Duration = .seconds(3)
     
