@@ -60,25 +60,7 @@ struct ContentView: View {
             )
         }
         .sheet(showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)) {
-            UpdateSheetView(
-                title: model.updatePromptTitle,
-                changelogEntries: model.updateChangelogEntries,
-                isInstalling: model.isCheckingForUpdates,
-                onNotNow: cancelUpdate,
-                onUpdate: installPreparedUpdate
-            )
-        }
-    }
-    
-    private func installPreparedUpdate() {
-        Task {
-            await model.installPreparedUpdate()
-        }
-    }
-    
-    private func cancelUpdate() {
-        Task {
-            await model.dismissUpdatePrompt()
+            UpdateSheetView(model: model)
         }
     }
     

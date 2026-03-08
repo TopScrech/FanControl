@@ -1,23 +1,19 @@
 import ScrechKit
 
 struct UpdateSheetView: View {
-    let title: String
-    let changelogEntries: [UpdateChangelogEntry]
-    let isInstalling: Bool
-    let onNotNow: () -> Void
-    let onUpdate: () -> Void
+    @Bindable var model: FanVM
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(title)
+            Text(model.updatePromptTitle)
                 .title2(.semibold)
-
+            
             Text("Release notes")
                 .headline()
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    ForEach(changelogEntries) {
+                    ForEach(model.updateChangelogEntries) {
                         UpdateChangelogCardView(entry: $0)
                     }
                 }
@@ -27,15 +23,27 @@ struct UpdateSheetView: View {
             HStack {
                 Spacer()
                 
-                Button("Not now", action: onNotNow)
+                Button("Not now", action: cancelUpdate)
                     .keyboardShortcut(.cancelAction)
                 
-                Button("Update", action: onUpdate)
+                Button("Update", action: installPreparedUpdate)
                     .keyboardShortcut(.defaultAction)
-                    .disabled(isInstalling)
+                    .disabled(model.isCheckingForUpdates)
             }
         }
         .padding(20)
         .frame(minWidth: 520, minHeight: 460)
+    }
+    
+    private func installPreparedUpdate() {
+        Task {
+            await model.installPreparedUpdate()
+        }
+    }
+    
+    private func cancelUpdate() {
+        Task {
+            await model.dismissUpdatePrompt()
+        }
     }
 }

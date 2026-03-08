@@ -47,16 +47,8 @@ struct SettingsView: View {
         .onDisappear {
             model.setSettingsOpen(false)
         }
-        .sheet(
-            isPresented: $model.isUpdatePromptPresented
-        ) {
-            UpdateSheetView(
-                title: model.updatePromptTitle,
-                changelogEntries: model.updateChangelogEntries,
-                isInstalling: model.isCheckingForUpdates,
-                onNotNow: cancelUpdate,
-                onUpdate: installPreparedUpdate
-            )
+        .sheet($model.isUpdatePromptPresented) {
+            UpdateSheetView(model: model)
         }
         .alert(item: $model.settingsUpdateStatusAlert) { updateStatusAlert in
             Alert(

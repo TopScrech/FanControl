@@ -53,13 +53,7 @@ struct MenuBarContentView: View {
             )
         }
         .sheet(showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)) {
-            UpdateSheetView(
-                title: model.updatePromptTitle,
-                changelogEntries: model.updateChangelogEntries,
-                isInstalling: model.isCheckingForUpdates,
-                onNotNow: cancelUpdate,
-                onUpdate: installPreparedUpdate
-            )
+            UpdateSheetView(model: model)
         }
     }
     
