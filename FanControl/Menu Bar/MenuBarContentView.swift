@@ -15,14 +15,7 @@ struct MenuBarContentView: View {
                     .title3(.semibold)
                 
                 if showsHideWindowButton && !model.isLicenseActive {
-                    Button("License inactive", action: openLicenseSettings)
-                        .caption()
-                        .bold()
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .foregroundStyle(.orange)
-                        .background(.orange.opacity(0.16), in: .capsule)
-                        .buttonStyle(.plain)
+                    LicenseInactiveBadge()
                 }
                 
                 Spacer(minLength: 0)
