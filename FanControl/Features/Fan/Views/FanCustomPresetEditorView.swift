@@ -55,12 +55,8 @@ struct FanCustomPresetEditorView: View {
                     maximumValue: $draft.maximumTemperature
                 )
                 
-                Button(
-                    isActive ? "Update custom preset" : "Apply custom preset",
-                    systemImage: "thermometer.medium",
-                    action: applyCurrentDraft
-                )
-                .buttonStyle(.borderedProminent)
+                Button(isActive ? "Update" : "Apply", action: applyCurrentDraft)
+                    .buttonStyle(.borderedProminent)
             }
         }
         .onChange(of: initialDraft, initial: true) { _, newValue in
