@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct ContentView: View {
+struct MenuBarContentView: View {
     @Environment(\.openWindow) private var openWindow
     @Environment(\.openSettings) private var openSettings
     
@@ -45,20 +45,12 @@ struct ContentView: View {
                     )
             }
             
-            HStack(alignment: .top, spacing: 12) {
-                FanControlsView(model: model)
-                    .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
-                
-                FanTemperatureCardView(sensors: model.temperatureSensors)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .frame(width: 280)
-                    .fanCardSurface()
-                    .frame(maxHeight: 400, alignment: .topLeading)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            FanControlsView(model: model, showSensors: true)
+                .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
         }
         .padding()
-        .frame(width: 680)
+        .frame(width: 340)
+        .frame(minHeight: 515, alignment: .top)
         .background {
             ZStack {
                 LinearGradient(

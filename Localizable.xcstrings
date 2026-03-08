@@ -770,19 +770,19 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ventilator"
+            "value" : "Fan"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вентилятор"
+            "value" : "Кулер"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вентилятор"
+            "value" : "Кулер"
           }
         }
       }
