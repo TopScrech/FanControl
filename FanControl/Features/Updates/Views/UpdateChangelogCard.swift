@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct UpdateChangelogCardView: View {
+struct UpdateChangelogCard: View {
     let entry: UpdateChangelogEntry
     
     var body: some View {

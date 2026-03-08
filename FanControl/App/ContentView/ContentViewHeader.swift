@@ -38,6 +38,6 @@ struct ContentViewHeader: View {
     }
 }
 
-//#Preview {
-//    ContentViewHeader()
-//}
+#Preview {
+    ContentViewHeader(model: FanVM(), showsHideWindowButton: true)
+}

@@ -48,7 +48,7 @@ struct SettingsView: View {
             model.setSettingsOpen(false)
         }
         .sheet($model.isUpdatePromptPresented) {
-            UpdateSheetView(model: model)
+            UpdateSheet(model: model)
         }
         .alert(item: $model.settingsUpdateStatusAlert) { updateStatusAlert in
             Alert(

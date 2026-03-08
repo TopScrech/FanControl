@@ -34,7 +34,7 @@ struct MenuBarContentView: View {
             )
         }
         .sheet(showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)) {
-            UpdateSheetView(model: model)
+            UpdateSheet(model: model)
         }
     }
 }
