@@ -43,7 +43,8 @@ struct FanTemperatureCardView: View {
                                 value: $0.celsius.formattedTemperature(
                                     in: temperatureUnit,
                                     showsTenths: temperaturePrecision.showsTenths
-                                )
+                                ),
+                                valueColor: $0.celsius.temperatureValueColor
                             )
                         }
                     }
