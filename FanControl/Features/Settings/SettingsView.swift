@@ -58,6 +58,15 @@ struct SettingsView: View {
                 onUpdate: installPreparedUpdate
             )
         }
+        .alert(item: $model.settingsUpdateStatusAlert) { updateStatusAlert in
+            Alert(
+                title: Text(updateStatusAlert.title),
+                message: Text(updateStatusAlert.message),
+                dismissButton: .cancel(Text("OK")) {
+                    model.dismissUpdateStatusAlert(for: .settings)
+                }
+            )
+        }
     }
     
     private func copyDebugText() {
@@ -75,7 +84,7 @@ struct SettingsView: View {
     
     private func checkForUpdates() {
         Task {
-            await model.checkForUpdatesNow()
+            await model.checkForUpdatesNow(presenter: .settings)
         }
     }
     

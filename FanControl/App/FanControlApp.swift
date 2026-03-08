@@ -86,7 +86,7 @@ struct FanControlApp: App {
     
     private func checkForUpdates() {
         Task {
-            await model.checkForUpdatesNow()
+            await model.checkForUpdatesNow(presenter: .mainWindow)
         }
     }
     

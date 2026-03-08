@@ -35,16 +35,6 @@ struct MenuBarContentView: View {
             }
             .controlSize(.small)
             
-            if let error = model.errorText {
-                FanErrorBannerView(error: error, onDismiss: model.dismissError)
-                    .transition(
-                        .asymmetric(
-                            insertion: .move(edge: .top).combined(with: .opacity),
-                            removal: .scale(scale: 0.96).combined(with: .opacity)
-                        )
-                    )
-            }
-            
             FanControlsView(model: model, showSensors: true)
                 .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
         }
@@ -52,7 +42,23 @@ struct MenuBarContentView: View {
         .frame(width: 340)
         .frame(minHeight: 515, alignment: .top)
         .background(ContentViewBackground())
-        .animation(.smooth(duration: 0.25), value: model.errorText)
+        .alert(item: $model.errorAlert) { errorAlert in
+            Alert(
+                title: Text("Error"),
+                message: Text(errorAlert.message),
+                primaryButton: .default(Text("Copy error message"), action: model.copyErrorMessage),
+                secondaryButton: .cancel(Text("OK"), action: model.dismissError)
+            )
+        }
+        .alert(item: $model.menuBarUpdateStatusAlert) { updateStatusAlert in
+            Alert(
+                title: Text(updateStatusAlert.title),
+                message: Text(updateStatusAlert.message),
+                dismissButton: .cancel(Text("OK")) {
+                    model.dismissUpdateStatusAlert(for: .menuBar)
+                }
+            )
+        }
         .sheet(showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)) {
             UpdateSheetView(
                 title: model.updatePromptTitle,

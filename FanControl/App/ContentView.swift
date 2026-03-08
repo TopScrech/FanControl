@@ -35,16 +35,6 @@ struct ContentView: View {
             }
             .controlSize(.small)
             
-            if let error = model.errorText {
-                FanErrorBannerView(error: error, onDismiss: model.dismissError)
-                    .transition(
-                        .asymmetric(
-                            insertion: .move(edge: .top).combined(with: .opacity),
-                            removal: .scale(scale: 0.96).combined(with: .opacity)
-                        )
-                    )
-            }
-            
             HStack(alignment: .top, spacing: 12) {
                 FanControlsView(model: model)
                     .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
@@ -60,7 +50,23 @@ struct ContentView: View {
         .padding()
         .frame(width: 680)
         .background(ContentViewBackground())
-        .animation(.smooth(duration: 0.25), value: model.errorText)
+        .alert(item: $model.errorAlert) { error in
+            Alert(
+                title: Text("Error"),
+                message: Text(error.message),
+                primaryButton: .default(Text("Copy error message"), action: model.copyErrorMessage),
+                secondaryButton: .cancel(Text("OK"), action: model.dismissError)
+            )
+        }
+        .alert(item: $model.mainWindowUpdateStatusAlert) { updateStatusAlert in
+            Alert(
+                title: Text(updateStatusAlert.title),
+                message: Text(updateStatusAlert.message),
+                dismissButton: .cancel(Text("OK")) {
+                    model.dismissUpdateStatusAlert(for: .mainWindow)
+                }
+            )
+        }
         .sheet(showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)) {
             UpdateSheetView(
                 title: model.updatePromptTitle,
