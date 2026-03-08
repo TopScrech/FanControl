@@ -1,31 +1,13 @@
 import ScrechKit
 
 struct ContentView: View {
-    @Environment(\.openWindow) private var openWindow
-    
     @Bindable var model: FanVM
     let showsHideWindowButton: Bool
     let showsUpdateAlert: Bool
     
     var body: some View {
         VStack(spacing: 12) {
-            HStack {
-                Text("FanControl")
-                    .title3(.semibold)
-                
-                if showsHideWindowButton && !model.isLicenseActive {
-                    LicenseInactiveBadge()
-                }
-                
-                Spacer(minLength: 0)
-                
-                if showsHideWindowButton {
-                    Button("Hide window", systemImage: "eye.slash", action: hideWindow)
-                } else {
-                    Button("Show window", systemImage: "macwindow", action: showWindow)
-                }
-            }
-            .controlSize(.small)
+            ContentViewHeader(model: model, showsHideWindowButton: showsHideWindowButton)
             
             HStack(alignment: .top, spacing: 12) {
                 FanControlsView(model: model)
@@ -62,16 +44,5 @@ struct ContentView: View {
         .sheet(showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)) {
             UpdateSheetView(model: model)
         }
-    }
-    
-    private func showWindow() {
-        let menuBarWindow = NSApplication.shared.keyWindow
-        openWindow(id: "main")
-        NSApplication.shared.activate(ignoringOtherApps: true)
-        menuBarWindow?.orderOut(nil)
-    }
-    
-    private func hideWindow() {
-        NSApplication.shared.keyWindow?.orderOut(nil)
     }
 }
