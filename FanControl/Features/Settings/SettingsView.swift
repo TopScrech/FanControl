@@ -8,7 +8,7 @@ struct SettingsView: View {
     
     var body: some View {
         Form {
-            SettingsShareSection()
+            ShareWebsiteButton()
             SettingsLicenseSection(model: model)
             SettingsLaunchSection()
             SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
@@ -64,8 +64,8 @@ struct SettingsView: View {
         let sensorLines = model.temperatureSensors.map {
             "\($0.key): \($0.celsius.formatted(.number.precision(.fractionLength(1))))"
         }
-        let text = ([model.processorName, ""] + sensorLines).joined(separator: "\n")
         
+        let text = ([model.processorName, ""] + sensorLines).joined(separator: "\n")
 #if os(macOS)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()

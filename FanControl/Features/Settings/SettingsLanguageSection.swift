@@ -2,7 +2,7 @@ import ScrechKit
 
 struct SettingsLanguageSection: View {
     @Binding var preferredAppLanguageRawValue: String
-
+    
     var body: some View {
         Section("Language") {
             Picker("App language", selection: $preferredAppLanguageRawValue) {

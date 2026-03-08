@@ -1,5 +1,3 @@
-import Foundation
-
 struct LicenseVerificationResponse: Decodable {
     let valid: Bool
     let reason: LicenseVerificationReason

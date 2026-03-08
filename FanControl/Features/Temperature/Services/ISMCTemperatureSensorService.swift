@@ -24,6 +24,7 @@ struct ISMCTemperatureSensorService {
             decoding: standardOutput.fileHandleForReading.readDataToEndOfFile(),
             as: UTF8.self
         )
+        
         let errorOutput = String(
             decoding: standardError.fileHandleForReading.readDataToEndOfFile(),
             as: UTF8.self

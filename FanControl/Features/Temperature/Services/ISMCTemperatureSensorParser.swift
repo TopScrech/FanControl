@@ -29,8 +29,10 @@ enum ISMCTemperatureSensorParser {
     nonisolated private static func parseStrictRow(_ line: String) -> TemperatureSensor? {
         let rowPattern = #/^\s*(.+?)\s{2,}(\S+)\s{2,}(-?\d+(?:[.,]\d+)?)\s*°C(?:\s{2,}(\S+))?\s*$/#
         
-        guard let match = line.wholeMatch(of: rowPattern),
-              let celsius = celsiusValue(from: String(match.output.3)) else {
+        guard
+            let match = line.wholeMatch(of: rowPattern),
+            let celsius = celsiusValue(from: String(match.output.3))
+        else {
             return nil
         }
         
@@ -44,8 +46,10 @@ enum ISMCTemperatureSensorParser {
     nonisolated private static func parseFlexibleRow(_ line: String) -> TemperatureSensor? {
         let valuePattern = #/(-?\d+(?:[.,]\d+)?)\s*°C/#
         
-        guard let valueMatch = line.firstMatch(of: valuePattern),
-              let celsius = celsiusValue(from: String(valueMatch.output.1)) else {
+        guard
+            let valueMatch = line.firstMatch(of: valuePattern),
+            let celsius = celsiusValue(from: String(valueMatch.output.1))
+        else {
             return nil
         }
         

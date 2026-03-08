@@ -54,7 +54,7 @@ struct SettingsLicenseSection: View {
             await model.verifyLicenseNow()
         }
     }
-
+    
     private func resetLicense() {
         Task {
             await model.clearSavedLicense()
