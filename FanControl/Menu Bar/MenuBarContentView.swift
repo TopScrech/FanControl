@@ -51,21 +51,7 @@ struct MenuBarContentView: View {
         .padding()
         .frame(width: 340)
         .frame(minHeight: 515, alignment: .top)
-        .background {
-            ZStack {
-                LinearGradient(
-                    colors: [Color.accentColor.opacity(0.12), .clear],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.06)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            }
-        }
+        .background(ContentViewBackground())
         .animation(.smooth(duration: 0.25), value: model.errorText)
         .sheet(showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)) {
             UpdateSheetView(
