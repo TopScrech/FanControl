@@ -26,20 +26,8 @@ struct FanCustomPresetEditorView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Text("Custom preset")
-                    .headline()
-                
-                if isActive {
-                    Text("Active")
-                        .caption()
-                        .bold()
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .foregroundStyle(Color.accentColor)
-                        .background(Color.accentColor.opacity(0.14), in: .capsule)
-                }
-            }
+            Text("Custom preset")
+                .headline()
             
             if sensors.isEmpty {
                 Text("No temperature sensors available")
@@ -81,7 +69,7 @@ struct FanCustomPresetEditorView: View {
     private var temperaturePrecision: TemperaturePrecision {
         TemperaturePrecision(rawValue: temperaturePrecisionRawValue) ?? .whole
     }
-
+    
     private func applyCurrentDraft() {
         applyPreset(normalized(draft))
     }
