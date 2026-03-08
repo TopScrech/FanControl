@@ -80,6 +80,7 @@ final class FanVM {
     var licenseEmail = ""
     var licenseKey = ""
     var isCheckingLicense = false
+    
     var isLicenseActive = false {
         didSet {
             guard isLicenseActive != oldValue else { return }
@@ -91,6 +92,7 @@ final class FanVM {
             }
         }
     }
+    
     var licenseStatusText = String(localized: "No saved license")
     let processorName: String
     
