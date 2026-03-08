@@ -290,7 +290,7 @@ final class FanVM {
     var selectedCustomPresetPercentageText: String? {
         let draft = selectedCustomPresetDraft
         
-        guard let sensor = temperatureSensors.first(where: { $0.key == draft.sensorKey }) else {
+        guard let sensor = resolvedTemperatureSensor(for: draft.sensorKey) else {
             return nil
         }
         
@@ -333,6 +333,12 @@ final class FanVM {
         guard isSendingControlAttempts else { return false }
         guard let controlAttemptTargetMode else { return true }
         return activeControlMode != controlAttemptTargetMode
+    }
+    
+    private var selectableTemperatureSensors: [TemperatureSensor] {
+        TemperatureSensorCategory.allCases.compactMap {
+            $0.averageSensor(in: temperatureSensors)
+        } + temperatureSensors
     }
     
     private static func logHelperBundleDiagnostics() {
@@ -1214,7 +1220,7 @@ final class FanVM {
     
     private func defaultCustomPresetDraft() -> FanCustomPresetDraft {
         FanCustomPresetDraft(
-            sensorKey: temperatureSensors.first?.key ?? "",
+            sensorKey: selectableTemperatureSensors.first?.key ?? "",
             minimumTemperature: Self.defaultCustomPresetMinimumTemperature,
             maximumTemperature: Self.defaultCustomPresetMaximumTemperature
         )
@@ -1269,19 +1275,19 @@ final class FanVM {
     }
     
     private func resolvedSensorKey(preferred sensorKey: String) -> String? {
-        if temperatureSensors.contains(where: { $0.key == sensorKey }) {
+        if selectableTemperatureSensors.contains(where: { $0.key == sensorKey }) {
             return sensorKey
         }
         
-        return temperatureSensors.first?.key
+        return selectableTemperatureSensors.first?.key
     }
     
     private func resolvedTemperatureSensor(for sensorKey: String) -> TemperatureSensor? {
-        if let matchedSensor = temperatureSensors.first(where: { $0.key == sensorKey }) {
+        if let matchedSensor = selectableTemperatureSensors.first(where: { $0.key == sensorKey }) {
             return matchedSensor
         }
         
-        return temperatureSensors.first
+        return selectableTemperatureSensors.first
     }
     
     private func storeCustomPresetConfiguration(
