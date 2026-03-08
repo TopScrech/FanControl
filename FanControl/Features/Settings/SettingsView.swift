@@ -10,8 +10,8 @@ struct SettingsView: View {
         Form {
             SettingsShareSection()
             SettingsLicenseSection(model: model)
-            SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
             SettingsLaunchSection()
+            SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
             SettingsTemperatureSection()
             
             SettingsUpdatesSection(
