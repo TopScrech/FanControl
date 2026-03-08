@@ -1,5 +1,3 @@
-import Foundation
-
 struct UpdateChangelogEntry: Hashable, Identifiable {
     let tagName: String
     let isPrerelease: Bool

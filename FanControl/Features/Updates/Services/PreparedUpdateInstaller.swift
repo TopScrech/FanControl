@@ -24,6 +24,7 @@ struct PreparedUpdateInstaller {
         try fileManager.removeItem(at: installedBundleURL)
         try fileManager.moveItem(at: preparedUpdate.bundleURL, to: installedBundleURL)
         try? fileManager.removeItem(at: preparedUpdate.temporaryDirectoryURL)
+        
         return installedBundleURL
     }
 }

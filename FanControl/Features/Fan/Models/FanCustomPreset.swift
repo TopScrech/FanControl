@@ -1,5 +1,3 @@
-import Foundation
-
 struct FanCustomPreset: Codable, Equatable, Sendable, Identifiable {
     static let temperatureBounds = 10...110
     

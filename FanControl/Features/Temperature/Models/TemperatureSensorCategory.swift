@@ -1,5 +1,3 @@
-import Foundation
-
 enum TemperatureSensorCategory: String, CaseIterable, Identifiable {
     case cpu, gpu, battery
     
