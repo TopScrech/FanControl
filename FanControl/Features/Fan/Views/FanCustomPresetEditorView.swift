@@ -34,9 +34,18 @@ struct FanCustomPresetEditorView: View {
                     .secondary()
             } else {
                 Picker("Sensor", selection: $draft.sensorKey) {
-                    ForEach(sensors) {
-                        Text(sensorLabel($0))
-                            .tag($0.key)
+                    Section("Averages") {
+                        ForEach(averagePickerSensors) {
+                            Text(sensorLabel($0))
+                                .tag($0.key)
+                        }
+                    }
+                    
+                    Section("Sensors") {
+                        ForEach(sensors) {
+                            Text(sensorLabel($0))
+                                .tag($0.key)
+                        }
                     }
                 }
                 
@@ -70,6 +79,16 @@ struct FanCustomPresetEditorView: View {
         TemperaturePrecision(rawValue: temperaturePrecisionRawValue) ?? .whole
     }
     
+    private var pickerSensors: [TemperatureSensor] {
+        averagePickerSensors + sensors
+    }
+    
+    private var averagePickerSensors: [TemperatureSensor] {
+        TemperatureSensorCategory.allCases.compactMap {
+            $0.averageSensor(in: sensors)
+        }
+    }
+    
     private func applyCurrentDraft() {
         applyPreset(normalized(draft))
     }
@@ -79,13 +98,15 @@ struct FanCustomPresetEditorView: View {
             max(draft.minimumTemperature, FanCustomPreset.temperatureBounds.lowerBound),
             FanCustomPreset.temperatureBounds.upperBound
         )
+        
         let maximumTemperature = min(
             max(draft.maximumTemperature, minimumTemperature),
             FanCustomPreset.temperatureBounds.upperBound
         )
+        
         let sensorKey =
-        sensors.first(where: { $0.key == draft.sensorKey })?.key ??
-        sensors.first?.key ??
+        pickerSensors.first(where: { $0.key == draft.sensorKey })?.key ??
+        pickerSensors.first?.key ??
         ""
         
         return FanCustomPresetDraft(
@@ -96,11 +117,24 @@ struct FanCustomPresetEditorView: View {
     }
     
     private func sensorLabel(_ sensor: TemperatureSensor) -> String {
+        let displayName = pickerDisplayName(for: sensor)
         let temperature = sensor.celsius.formattedTemperature(
             in: temperatureUnit,
             showsTenths: temperaturePrecision.showsTenths
         )
         
-        return "\(sensor.displayName) (\(temperature))"
+        return "\(displayName) (\(temperature))"
+    }
+    
+    private func pickerDisplayName(for sensor: TemperatureSensor) -> String {
+        if let category = TemperatureSensorCategory.allCases.first(where: { $0.sensorKey == sensor.key }) {
+            switch category {
+            case .cpu: return "CPU"
+            case .gpu: return "GPU"
+            case .battery: return "Battery"
+            }
+        }
+        
+        return sensor.displayName
     }
 }
