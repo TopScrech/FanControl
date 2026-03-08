@@ -14,14 +14,18 @@ enum AppDownloadsMovePrompter {
         
         NSApplication.shared.activate(ignoringOtherApps: true)
         
-        let alert = NSAlert()
-        alert.alertStyle = .informational
-        alert.messageText = destinationAppExists
+        let messageText = destinationAppExists
         ? String(localized: "Replace the copy in /Applications?")
         : String(localized: "Move FanControl to /Applications?")
-        alert.informativeText = destinationAppExists
+        
+        let informativeText = destinationAppExists
         ? String(localized: "FanControl is running from Downloads. Move it to /Applications and replace the existing copy so the helper can install correctly")
         : String(localized: "FanControl is running from Downloads. Move it to /Applications so the helper can install correctly")
+        
+        let alert = NSAlert()
+        alert.alertStyle = .informational
+        alert.messageText = messageText
+        alert.informativeText = informativeText
         alert.addButton(withTitle: String(localized: "Move to Applications"))
         alert.addButton(withTitle: String(localized: "Not now"))
         
@@ -33,7 +37,7 @@ enum AppDownloadsMovePrompter {
     private static var runningBundleURL: URL {
         Bundle.main.bundleURL.standardizedFileURL.resolvingSymlinksInPath()
     }
-
+    
     private static var sourceBundleURL: URL {
         var error: Unmanaged<CFError>?
         guard let originalURL = secTranslocateCreateOriginalPathForURL(
