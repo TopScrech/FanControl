@@ -116,7 +116,7 @@ final class RemoteSMCService: SMCService {
             }
             
             let proxy = connection.remoteObjectProxyWithErrorHandler { error in
-                Self.logger.error("SMC helper XPC error: \(error.localizedDescription)")
+                Self.logger.error("SMC helper XPC error: \(error)")
                 finishOnMain(.failure(error))
             } as? FanControlXPCProtocol
             
