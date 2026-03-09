@@ -14,7 +14,7 @@ final class FanControlHelperService: NSObject, FanControlXPCProtocol {
         } catch {
             smc = nil
             initError = error.localizedDescription
-            Self.logger.error("SMC client init failed: \(error.localizedDescription)")
+            Self.logger.error("SMC client init failed: \(error)")
         }
         
         super.init()
@@ -30,7 +30,7 @@ final class FanControlHelperService: NSObject, FanControlXPCProtocol {
             let fans = try smc.readFans()
             reply(fans.map(FanSnapshot.init(fan:)), nil)
         } catch {
-            Self.logger.error("readFans failed: \(error.localizedDescription)")
+            Self.logger.error("readFans failed: \(error)")
             reply(nil, error.localizedDescription)
         }
     }
@@ -46,7 +46,7 @@ final class FanControlHelperService: NSObject, FanControlXPCProtocol {
             try smc.setFanManualRPM(fanID: fanID, rpm: rpm)
             reply(nil)
         } catch {
-            Self.logger.error("setManualRPM failed fan=\(fanID) error=\(error.localizedDescription)")
+            Self.logger.error("setManualRPM failed fan=\(fanID) error=\(error)")
             reply(error.localizedDescription)
         }
     }
@@ -62,7 +62,7 @@ final class FanControlHelperService: NSObject, FanControlXPCProtocol {
             try smc.setFanAuto(fanID: fanID)
             reply(nil)
         } catch {
-            Self.logger.error("setAuto failed fan=\(fanID) error=\(error.localizedDescription)")
+            Self.logger.error("setAuto failed fan=\(fanID) error=\(error)")
             reply(error.localizedDescription)
         }
     }
@@ -77,7 +77,7 @@ final class FanControlHelperService: NSObject, FanControlXPCProtocol {
             try smc.keepAliveManualOverride()
             reply(nil)
         } catch {
-            Self.logger.error("keepAlive failed: \(error.localizedDescription)")
+            Self.logger.error("keepAlive failed: \(error)")
             reply(error.localizedDescription)
         }
     }

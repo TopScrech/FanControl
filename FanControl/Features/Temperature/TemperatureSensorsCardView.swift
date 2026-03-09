@@ -18,7 +18,8 @@ struct TemperatureSensorsCardView: View {
                             value: $0.celsius.formattedTemperature(
                                 in: temperatureUnit,
                                 showsTenths: showsTemperatureTenths
-                            )
+                            ),
+                            valueColor: $0.celsius.temperatureValueColor
                         )
                     }
                 }

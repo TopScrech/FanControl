@@ -1,25 +1,22 @@
 import ScrechKit
 
 struct SettingsLicenseSection: View {
+    @Environment(\.openURL) private var openURL
+    
     @Bindable var model: FanVM
+    
     @State private var isResetConfirmationPresented = false
+    
+    private let restoreURL = URL(string: "https://fancontrol.dev/restore-license")!
     
     var body: some View {
         Section {
             TextField("Email", text: $model.licenseEmail)
             
             SecureField("License key", text: $model.licenseKey)
+                .onSubmit(verifyLicense)
             
             LabeledContent("Status", value: model.licenseStatusText)
-            
-            Button(action: verifyLicense) {
-                LabeledContent {
-                    Image(systemName: "checkmark.seal")
-                } label: {
-                    Text("Verify license")
-                }
-            }
-            .disabled(model.isCheckingLicense)
         } header: {
             HStack {
                 Text("License")
@@ -32,6 +29,11 @@ struct SettingsLicenseSection: View {
                     }
                     .secondary()
                     .disabled(model.licenseEmail.isEmpty && model.licenseKey.isEmpty)
+                } else {
+                    Button("Restore") {
+                        openURL(restoreURL)
+                    }
+                    .secondary()
                 }
             }
         }
@@ -52,7 +54,7 @@ struct SettingsLicenseSection: View {
             await model.verifyLicenseNow()
         }
     }
-
+    
     private func resetLicense() {
         Task {
             await model.clearSavedLicense()

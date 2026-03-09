@@ -1,4 +1,3 @@
-import Foundation
 import OSLog
 
 let logger = Logger(subsystem: "FanControl", category: "SMCHelper")

@@ -51,7 +51,7 @@ struct FanControlApp: App {
         }
         
         MenuBarExtra("FanControl", systemImage: model.isAnyFanSpinning ? "fanblades.fill" : "fanblades") {
-            ContentView(
+            MenuBarContentView(
                 model: model,
                 showsHideWindowButton: false,
                 showsUpdateAlert: false
@@ -86,7 +86,7 @@ struct FanControlApp: App {
     
     private func checkForUpdates() {
         Task {
-            await model.checkForUpdatesNow()
+            await model.checkForUpdatesNow(presenter: .mainWindow)
         }
     }
     

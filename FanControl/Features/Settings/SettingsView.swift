@@ -8,10 +8,10 @@ struct SettingsView: View {
     
     var body: some View {
         Form {
-            SettingsShareSection()
+            ShareWebsiteButton()
             SettingsLicenseSection(model: model)
-            SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
             SettingsLaunchSection()
+            SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
             SettingsTemperatureSection()
             
             SettingsUpdatesSection(
@@ -47,15 +47,16 @@ struct SettingsView: View {
         .onDisappear {
             model.setSettingsOpen(false)
         }
-        .sheet(
-            isPresented: $model.isUpdatePromptPresented
-        ) {
-            UpdateSheetView(
-                title: model.updatePromptTitle,
-                changelogEntries: model.updateChangelogEntries,
-                isInstalling: model.isCheckingForUpdates,
-                onNotNow: cancelUpdate,
-                onUpdate: installPreparedUpdate
+        .sheet($model.isUpdatePromptPresented) {
+            UpdateSheet(model: model)
+        }
+        .alert(item: $model.settingsUpdateStatusAlert) { updateStatusAlert in
+            Alert(
+                title: Text(updateStatusAlert.title),
+                message: Text(updateStatusAlert.message),
+                dismissButton: .cancel(Text("OK")) {
+                    model.dismissUpdateStatusAlert(for: .settings)
+                }
             )
         }
     }
@@ -64,8 +65,8 @@ struct SettingsView: View {
         let sensorLines = model.temperatureSensors.map {
             "\($0.key): \($0.celsius.formatted(.number.precision(.fractionLength(1))))"
         }
-        let text = ([model.processorName, ""] + sensorLines).joined(separator: "\n")
         
+        let text = ([model.processorName, ""] + sensorLines).joined(separator: "\n")
 #if os(macOS)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
@@ -75,7 +76,7 @@ struct SettingsView: View {
     
     private func checkForUpdates() {
         Task {
-            await model.checkForUpdatesNow()
+            await model.checkForUpdatesNow(presenter: .settings)
         }
     }
     

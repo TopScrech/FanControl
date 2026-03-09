@@ -1,11 +1,27 @@
 import ServiceManagement
 import OSLog
 import Darwin
+import AppKit
 import CoreSMC
 import AutoUpdate
 
 @Observable
 final class FanVM {
+    struct ErrorAlert: Identifiable {
+        let id = UUID()
+        let message: String
+    }
+
+    struct UpdateStatusAlert: Identifiable {
+        let id = UUID()
+        let title: String
+        let message: String
+    }
+
+    enum UpdateStatusAlertPresenter {
+        case mainWindow, settings, menuBar
+    }
+
     private static let updateRepositoryOwner = "TopScrech"
     private static let updateRepositoryName = "FanControl"
     private static let allFansSelectionID = -1
@@ -36,6 +52,9 @@ final class FanVM {
     var isUpdatePromptPresented = false
     var isSettingsOpen = false
     var isDebugSectionVisible = false
+    var mainWindowUpdateStatusAlert: UpdateStatusAlert?
+    var settingsUpdateStatusAlert: UpdateStatusAlert?
+    var menuBarUpdateStatusAlert: UpdateStatusAlert?
     
     var selectedFanID = 0 {
         didSet {
@@ -76,10 +95,11 @@ final class FanVM {
         }
     }
     
-    var errorText: String?
+    var errorAlert: ErrorAlert?
     var licenseEmail = ""
     var licenseKey = ""
     var isCheckingLicense = false
+    
     var isLicenseActive = false {
         didSet {
             guard isLicenseActive != oldValue else { return }
@@ -91,6 +111,7 @@ final class FanVM {
             }
         }
     }
+    
     var licenseStatusText = String(localized: "No saved license")
     let processorName: String
     
@@ -160,7 +181,7 @@ final class FanVM {
         } catch {
             localSMC = nil
             localError = error.localizedDescription
-            Self.logger.error("Local SMC client init failed: \(error.localizedDescription)")
+            Self.logger.error("Local SMC client init failed: \(error)")
         }
         
         if localSMC == nil {
@@ -540,7 +561,7 @@ final class FanVM {
                 try await smc.keepAliveManualOverride()
             } catch {
                 presentError(error.localizedDescription)
-                Self.logger.error("Manual keep-alive failed: \(error.localizedDescription)")
+                Self.logger.error("Manual keep-alive failed: \(error)")
             }
         }
         
@@ -568,7 +589,7 @@ final class FanVM {
                 }
             } catch {
                 refreshError = error
-                Self.logger.error("Refresh readFans failed: \(error.localizedDescription)")
+                Self.logger.error("Refresh readFans failed: \(error)")
             }
         } else {
             Self.logger.info("Refresh fan read skipped: no active SMC service")
@@ -582,8 +603,9 @@ final class FanVM {
             if refreshError == nil {
                 refreshError = error
             }
+            
             temperatureSensors = []
-            Self.logger.error("Refresh readTemperatureSensors failed: \(error.localizedDescription)")
+            Self.logger.error("Refresh readTemperatureSensors failed: \(error)")
         }
         
         if let refreshError {
@@ -591,10 +613,10 @@ final class FanVM {
         }
     }
     
-    func checkForUpdatesNow() async {
+    func checkForUpdatesNow(presenter: UpdateStatusAlertPresenter) async {
         guard !isCheckingForUpdates else { return }
-        
         isCheckingForUpdates = true
+        
         updateStatusText = String(localized: "Checking for updates")
         defer { isCheckingForUpdates = false }
         
@@ -602,20 +624,30 @@ final class FanVM {
             switch try await appUpdater.prepareUpdateIfAvailable() {
             case .upToDate:
                 clearPreparedUpdate()
-                updateStatusText = String(localized: "You are on the latest version")
+                updateStatusText = String(localized: "The latest version is already installed")
+                
+                presentUpdateStatusAlert(
+                    title: String(localized: "You’re up to date"),
+                    message: String(localized: "The latest version is already installed"),
+                    presenter: presenter
+                )
+                
                 Self.logger.info("Update check: already on latest version")
                 
             case .prepared(let preparedUpdate):
                 await setPreparedUpdate(preparedUpdate)
                 updateChangelogEntries = await loadUpdateChangelogEntries(for: preparedUpdate.release)
+                
                 let template = String(localized: "Update available: %@")
                 updateStatusText = String(format: template, locale: .current, preparedUpdate.release.tagName)
+                
                 Self.logger.info("Update prepared tag=\(preparedUpdate.release.tagName)")
                 isUpdatePromptPresented = true
             }
         } catch {
             updateStatusText = String(localized: "Update failed")
-            Self.logger.error("Update check failed: \(error.localizedDescription)")
+            Self.logger.error("Update check failed: \(error)")
+            
             let template = String(localized: "Update failed: %@")
             presentError(String(format: template, locale: .current, error.localizedDescription))
         }
@@ -643,16 +675,20 @@ final class FanVM {
             isInstallingPreparedUpdate = true
             await resetFansForTermination()
             let installedAppURL = try preparedUpdateInstaller.install(preparedUpdate)
+            
             clearPreparedUpdate()
             try relaunchInstalledApp(at: installedAppURL)
+            
             Self.logger.info("Update install succeeded tag=\(preparedUpdate.release.tagName)")
             Darwin.exit(EXIT_SUCCESS)
         } catch {
             isInstallingPreparedUpdate = false
             await appUpdater.discardPreparedUpdate(preparedUpdate)
+            
             clearPreparedUpdate()
             updateStatusText = String(localized: "Update failed")
-            Self.logger.error("Update install failed: \(error.localizedDescription)")
+            Self.logger.error("Update install failed: \(error)")
+            
             let template = String(localized: "Update failed: %@")
             presentError(String(format: template, locale: .current, error.localizedDescription))
         }
@@ -671,6 +707,38 @@ final class FanVM {
         await appUpdater.discardPreparedUpdate(preparedUpdate)
         clearPreparedUpdate()
         updateStatusText = String(localized: "Update postponed")
+    }
+
+    func dismissUpdateStatusAlert(for presenter: UpdateStatusAlertPresenter) {
+        switch presenter {
+        case .mainWindow:
+            mainWindowUpdateStatusAlert = nil
+        case .settings:
+            settingsUpdateStatusAlert = nil
+        case .menuBar:
+            menuBarUpdateStatusAlert = nil
+        }
+    }
+
+    private func presentUpdateStatusAlert(
+        title: String,
+        message: String,
+        presenter: UpdateStatusAlertPresenter
+    ) {
+        let alert = UpdateStatusAlert(title: title, message: message)
+
+        mainWindowUpdateStatusAlert = nil
+        settingsUpdateStatusAlert = nil
+        menuBarUpdateStatusAlert = nil
+
+        switch presenter {
+        case .mainWindow:
+            mainWindowUpdateStatusAlert = alert
+        case .settings:
+            settingsUpdateStatusAlert = alert
+        case .menuBar:
+            menuBarUpdateStatusAlert = alert
+        }
     }
     
     func setSettingsOpen(_ isOpen: Bool) {
@@ -817,7 +885,7 @@ final class FanVM {
                     } catch {
                         lastAttemptError = error
                         Self.logger.error(
-                            "Custom preset signal failed fan=\(fan.id) sensor=\(sensor.key) rpm=\(targetRPM) attempt=\(attempt) error=\(error.localizedDescription)"
+                            "Custom preset signal failed fan=\(fan.id) sensor=\(sensor.key) rpm=\(targetRPM) attempt=\(attempt) error=\(error)"
                         )
                     }
                 }
@@ -851,7 +919,7 @@ final class FanVM {
             Self.logger.info("Custom preset retries canceled")
             
         } catch {
-            Self.logger.error("Custom preset failed error=\(error.localizedDescription)")
+            Self.logger.error("Custom preset failed error=\(error)")
             presentError(error.localizedDescription)
         }
     }
@@ -944,7 +1012,7 @@ final class FanVM {
                         Self.logger.info("Manual signal sent fan=\(fan.id) rpm=\(rpm) attempt=\(attempt)")
                     } catch {
                         lastAttemptError = error
-                        Self.logger.error("Manual signal failed fan=\(fan.id) rpm=\(rpm) attempt=\(attempt) error=\(error.localizedDescription)")
+                        Self.logger.error("Manual signal failed fan=\(fan.id) rpm=\(rpm) attempt=\(attempt) error=\(error)")
                     }
                 }
                 
@@ -981,7 +1049,8 @@ final class FanVM {
         } catch {
             setCustomPresetEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
             holdingManualOverride = hasEnabledCustomPresets
-            Self.logger.error("Manual failed error=\(error.localizedDescription)")
+            
+            Self.logger.error("Manual failed error=\(error)")
             presentError(error.localizedDescription)
         }
     }
@@ -1022,7 +1091,7 @@ final class FanVM {
                 successfulSignals += 1
             } catch {
                 lastAttemptError = error
-                Self.logger.error("Auto signal failed fan=\(fan.id) error=\(error.localizedDescription)")
+                Self.logger.error("Auto signal failed fan=\(fan.id) error=\(error)")
             }
         }
         
@@ -1071,14 +1140,14 @@ final class FanVM {
                 successfulSignals += 1
             } catch {
                 lastAttemptError = error
-                Self.logger.error("Termination auto reset failed fan=\(fanID) error=\(error.localizedDescription)")
+                Self.logger.error("Termination auto reset failed fan=\(fanID) error=\(error)")
             }
         }
         
         holdingManualOverride = hasEnabledCustomPresets
         
         if successfulSignals == 0, let lastAttemptError {
-            Self.logger.error("Termination auto reset failed error=\(lastAttemptError.localizedDescription)")
+            Self.logger.error("Termination auto reset failed error=\(lastAttemptError)")
         }
     }
     
@@ -1103,6 +1172,15 @@ final class FanVM {
         errorDismissToken += 1
         errorDismissTask?.cancel()
         clearError()
+    }
+
+    func copyErrorMessage() {
+        guard let message = errorAlert?.message else { return }
+
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(message, forType: .string)
+        dismissError()
     }
     
     private func isControlActionCurrent(_ token: Int) -> Bool {
@@ -1398,7 +1476,7 @@ final class FanVM {
             } catch {
                 lastAttemptError = error
                 Self.logger.error(
-                    "Custom preset tick failed fan=\(fan.id) sensor=\(sensor.key) rpm=\(targetRPM) error=\(error.localizedDescription)"
+                    "Custom preset tick failed fan=\(fan.id) sensor=\(sensor.key) rpm=\(targetRPM) error=\(error)"
                 )
             }
         }
@@ -1445,7 +1523,7 @@ final class FanVM {
             } catch {
                 lastAttemptError = error
                 Self.logger.error(
-                    "Failed to disable custom preset after license deactivation fan=\(fanID) error=\(error.localizedDescription)"
+                    "Failed to disable custom preset after license deactivation fan=\(fanID) error=\(error)"
                 )
             }
         }
@@ -1535,7 +1613,7 @@ final class FanVM {
                 isUpdatePromptPresented = true
             }
         } catch {
-            Self.logger.error("Automatic update check failed: \(error.localizedDescription)")
+            Self.logger.error("Automatic update check failed: \(error)")
         }
     }
     
@@ -1592,7 +1670,7 @@ final class FanVM {
             
             return changelogEntries
         } catch {
-            Self.logger.error("Failed to fetch intermediate changelogs: \(error.localizedDescription)")
+            Self.logger.error("Failed to fetch intermediate changelogs: \(error)")
             return [changelogEntry(for: targetRelease)]
         }
     }
@@ -1821,7 +1899,7 @@ final class FanVM {
             return status
         } catch {
             presentError(error.localizedDescription)
-            Self.logger.error("SMC helper register failed: \(error.localizedDescription)")
+            Self.logger.error("SMC helper register failed: \(error)")
             return service.status
         }
     }
@@ -1895,7 +1973,7 @@ System plist exists: %@
     private func presentError(_ message: String) {
         let now = Date()
         
-        if message == errorText, let errorExpiryDate, now < errorExpiryDate {
+        if message == errorAlert?.message, let errorExpiryDate, now < errorExpiryDate {
             return
         }
         
@@ -1905,7 +1983,7 @@ System plist exists: %@
         errorDismissTask?.cancel()
         
         errorExpiryDate = now.addingTimeInterval(Self.errorDisplaySeconds)
-        errorText = message
+        errorAlert = ErrorAlert(message: message)
         
         errorDismissTask = Task { @MainActor [weak self] in
             do {
@@ -1920,7 +1998,7 @@ System plist exists: %@
     }
     
     private func clearError() {
-        errorText = nil
+        errorAlert = nil
         errorExpiryDate = nil
     }
     

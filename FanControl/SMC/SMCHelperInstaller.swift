@@ -15,7 +15,7 @@ struct SMCHelperInstaller {
             try service.register()
         } catch {
             let nsError = error as NSError
-            Self.logger.error("Helper register failed: \(nsError.domain) code=\(nsError.code) \(nsError.localizedDescription)")
+            Self.logger.error("Helper register failed: \(nsError.domain) code=\(nsError.code) \(nsError)")
             throw error
         }
         

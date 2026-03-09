@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct ContentView: View {
+struct MenuBarContentView: View {
     @Bindable var model: FanVM
     let showsHideWindowButton: Bool
     let showsUpdateAlert: Bool
@@ -9,20 +9,12 @@ struct ContentView: View {
         VStack(spacing: 12) {
             ContentViewHeader(model: model, showsHideWindowButton: showsHideWindowButton)
             
-            HStack(alignment: .top, spacing: 12) {
-                FanControlsView(model: model)
-                    .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
-                
-                FanTemperatureCardView(sensors: model.temperatureSensors)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .frame(width: 280)
-                    .fanCardSurface()
-                    .frame(maxHeight: 400, alignment: .topLeading)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            FanControlsView(model: model, showSensors: true)
+                .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
         }
         .padding()
-        .frame(width: 680)
+        .frame(width: 340)
+        .frame(minHeight: 515, alignment: .top)
         .background(ContentViewBackground())
         .alert(item: $model.errorAlert) { error in
             Alert(
@@ -32,12 +24,12 @@ struct ContentView: View {
                 secondaryButton: .cancel(Text("OK"), action: model.dismissError)
             )
         }
-        .alert(item: $model.mainWindowUpdateStatusAlert) { updateStatusAlert in
+        .alert(item: $model.menuBarUpdateStatusAlert) { updateStatusAlert in
             Alert(
                 title: Text(updateStatusAlert.title),
                 message: Text(updateStatusAlert.message),
                 dismissButton: .cancel(Text("OK")) {
-                    model.dismissUpdateStatusAlert(for: .mainWindow)
+                    model.dismissUpdateStatusAlert(for: .menuBar)
                 }
             )
         }

@@ -5,6 +5,7 @@ struct FanTemperatureCardView: View {
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     
     let sensors: [TemperatureSensor]
+    var showAllSensors = true
     
     private var temperatureUnit: TemperatureUnit {
         TemperatureUnit(rawValue: temperatureUnitRawValue) ?? .celsius
@@ -28,30 +29,33 @@ struct FanTemperatureCardView: View {
             }
             .monospacedDigit()
             
-            Divider()
-                .overlay(.primary.opacity(0.22))
-            
-            if sensors.isEmpty {
-                Text("No sensors available")
-                    .secondary()
-            } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(sensors) {
-                            FanMetricRowView(
-                                $0.displayName,
-                                value: $0.celsius.formattedTemperature(
-                                    in: temperatureUnit,
-                                    showsTenths: temperaturePrecision.showsTenths
+            if showAllSensors {
+                Divider()
+                    .overlay(.primary.opacity(0.22))
+                
+                if sensors.isEmpty {
+                    Text("No sensors available")
+                        .secondary()
+                } else {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(sensors) {
+                                FanMetricRowView(
+                                    $0.displayName,
+                                    value: $0.celsius.formattedTemperature(
+                                        in: temperatureUnit,
+                                        showsTenths: temperaturePrecision.showsTenths
+                                    ),
+                                    valueColor: $0.celsius.temperatureValueColor
                                 )
-                            )
+                            }
                         }
+                        .monospacedDigit()
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .monospacedDigit()
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .scrollIndicators(.hidden)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
-                .scrollIndicators(.hidden)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
