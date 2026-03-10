@@ -10,12 +10,7 @@ struct FanControlsView: View {
             if model.fans.isEmpty {
                 FanEmptyStateView()
             } else {
-                FanPickerCardView(
-                    fans: model.fans,
-                    allFansID: model.allFansID,
-                    showsAllFansOption: model.showsAllFansOption,
-                    selectedFanID: $model.selectedFanID
-                )
+                FanPickerCardView(model: model)
                 
                 if model.controlsAllFans {
                     AllFansCurrentSpeedCardView(fans: model.fans)
