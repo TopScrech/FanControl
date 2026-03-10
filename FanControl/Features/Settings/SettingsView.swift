@@ -14,17 +14,7 @@ struct SettingsView: View {
             SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
             SettingsTemperatureSection()
             
-            SettingsUpdatesSection(
-                appVersionDescription: model.appVersionDescription,
-                isCheckingForUpdates: model.isCheckingForUpdates,
-                allowsPrereleaseUpdates: $model.allowsPrereleaseUpdates,
-                usesGitHubProxy: $model.usesGitHubProxy,
-                gitHubProxyURLString: $model.gitHubProxyURLString,
-                showsResetGitHubProxyURLButton: model.showsResetGitHubProxyURLButton,
-                defaultGitHubProxyURLString: FanVM.defaultGitHubProxyURLString,
-                onResetGitHubProxyURL: model.resetGitHubProxyURL,
-                onCheckForUpdates: checkForUpdates
-            )
+            SettingsUpdatesSection(model: model)
             
             if model.isDebugSectionVisible {
                 SettingsDebugSection(
@@ -72,12 +62,6 @@ struct SettingsView: View {
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 #endif
-    }
-    
-    private func checkForUpdates() {
-        Task {
-            await model.checkForUpdatesNow(presenter: .settings)
-        }
     }
     
     private func cancelUpdate() {

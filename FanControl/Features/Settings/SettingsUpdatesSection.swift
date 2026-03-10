@@ -1,26 +1,18 @@
 import ScrechKit
 
 struct SettingsUpdatesSection: View {
-    let appVersionDescription: String
-    let isCheckingForUpdates: Bool
-    @Binding var allowsPrereleaseUpdates: Bool
-    @Binding var usesGitHubProxy: Bool
-    @Binding var gitHubProxyURLString: String
-    let showsResetGitHubProxyURLButton: Bool
-    let defaultGitHubProxyURLString: String
-    let onResetGitHubProxyURL: () -> Void
-    let onCheckForUpdates: () -> Void
+    @Bindable var model: FanVM
     
     var body: some View {
         Section {
-            LabeledContent("Version", value: appVersionDescription)
+            LabeledContent("Version", value: model.appVersionDescription)
             
-            Toggle("Pre-release updates", isOn: $allowsPrereleaseUpdates)
-            Toggle("GitHub proxy", isOn: $usesGitHubProxy)
+            Toggle("Pre-release updates", isOn: $model.allowsPrereleaseUpdates)
+            Toggle("GitHub proxy", isOn: $model.usesGitHubProxy)
             
-            if usesGitHubProxy {
-                TextField("GitHub proxy URL", text: $gitHubProxyURLString)
-                    .disabled(!usesGitHubProxy)
+            if model.usesGitHubProxy {
+                TextField("GitHub proxy URL", text: $model.gitHubProxyURLString)
+                    .disabled(!model.usesGitHubProxy)
             }
         } header: {
             HStack {
@@ -28,16 +20,22 @@ struct SettingsUpdatesSection: View {
                 
                 Spacer()
                 
-                SFButton("arrow.trianglehead.2.clockwise.rotate.90", action: onCheckForUpdates)
-                    .disabled(isCheckingForUpdates)
+                SFButton("arrow.trianglehead.2.clockwise.rotate.90", action: checkForUpdates)
+                    .disabled(model.isCheckingForUpdates)
                     .secondary()
             }
         } footer: {
-            if showsResetGitHubProxyURLButton {
-                Button("Reset", action: onResetGitHubProxyURL)
+            if model.showsResetGitHubProxyURLButton {
+                Button("Reset", action: model.resetGitHubProxyURL)
                     .secondary()
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
+        }
+    }
+    
+    private func checkForUpdates() {
+        Task {
+            await model.checkForUpdatesNow(presenter: .settings)
         }
     }
 }
