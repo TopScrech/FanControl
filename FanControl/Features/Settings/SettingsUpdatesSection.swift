@@ -20,9 +20,14 @@ struct SettingsUpdatesSection: View {
                 
                 Spacer()
                 
-                SFButton("arrow.trianglehead.2.clockwise.rotate.90", action: checkForUpdates)
-                    .disabled(model.isCheckingForUpdates)
-                    .secondary()
+                Button(action: checkForUpdates) {
+                    HStack {
+                        Text("Check for updates")
+                        Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
+                    }
+                }
+                .disabled(model.isCheckingForUpdates)
+                .secondary()
             }
         } footer: {
             if model.showsResetGitHubProxyURLButton {
