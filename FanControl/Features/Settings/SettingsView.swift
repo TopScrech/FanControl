@@ -2,6 +2,8 @@ import ScrechKit
 import CoreSMC
 
 struct SettingsView: View {
+    @AppStorage("keepsWindowOnTop") private var keepsWindowOnTop = false
+    
     @Bindable var model: FanVM
     
     @AppStorage(AppLanguageOption.storageKey) private var preferredAppLanguageRawValue = AppLanguageManager.defaultOption.rawValue
@@ -28,6 +30,7 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .buttonStyle(.plain)
         .frame(width: 500, height: 600)
+        .background(MainWindowLevelView(keepsWindowOnTop: keepsWindowOnTop))
         .onAppear {
             let selectedOption = AppLanguageManager.option(from: preferredAppLanguageRawValue)
             preferredAppLanguageRawValue = selectedOption.rawValue
