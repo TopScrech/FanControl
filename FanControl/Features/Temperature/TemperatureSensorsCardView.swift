@@ -4,6 +4,7 @@ struct TemperatureSensorsCardView: View {
     let sensors: [TemperatureSensor]
     let temperatureUnit: TemperatureUnit
     let showsTemperatureTenths: Bool
+    let showsIcons: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -15,6 +16,7 @@ struct TemperatureSensorsCardView: View {
                     ForEach(sensors) {
                         FanMetricRowView(
                             $0.displayName,
+                            systemImage: showsIcons ? $0.systemImage : nil,
                             value: $0.celsius.formattedTemperature(
                                 in: temperatureUnit,
                                 showsTenths: showsTemperatureTenths

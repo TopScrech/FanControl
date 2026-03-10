@@ -3,6 +3,7 @@ import ScrechKit
 struct FanTemperatureCardView: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
+    @AppStorage("showsTemperatureSensorIcons") private var showsTemperatureSensorIcons = false
     
     let sensors: [TemperatureSensor]
     var showAllSensors = true
@@ -24,7 +25,11 @@ struct FanTemperatureCardView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(averageRows) {
-                    FanMetricRowView($0.title, value: $0.value)
+                    FanMetricRowView(
+                        $0.title,
+                        systemImage: showsTemperatureSensorIcons ? $0.systemImage : nil,
+                        value: $0.value
+                    )
                 }
             }
             .monospacedDigit()
@@ -42,6 +47,7 @@ struct FanTemperatureCardView: View {
                             ForEach(sensors) {
                                 FanMetricRowView(
                                     $0.displayName,
+                                    systemImage: showsTemperatureSensorIcons ? $0.systemImage : nil,
                                     value: $0.celsius.formattedTemperature(
                                         in: temperatureUnit,
                                         showsTenths: temperaturePrecision.showsTenths
@@ -79,6 +85,7 @@ struct FanTemperatureCardView: View {
             return TemperatureAverageRow(
                 id: category.rawValue,
                 title: category.title,
+                systemImage: category.systemImage,
                 value: averageText
             )
         }

@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsTemperatureSection: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
+    @AppStorage("showsTemperatureSensorIcons") private var showsTemperatureSensorIcons = false
     
     var body: some View {
         Section("Temperature") {
@@ -21,6 +22,8 @@ struct SettingsTemperatureSection: View {
                 }
             }
             .pickerStyle(.menu)
+            
+            Toggle("Sensor icons", isOn: $showsTemperatureSensorIcons)
         }
     }
 }
