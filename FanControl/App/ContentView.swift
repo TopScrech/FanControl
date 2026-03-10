@@ -1,6 +1,8 @@
 import ScrechKit
 
 struct ContentView: View {
+    @AppStorage("keepsWindowOnTop") private var keepsWindowOnTop = false
+    
     @Bindable var model: FanVM
     let showsHideWindowButton: Bool
     let showsUpdateAlert: Bool
@@ -23,6 +25,7 @@ struct ContentView: View {
         }
         .padding()
         .frame(width: 680)
+        .background(MainWindowLevelView(keepsWindowOnTop: keepsWindowOnTop))
         .background(ContentViewBackground())
         .alert(item: $model.errorAlert) { error in
             Alert(

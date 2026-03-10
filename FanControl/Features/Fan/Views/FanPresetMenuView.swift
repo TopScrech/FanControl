@@ -1,22 +1,14 @@
 import ScrechKit
 
 struct FanPresetMenuView: View {
-    let canUsePresets: Bool
-    let presetRPMs: [Int]
-    let sensors: [TemperatureSensor]
-    let selectedCustomPreset: FanCustomPresetDraft
-    let isCustomPresetActive: Bool
-    let customPresetPercentageText: String?
-    let activeMode: FanControlMode?
-    let setPreset: (Int) -> Void
-    let setCustomPreset: (FanCustomPresetDraft) -> Void
+    @Bindable var model: FanVM
     
     @State private var showsPresetMenu = false
     @State private var showsLicenseAlert = false
     
     var body: some View {
         Group {
-            if activeMode == .preset || activeMode == .custom {
+            if model.activeControlMode == .preset || model.activeControlMode == .custom {
                 Button(action: showPresetMenuOrLicenseAlert) {
                     Label(buttonTitle, systemImage: "dial.low")
                         .frame(maxWidth: .infinity)
@@ -32,28 +24,28 @@ struct FanPresetMenuView: View {
         }
         .monospacedDigit()
         .frame(maxWidth: .infinity)
-        .disabled(presetRPMs.isEmpty && sensors.isEmpty)
+        .disabled(model.controlPresetRPMs.isEmpty && model.temperatureSensors.isEmpty)
         .help(
-            canUsePresets
+            model.canUsePresetControl
             ? String(localized: "Preset control")
             : String(localized: "Preset control requires an active license")
         )
         .popover(isPresented: $showsPresetMenu, arrowEdge: .bottom) {
             VStack(alignment: .leading, spacing: 12) {
                 FanCustomPresetEditorView(
-                    sensors: sensors,
-                    initialDraft: selectedCustomPreset,
-                    isActive: isCustomPresetActive
+                    sensors: model.temperatureSensors,
+                    initialDraft: model.selectedCustomPresetDraft,
+                    isActive: model.selectedCustomPresetIsActive
                 ) { draft in
                     setCustomPreset(draft)
                     showsPresetMenu = false
                 }
                 
-                if !presetRPMs.isEmpty {
+                if !model.controlPresetRPMs.isEmpty {
                     Divider()
                         .overlay(.primary.opacity(0.18))
                     
-                    FanFixedPresetListView(presetRPMs: presetRPMs) { rpm in
+                    FanFixedPresetListView(presetRPMs: model.controlPresetRPMs) { rpm in
                         setPreset(rpm)
                         showsPresetMenu = false
                     }
@@ -70,7 +62,7 @@ struct FanPresetMenuView: View {
     }
     
     private func showPresetMenuOrLicenseAlert() {
-        if canUsePresets {
+        if model.canUsePresetControl {
             showsPresetMenu.toggle()
             return
         }
@@ -79,10 +71,22 @@ struct FanPresetMenuView: View {
     }
     
     private var buttonTitle: String {
-        if activeMode == .custom, let customPresetPercentageText {
+        if model.activeControlMode == .custom, let customPresetPercentageText = model.selectedCustomPresetPercentageText {
             return "Preset \(customPresetPercentageText)"
         }
         
         return "Preset"
+    }
+
+    private func setPreset(_ rpm: Int) {
+        Task {
+            await model.setManualRPM(Double(rpm))
+        }
+    }
+
+    private func setCustomPreset(_ draft: FanCustomPresetDraft) {
+        Task {
+            await model.setCustomPreset(draft)
+        }
     }
 }

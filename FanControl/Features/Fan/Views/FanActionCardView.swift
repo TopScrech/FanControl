@@ -1,20 +1,7 @@
 import ScrechKit
 
 struct FanActionCardView: View {
-    let canSetManual: Bool
-    let canUsePresets: Bool
-    let presetRPMs: [Int]
-    let sensors: [TemperatureSensor]
-    let selectedCustomPreset: FanCustomPresetDraft
-    let isCustomPresetActive: Bool
-    let customPresetPercentageText: String?
-    let activeMode: FanControlMode?
-    let isSendingAttempts: Bool
-    let setAuto: () -> Void
-    let setMin: () -> Void
-    let setFull: () -> Void
-    let setPreset: (Int) -> Void
-    let setCustomPreset: (FanCustomPresetDraft) -> Void
+    @Bindable var model: FanVM
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -24,14 +11,14 @@ struct FanActionCardView: View {
                 
                 Spacer(minLength: 0)
                 
-                if isSendingAttempts {
+                if model.showsControlAttemptProgress {
                     ProgressView()
                         .controlSize(.small)
                 }
             }
             
             HStack(spacing: 10) {
-                if activeMode == .auto {
+                if model.activeControlMode == .auto {
                     Button(action: setAuto) {
                         Label("Auto", systemImage: "fan")
                             .frame(maxWidth: .infinity)
@@ -45,22 +32,12 @@ struct FanActionCardView: View {
                     .buttonStyle(.bordered)
                 }
                 
-                FanPresetMenuView(
-                    canUsePresets: canUsePresets,
-                    presetRPMs: presetRPMs,
-                    sensors: sensors,
-                    selectedCustomPreset: selectedCustomPreset,
-                    isCustomPresetActive: isCustomPresetActive,
-                    customPresetPercentageText: customPresetPercentageText,
-                    activeMode: activeMode,
-                    setPreset: setPreset,
-                    setCustomPreset: setCustomPreset
-                )
+                FanPresetMenuView(model: model)
                 .frame(maxWidth: .infinity)
             }
             
             HStack(spacing: 10) {
-                if activeMode == .min {
+                if model.activeControlMode == .min {
                     Button(action: setMin) {
                         Label("Min", systemImage: "arrow.down")
                             .frame(maxWidth: .infinity)
@@ -76,15 +53,15 @@ struct FanActionCardView: View {
                     .disabled(!canSetManual)
                 }
                 
-                if activeMode == .max {
-                    Button(action: setFull) {
+                if model.activeControlMode == .max {
+                    Button(action: setMax) {
                         Label("Max", systemImage: "arrow.up")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(!canSetManual)
                 } else {
-                    Button(action: setFull) {
+                    Button(action: setMax) {
                         Label("Max", systemImage: "arrow.up")
                             .frame(maxWidth: .infinity)
                     }
@@ -94,9 +71,31 @@ struct FanActionCardView: View {
             }
         }
         .controlSize(.large)
-        .animation(.easeInOut(duration: 0.2), value: activeMode)
-        .animation(.easeInOut(duration: 0.2), value: isSendingAttempts)
+        .animation(.easeInOut(duration: 0.2), value: model.activeControlMode)
+        .animation(.easeInOut(duration: 0.2), value: model.showsControlAttemptProgress)
         .frame(maxHeight: .infinity, alignment: .top)
         .fanCardSurface()
+    }
+
+    private var canSetManual: Bool {
+        model.controlMinRPM != nil && model.controlMaxRPM != nil
+    }
+
+    private func setAuto() {
+        Task {
+            await model.setAuto()
+        }
+    }
+
+    private func setMin() {
+        Task {
+            await model.setControlMin()
+        }
+    }
+
+    private func setMax() {
+        Task {
+            await model.setControlMax()
+        }
     }
 }

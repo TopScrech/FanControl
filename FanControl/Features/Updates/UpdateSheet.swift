@@ -20,9 +20,32 @@ struct UpdateSheet: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             
-            UpdateSheetActions(model: model)
+            UpdateSheetActions(
+                isUpdateDisabled: model.isCheckingForUpdates,
+                onCancel: cancelUpdate,
+                onInstall: installPreparedUpdate
+            )
         }
         .padding(20)
         .frame(minWidth: 520, minHeight: 460)
+        .background(
+            UpdateSheetTouchBarBridge(
+                isUpdateDisabled: model.isCheckingForUpdates,
+                onCancel: cancelUpdate,
+                onInstall: installPreparedUpdate
+            )
+        )
+    }
+    
+    private func cancelUpdate() {
+        Task {
+            await model.dismissUpdatePrompt()
+        }
+    }
+    
+    private func installPreparedUpdate() {
+        Task {
+            await model.installPreparedUpdate()
+        }
     }
 }

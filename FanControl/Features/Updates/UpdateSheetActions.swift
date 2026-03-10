@@ -1,34 +1,28 @@
 import SwiftUI
 
 struct UpdateSheetActions: View {
-    @Bindable var model: FanVM
+    let isUpdateDisabled: Bool
+    let onCancel: () -> Void
+    let onInstall: () -> Void
     
     var body: some View {
         HStack {
             Spacer()
             
-            Button("Not now", action: cancelUpdate)
+            Button("Not now", action: onCancel)
                 .keyboardShortcut(.cancelAction)
             
-            Button("Update", action: installPreparedUpdate)
+            Button("Update", action: onInstall)
                 .keyboardShortcut(.defaultAction)
-                .disabled(model.isCheckingForUpdates)
-        }
-    }
-    
-    private func installPreparedUpdate() {
-        Task {
-            await model.installPreparedUpdate()
-        }
-    }
-    
-    private func cancelUpdate() {
-        Task {
-            await model.dismissUpdatePrompt()
+                .disabled(isUpdateDisabled)
         }
     }
 }
 
 #Preview {
-    UpdateSheetActions(model: FanVM())
+    UpdateSheetActions(
+        isUpdateDisabled: false,
+        onCancel: {},
+        onInstall: {}
+    )
 }
