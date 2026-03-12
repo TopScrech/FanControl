@@ -1544,10 +1544,20 @@ final class FanVM {
         let service = SMAppService.daemon(plistName: FanControlXPCConstants.launchdPlistName)
         
         if service.status == .enabled {
-            remoteSMC = RemoteSMCService()
+            remoteSMC = makeRemoteSMCService()
             Self.logger.info("SMC helper connected")
         } else {
             Self.logger.info("SMC helper status: \(String(describing: service.status))")
+        }
+    }
+
+    private func makeRemoteSMCService() -> RemoteSMCService {
+        RemoteSMCService { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.remoteSMC = nil
+                Self.logger.info("SMC helper client cleared after disconnect")
+            }
         }
     }
     
@@ -1874,14 +1884,10 @@ final class FanVM {
         defer { helperInstallInProgress = false }
         
         switch service.status {
-        case .enabled:
-            remoteSMC = RemoteSMCService()
-            return service.status
-            
         case .requiresApproval:
             return service.status
             
-        case .notFound, .notRegistered:
+        case .enabled, .notFound, .notRegistered:
             break
             
         @unknown default:
@@ -1893,7 +1899,7 @@ final class FanVM {
             Self.logger.info("SMC helper register status: \(String(describing: status))")
             
             if status == .enabled {
-                remoteSMC = RemoteSMCService()
+                remoteSMC = makeRemoteSMCService()
             }
             
             return status

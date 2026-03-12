@@ -1,10 +1,10 @@
 import CoreSMC
 
 final class LocalSMCService: SMCService {
-    private let smc: SMCClient
+    private let smc: SMCFanController
     
     init() throws {
-        smc = try SMCClient()
+        smc = try SMCFanController()
     }
     
     func readFans() async throws -> [Fan] {

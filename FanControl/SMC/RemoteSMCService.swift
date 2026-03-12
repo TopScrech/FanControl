@@ -4,8 +4,10 @@ import CoreSMC
 final class RemoteSMCService: SMCService {
     private static let logger = Logger(subsystem: "FanControl", category: "SMCHelperClient")
     private let connection: NSXPCConnection
+    private let onDisconnect: @Sendable () -> Void
     
-    init() {
+    init(onDisconnect: @escaping @Sendable () -> Void = {}) {
+        self.onDisconnect = onDisconnect
         connection = NSXPCConnection(
             machServiceName: FanControlXPCConstants.machServiceName,
             options: .privileged
@@ -15,10 +17,12 @@ final class RemoteSMCService: SMCService {
         
         connection.interruptionHandler = {
             Self.logger.error("SMC helper connection interrupted")
+            onDisconnect()
         }
         
         connection.invalidationHandler = {
             Self.logger.info("SMC helper connection invalidated")
+            onDisconnect()
         }
         
         connection.resume()
@@ -117,6 +121,7 @@ final class RemoteSMCService: SMCService {
             
             let proxy = connection.remoteObjectProxyWithErrorHandler { error in
                 Self.logger.error("SMC helper XPC error: \(error)")
+                self.onDisconnect()
                 finishOnMain(.failure(error))
             } as? FanControlXPCProtocol
             

@@ -3,12 +3,12 @@ import CoreSMC
 
 final class FanControlHelperService: NSObject, FanControlXPCProtocol {
     private static let logger = Logger(subsystem: "FanControl", category: "SMCHelper")
-    private let smc: SMCClient?
+    private let smc: SMCFanController?
     private let initError: String?
     
     override init() {
         do {
-            smc = try SMCClient()
+            smc = try SMCFanController()
             initError = nil
             Self.logger.info("SMC client ready")
         } catch {
