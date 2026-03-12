@@ -1,7 +1,10 @@
 import SwiftUI
+import LaunchAtLogin
 
 @main
 struct FanControlApp: App {
+    private static let didConfigureLaunchAtLoginDefaultsKey = "didConfigureLaunchAtLoginOnFirstLaunch"
+
     @NSApplicationDelegateAdaptor(AppTerminationDelegate.self) private var appTerminationDelegate
     @State private var model = FanVM()
     
@@ -11,6 +14,7 @@ struct FanControlApp: App {
     @State private var didApplyLaunchWindowPreference = false
     
     init() {
+        configureLaunchAtLoginIfNeeded()
         AppDownloadsMovePrompter.promptIfNeeded()
     }
     
@@ -88,6 +92,22 @@ struct FanControlApp: App {
         Task {
             await model.checkForUpdatesNow(presenter: .mainWindow)
         }
+    }
+
+    private func configureLaunchAtLoginIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: Self.didConfigureLaunchAtLoginDefaultsKey) else { return }
+        
+        let existingDefaults = Bundle.main.bundleIdentifier
+            .flatMap { defaults.persistentDomain(forName: $0) } ?? [:]
+
+        guard existingDefaults.isEmpty else {
+            defaults.set(true, forKey: Self.didConfigureLaunchAtLoginDefaultsKey)
+            return
+        }
+
+        LaunchAtLogin.isEnabled = true
+        defaults.set(true, forKey: Self.didConfigureLaunchAtLoginDefaultsKey)
     }
     
     private func configureTerminationDelegate() {
