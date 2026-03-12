@@ -1,5 +1,5 @@
-import OSLog
 import CoreSMC
+import OSLog
 
 final class FanControlHelperService: NSObject, FanControlXPCProtocol {
     private static let logger = Logger(subsystem: "FanControl", category: "SMCHelper")

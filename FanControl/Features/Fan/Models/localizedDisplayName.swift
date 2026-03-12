@@ -1,5 +1,5 @@
-import CoreSMC
 import Foundation
+import CoreSMC
 
 extension Fan {
     var localizedDisplayName: String {

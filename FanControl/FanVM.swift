@@ -1,9 +1,8 @@
-import ServiceManagement
-import OSLog
-import Darwin
-import AppKit
+import SwiftUI
 import CoreSMC
+import ServiceManagement
 import AutoUpdate
+import OSLog
 
 @Observable
 final class FanVM {
