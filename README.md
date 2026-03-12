@@ -9,6 +9,7 @@ Controls fan speed using a privileged helper for secure SMC write access
 
 ## Supported platforms
 - macOS 14+
+- Fan speed is not adjustable on M5 Macs currently
 
 ## Build
 

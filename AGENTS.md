@@ -12,23 +12,7 @@
 - Build (Debug): `xcodebuild -project FanControl.xcodeproj -scheme FanControl -configuration Debug -derivedDataPath ~/Library/Developer/Xcode/DerivedData/FanControl build`
 - Build (Release): `xcodebuild -project FanControl.xcodeproj -scheme FanControl -configuration Release -derivedDataPath ~/Library/Developer/Xcode/DerivedData/FanControl build`
 - Never use `-derivedDataPath ./build` (or any project-relative path) because it creates local DerivedData/build artifacts inside the repo
-- When creating a GitHub release, always produce a `Release` build, package `FanControl.app` as `FanControl-X.Y.Z.zip`, and upload that zip as the release asset
 - Publish all new GitHub releases as pre-releases first so they can be manually validated before general availability
-- Run locally: open `FanControl.xcodeproj` in Xcode and use Product -> Run. CLI runs can use the built `.app` in DerivedData
-- Tests: no test target is configured yet; add one in Xcode before using `xcodebuild test`
-
-## Free Distribution Export (Outside App Store)
-- Use this faster CLI-first flow for free distribution to users outside the Mac App Store
-- Archive once with `Release` and `generic/platform=macOS` to a known path, for example `~/Downloads/FanControl.xcarchive`
-- Skip Organizer export and take the app from `FanControl.xcarchive/Products/Applications/FanControl.app`
-- Copy the app to a working path, for example `~/Downloads/FanControl.app`, before re-signing
-- Re-sign `Contents/Library/PrivilegedHelperTools/FanControlHelper` first, then `FanControl.app`, with `Developer ID Application`
-- Keep helper identifier as `dev.topscrech.FanControl.helper` when re-signing
-- Verify with `codesign --verify --deep --strict --verbose=2` and `spctl -a -vv`
-- Zip with `ditto -c -k --keepParent FanControl.app FanControl-0.2.0.zip`, using the current project version in the filename format `FanControl-X.Y.Z.zip`
-- Publish the zip with `gh release create` or `gh release upload` when shipping via GitHub releases, ensure the uploaded file name matches the required format (for example `FanControl-0.2.0.zip`), and create new releases as pre-releases first
-- Cleanup after packaging by deleting `FanControl.xcarchive` and other temporary export artifacts
-- Notarization is optional for ad-hoc sharing, required for best Gatekeeper compatibility on other Macs
 
 ## Coding Style & Naming Conventions
 - Swift standard style: 4-space indentation, braces on the same line, trailing commas allowed in multi-line literals
@@ -40,11 +24,6 @@
 - Current state: no automated tests
 - If adding tests, create an Xcode test target (e.g., `FanControlTests`) and use `XCTest` with files named `SomethingTests.swift`
 - Prefer unit tests for SMC parsing and view-model logic; avoid hardware writes in tests
-
-## Commit & Pull Request Guidelines
-- Commit messages are short, lowercase summaries (often comma-separated lists). Example: `logging & no longer resetting errorMessage`
-- Keep commits focused and descriptive; avoid large mixed changes
-- PRs should include: brief description, how you tested, and screenshots for UI changes. Link issues if applicable
 
 ## Security & Configuration Notes
 - SMC writes require elevated privileges. Manual fan control uses a privileged helper registered via `SMAppService`
