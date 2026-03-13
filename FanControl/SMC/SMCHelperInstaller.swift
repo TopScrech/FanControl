@@ -1,6 +1,6 @@
+import Foundation
 import ServiceManagement
 import OSLog
-import Foundation
 
 struct SMCHelperInstaller {
     private static let logger = Logger(subsystem: "FanControl", category: "SMCHelperInstaller")

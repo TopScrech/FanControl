@@ -19,11 +19,7 @@ struct SettingsView: View {
             SettingsUpdatesSection(model: model)
             
             if model.isDebugSectionVisible {
-                SettingsDebugSection(
-                    processorName: model.processorName,
-                    onPresentFakeUpdatePrompt: model.presentFakeUpdatePrompt,
-                    onCopyDebugText: copyDebugText
-                )
+                SettingsDebugSection(model: model)
             }
         }
         .navigationTitle("Settings")
@@ -52,19 +48,6 @@ struct SettingsView: View {
                 }
             )
         }
-    }
-    
-    private func copyDebugText() {
-        let sensorLines = model.temperatureSensors.map {
-            "\($0.key): \($0.celsius.formatted(.number.precision(.fractionLength(1))))"
-        }
-        
-        let text = ([model.processorName, ""] + sensorLines).joined(separator: "\n")
-#if os(macOS)
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-#endif
     }
     
     private func cancelUpdate() {

@@ -1,9 +1,8 @@
-import ServiceManagement
-import OSLog
-import Darwin
-import AppKit
+import SwiftUI
 import CoreSMC
+import ServiceManagement
 import AutoUpdate
+import OSLog
 
 @Observable
 final class FanVM {
@@ -113,7 +112,7 @@ final class FanVM {
     }
     
     var licenseStatusText = String(localized: "No saved license")
-    let processorName: String
+    let deviceName: String
     
     var appVersionDescription: String {
         let info = Bundle.main.infoDictionary
@@ -167,7 +166,7 @@ final class FanVM {
     private let isRoot = geteuid() == 0
     
     init() {
-        processorName = Self.detectProcessorName()
+        deviceName = Self.detectProcessorName()
         Self.logger.info("Initializing FanVM")
         Self.logHelperBundleDiagnostics()
         selectedFanID = UserDefaults.standard.integer(forKey: Self.selectedFanIDDefaultsKey)
@@ -1753,7 +1752,6 @@ final class FanVM {
         isCheckingLicense = true
         defer { isCheckingLicense = false }
         
-        let deviceName = MacDeviceIdentityProvider.deviceName()
         let deviceIdentifier = MacDeviceIdentityProvider.deviceIdentifier()
         let osVersion = MacDeviceIdentityProvider.osVersion()
         

@@ -1,5 +1,5 @@
-import OSLog
 import CoreSMC
+import OSLog
 
 final class RemoteSMCService: SMCService {
     private static let logger = Logger(subsystem: "FanControl", category: "SMCHelperClient")

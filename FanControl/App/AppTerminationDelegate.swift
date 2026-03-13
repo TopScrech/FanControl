@@ -1,4 +1,4 @@
-import AppKit
+import SwiftUI
 
 final class AppTerminationDelegate: NSObject, NSApplicationDelegate {
     private static let terminationGracePeriod: Duration = .seconds(3)

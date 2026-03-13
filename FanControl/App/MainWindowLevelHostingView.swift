@@ -1,4 +1,4 @@
-import AppKit
+import SwiftUI
 
 final class MainWindowLevelHostingView: NSView {
     var keepsWindowOnTop = false {

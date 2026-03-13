@@ -1,4 +1,4 @@
-import AppKit
+import SwiftUI
 
 @MainActor
 final class UpdateSheetTouchBarView: NSView, NSTouchBarDelegate {
