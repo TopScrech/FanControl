@@ -23,7 +23,7 @@
 ## Testing Guidelines
 - Current state: no automated tests
 - If adding tests, create an Xcode test target (e.g., `FanControlTests`) and use `XCTest` with files named `SomethingTests.swift`
-- Prefer unit tests for SMC parsing and view-model logic; avoid hardware writes in tests
+- Prefer unit tests for SMC parsing and VM logic; avoid hardware writes in tests
 
 ## Security & Configuration Notes
 - SMC writes require elevated privileges. Manual fan control uses a privileged helper registered via `SMAppService`
