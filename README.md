@@ -14,8 +14,6 @@ Controls fan speed using a privileged helper for secure SMC write access
 
 Requires Xcode 26.4+ and access to the private [CoreSMC](https://github.com/TopScrech/CoreSMC?tab=readme-ov-file) library
 
-`iSMC` is bundled from `Vendor/iSMC/iSMC`, so users do not need to install it separately
-
 ## Related links
 - [Front-end](https://fancontrol.dev)
 - [Front-end project](https://github.com/TopScrech/FanControl-dev)
