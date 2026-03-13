@@ -112,7 +112,7 @@ final class FanVM {
     }
     
     var licenseStatusText = String(localized: "No saved license")
-    let processorName: String
+    let deviceName: String
     
     var appVersionDescription: String {
         let info = Bundle.main.infoDictionary
@@ -166,7 +166,7 @@ final class FanVM {
     private let isRoot = geteuid() == 0
     
     init() {
-        processorName = Self.detectProcessorName()
+        deviceName = Self.detectProcessorName()
         Self.logger.info("Initializing FanVM")
         Self.logHelperBundleDiagnostics()
         selectedFanID = UserDefaults.standard.integer(forKey: Self.selectedFanIDDefaultsKey)

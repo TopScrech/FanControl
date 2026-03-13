@@ -1,15 +1,13 @@
 import ScrechKit
 
 struct SettingsDebugSection: View {
-    let processorName: String
-    let onPresentFakeUpdatePrompt: () -> Void
-    let onCopyDebugText: () -> Void
+    @Bindable var model: FanVM
     
     var body: some View {
         Section("Debug") {
-            LabeledContent("Device", value: processorName)
+            LabeledContent("Device", value: model.deviceName)
             
-            Button(action: onPresentFakeUpdatePrompt) {
+            Button(action: model.presentFakeUpdatePrompt) {
                 LabeledContent {
                     Image(systemName: "arrow.trianglehead.clockwise")
                 } label: {
@@ -17,7 +15,7 @@ struct SettingsDebugSection: View {
                 }
             }
             
-            Button(action: onCopyDebugText) {
+            Button(action: copyDebugText) {
                 LabeledContent {
                     Image(systemName: "document.on.document")
                 } label: {
@@ -25,5 +23,18 @@ struct SettingsDebugSection: View {
                 }
             }
         }
+    }
+    
+    private func copyDebugText() {
+        let sensorLines = model.temperatureSensors.map {
+            "\($0.key): \($0.celsius.formatted(.number.precision(.fractionLength(1))))"
+        }
+        
+        let text = ([model.deviceName, ""] + sensorLines).joined(separator: "\n")
+#if os(macOS)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+#endif
     }
 }
