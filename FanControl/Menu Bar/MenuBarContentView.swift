@@ -2,12 +2,11 @@ import ScrechKit
 
 struct MenuBarContentView: View {
     @Bindable var model: FanVM
-    let showsHideWindowButton: Bool
     let showsUpdateAlert: Bool
     
     var body: some View {
         VStack(spacing: 12) {
-            ContentViewHeader(model: model, showsHideWindowButton: showsHideWindowButton)
+            ContentViewHeader(model: model, showsShowWindowButton: true)
             
             FanControlsView(model: model, showSensors: true)
                 .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)

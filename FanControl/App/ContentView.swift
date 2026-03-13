@@ -4,12 +4,11 @@ struct ContentView: View {
     @AppStorage("keepsWindowOnTop") private var keepsWindowOnTop = false
     
     @Bindable var model: FanVM
-    let showsHideWindowButton: Bool
     let showsUpdateAlert: Bool
     
     var body: some View {
         VStack(spacing: 12) {
-            ContentViewHeader(model: model, showsHideWindowButton: showsHideWindowButton)
+            ContentViewHeader(model: model)
             
             HStack(alignment: .top, spacing: 12) {
                 FanControlsView(model: model)

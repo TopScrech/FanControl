@@ -4,7 +4,7 @@ import LaunchAtLogin
 @main
 struct FanControlApp: App {
     private static let didConfigureLaunchAtLoginDefaultsKey = "didConfigureLaunchAtLoginOnFirstLaunch"
-
+    
     @NSApplicationDelegateAdaptor(AppTerminationDelegate.self) private var appTerminationDelegate
     @State private var model = FanVM()
     
@@ -20,20 +20,16 @@ struct FanControlApp: App {
     
     var body: some Scene {
         WindowGroup(id: "main") {
-            ContentView(
-                model: model,
-                showsHideWindowButton: true,
-                showsUpdateAlert: true
-            )
-            .environment(\.locale, appLocale)
-            .frame(minHeight: 460, idealHeight: 460, maxHeight: 600)
-            .task {
-                configureTerminationDelegate()
-                let selectedOption = preferredAppLanguage
-                preferredAppLanguageRawValue = selectedOption.rawValue
-                AppLanguageManager.apply(option: selectedOption)
-                await applyLaunchWindowPreference()
-            }
+            ContentView(model: model, showsUpdateAlert: true)
+                .environment(\.locale, appLocale)
+                .frame(minHeight: 460, idealHeight: 460, maxHeight: 600)
+                .task {
+                    configureTerminationDelegate()
+                    let selectedOption = preferredAppLanguage
+                    preferredAppLanguageRawValue = selectedOption.rawValue
+                    AppLanguageManager.apply(option: selectedOption)
+                    await applyLaunchWindowPreference()
+                }
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
@@ -55,15 +51,11 @@ struct FanControlApp: App {
         }
         
         MenuBarExtra("FanControl", systemImage: model.isAnyFanSpinning ? "fanblades.fill" : "fanblades") {
-            MenuBarContentView(
-                model: model,
-                showsHideWindowButton: false,
-                showsUpdateAlert: false
-            )
-            .environment(\.locale, appLocale)
-            .task {
-                configureTerminationDelegate()
-            }
+            MenuBarContentView(model: model, showsUpdateAlert: false)
+                .environment(\.locale, appLocale)
+                .task {
+                    configureTerminationDelegate()
+                }
         }
         .menuBarExtraStyle(.window)
     }
@@ -93,19 +85,19 @@ struct FanControlApp: App {
             await model.checkForUpdatesNow(presenter: .mainWindow)
         }
     }
-
+    
     private func configureLaunchAtLoginIfNeeded() {
         let defaults = UserDefaults.standard
         guard !defaults.bool(forKey: Self.didConfigureLaunchAtLoginDefaultsKey) else { return }
         
         let existingDefaults = Bundle.main.bundleIdentifier
             .flatMap { defaults.persistentDomain(forName: $0) } ?? [:]
-
+        
         guard existingDefaults.isEmpty else {
             defaults.set(true, forKey: Self.didConfigureLaunchAtLoginDefaultsKey)
             return
         }
-
+        
         LaunchAtLogin.isEnabled = true
         defaults.set(true, forKey: Self.didConfigureLaunchAtLoginDefaultsKey)
     }
