@@ -1752,7 +1752,6 @@ final class FanVM {
         isCheckingLicense = true
         defer { isCheckingLicense = false }
         
-        let deviceName = MacDeviceIdentityProvider.deviceName()
         let deviceIdentifier = MacDeviceIdentityProvider.deviceIdentifier()
         let osVersion = MacDeviceIdentityProvider.osVersion()
         

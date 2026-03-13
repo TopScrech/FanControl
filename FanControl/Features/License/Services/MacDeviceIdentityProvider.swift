@@ -2,20 +2,6 @@ import Foundation
 import IOKit
 
 enum MacDeviceIdentityProvider {
-    nonisolated static func deviceName() -> String {
-        if let localizedName = Host.current().localizedName?.trimmingCharacters(in: .whitespacesAndNewlines), !localizedName.isEmpty {
-            return localizedName
-        }
-        
-        let hostName = ProcessInfo.processInfo.hostName.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        if !hostName.isEmpty {
-            return hostName
-        }
-        
-        return "Mac"
-    }
-    
     nonisolated static func osVersion() -> String {
         ProcessInfo.processInfo.operatingSystemVersionString
             .replacing("Version ", with: "macOS ")
@@ -30,10 +16,7 @@ enum MacDeviceIdentityProvider {
         
         guard
             let uuidValue = IORegistryEntryCreateCFProperty(
-                entry,
-                kIOPlatformUUIDKey as CFString,
-                kCFAllocatorDefault,
-                0
+                entry, kIOPlatformUUIDKey as CFString, kCFAllocatorDefault, 0
             )?.takeRetainedValue() as? String
         else {
             return nil
