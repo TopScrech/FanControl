@@ -20,7 +20,7 @@ Requires Xcode 26.4+ and access to the private [CoreSMC](https://github.com/TopS
 4/5 libraries are developed and maintained by me, which helps minimize risk across every project where I use them
 
 - [CoreSMC](https://github.com/TopScrech/CoreSMC) - private library for sending read/set fan speed calls via SMC
-- [iSMC](https://github.com/dkorunic/iSMC) - Reading data from temperature sensor
+- [iSMC](https://github.com/dkorunic/iSMC) - Reading data from temperature sensors
 - [AutoUpdate](https://github.com/TopScrech/AutoUpdate)
 - [ScrechKit](https://github.com/TopScrech/TopScrech) - SwiftUI tweaks
 - [LaunchAtLogin](https://github.com/TopScrech/LaunchAtLogin)
