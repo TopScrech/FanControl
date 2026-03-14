@@ -3,17 +3,24 @@ import ScrechKit
 struct SettingsLicenseSection: View {
     @Environment(\.openURL) private var openURL
     
+    private enum Field: Hashable {
+        case email, licenseKey
+    }
+    
     @Bindable var model: FanVM
     
     @State private var isResetConfirmationPresented = false
+    @FocusState private var focusedField: Field?
     
     private let restoreURL = URL(string: "https://fancontrol.dev/restore-license")!
     
     var body: some View {
         Section {
             TextField("Email", text: $model.licenseEmail)
+                .focused($focusedField, equals: .email)
             
             SecureField("License key", text: $model.licenseKey)
+                .focused($focusedField, equals: .licenseKey)
                 .onSubmit(verifyLicense)
             
             LabeledContent("Status", value: model.licenseStatusText)
@@ -46,6 +53,9 @@ struct SettingsLicenseSection: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This removes the saved email and license key from this Mac and unregisters this device")
+        }
+        .task {
+            focusedField = nil
         }
     }
     
