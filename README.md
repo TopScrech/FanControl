@@ -1,6 +1,8 @@
 # FanControl
 
-Controls fan speed using a privileged helper for secure SMC write access
+Control fan speed with ease on any Apple Silicon Mac
+
+[**Download**](https://github.com/TopScrech/FanControl/releases/latest)
 
 <img src="https://github.com/user-attachments/assets/e6a96188-47be-43f2-92d3-075ca72a10ab" width="300" alt="screenshot">
 
@@ -18,7 +20,7 @@ Requires Xcode 26.4+ and access to the private [CoreSMC](https://github.com/TopS
 4/5 libraries are developed and maintained by me, which helps minimize risk across every project where I use them
 
 - [CoreSMC](https://github.com/TopScrech/CoreSMC) - private library for sending read/set fan speed calls via SMC
-- [iSMC](https://github.com/dkorunic/iSMC) - Reading data from temperature sensor
+- [iSMC](https://github.com/dkorunic/iSMC) - Reading data from temperature sensors
 - [AutoUpdate](https://github.com/TopScrech/AutoUpdate)
 - [ScrechKit](https://github.com/TopScrech/TopScrech) - SwiftUI tweaks
 - [LaunchAtLogin](https://github.com/TopScrech/LaunchAtLogin)
