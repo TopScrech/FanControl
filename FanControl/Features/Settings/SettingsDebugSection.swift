@@ -31,10 +31,6 @@ struct SettingsDebugSection: View {
         }
         
         let text = ([model.deviceName, ""] + sensorLines).joined(separator: "\n")
-#if os(macOS)
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-#endif
+        Pasteboard.copy(text)
     }
 }
