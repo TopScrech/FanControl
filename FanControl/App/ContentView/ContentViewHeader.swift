@@ -4,22 +4,20 @@ struct ContentViewHeader: View {
     @Environment(\.openWindow) private var openWindow
     
     @Bindable var model: FanVM
-    let showsHideWindowButton: Bool
+    var showsShowWindowButton = false
     
     var body: some View {
         HStack {
             Text("FanControl")
                 .title3(.semibold)
             
-            if showsHideWindowButton && !model.isLicenseActive {
+            if showsShowWindowButton && !model.isLicenseActive {
                 LicenseInactiveBadge()
             }
             
             Spacer(minLength: 0)
             
-            if showsHideWindowButton {
-                Button("Hide window", systemImage: "eye.slash", action: hideWindow)
-            } else {
+            if showsShowWindowButton {
                 Button("Show window", systemImage: "macwindow", action: showWindow)
             }
         }
@@ -32,12 +30,8 @@ struct ContentViewHeader: View {
         NSApplication.shared.activate(ignoringOtherApps: true)
         menuBarWindow?.orderOut(nil)
     }
-    
-    private func hideWindow() {
-        NSApplication.shared.keyWindow?.orderOut(nil)
-    }
 }
 
 #Preview {
-    ContentViewHeader(model: FanVM(), showsHideWindowButton: true)
+    ContentViewHeader(model: FanVM(), showsShowWindowButton: true)
 }
