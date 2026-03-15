@@ -5,6 +5,7 @@ struct FanCustomPresetEditorView: View {
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     
     let sensors: [TemperatureSensor]
+    let isMacBook: Bool
     let initialDraft: FanCustomPresetDraft
     let isActive: Bool
     let applyPreset: (FanCustomPresetDraft) -> Void
@@ -13,11 +14,13 @@ struct FanCustomPresetEditorView: View {
     
     init(
         sensors: [TemperatureSensor],
+        isMacBook: Bool,
         initialDraft: FanCustomPresetDraft,
         isActive: Bool,
         applyPreset: @escaping (FanCustomPresetDraft) -> Void
     ) {
         self.sensors = sensors
+        self.isMacBook = isMacBook
         self.initialDraft = initialDraft
         self.isActive = isActive
         self.applyPreset = applyPreset
@@ -80,7 +83,7 @@ struct FanCustomPresetEditorView: View {
     }
     
     private var averagePickerSensors: [TemperatureSensor] {
-        TemperatureSensorCategory.allCases.compactMap {
+        TemperatureSensorCategory.averageCases(isMacBook: isMacBook).compactMap {
             $0.averageSensor(in: sensors)
         }
     }

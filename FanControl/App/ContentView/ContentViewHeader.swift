@@ -11,7 +11,7 @@ struct ContentViewHeader: View {
             Text("FanControl")
                 .title3(.semibold)
             
-            if showsShowWindowButton && !model.isLicenseActive {
+            if !model.isLicenseActive {
                 LicenseInactiveBadge()
             }
             

@@ -10,17 +10,17 @@ final class FanVM {
         let id = UUID()
         let message: String
     }
-
+    
     struct UpdateStatusAlert: Identifiable {
         let id = UUID()
         let title: String
         let message: String
     }
-
+    
     enum UpdateStatusAlertPresenter {
         case mainWindow, settings, menuBar
     }
-
+    
     private static let updateRepositoryOwner = "TopScrech"
     private static let updateRepositoryName = "FanControl"
     private static let allFansSelectionID = -1
@@ -113,6 +113,7 @@ final class FanVM {
     
     var licenseStatusText = String(localized: "No saved license")
     let deviceName: String
+    let isMacBook: Bool
     
     var appVersionDescription: String {
         let info = Bundle.main.infoDictionary
@@ -166,7 +167,9 @@ final class FanVM {
     private let isRoot = geteuid() == 0
     
     init() {
-        deviceName = Self.detectProcessorName()
+        let detectedDeviceName = Self.detectProcessorName()
+        deviceName = detectedDeviceName
+        isMacBook = detectedDeviceName.localizedCaseInsensitiveContains("MacBook")
         Self.logger.info("Initializing FanVM")
         Self.logHelperBundleDiagnostics()
         selectedFanID = UserDefaults.standard.integer(forKey: Self.selectedFanIDDefaultsKey)
@@ -356,7 +359,7 @@ final class FanVM {
     }
     
     private var selectableTemperatureSensors: [TemperatureSensor] {
-        TemperatureSensorCategory.allCases.compactMap {
+        TemperatureSensorCategory.averageCases(isMacBook: isMacBook).compactMap {
             $0.averageSensor(in: temperatureSensors)
         } + temperatureSensors
     }
@@ -707,7 +710,7 @@ final class FanVM {
         clearPreparedUpdate()
         updateStatusText = String(localized: "Update postponed")
     }
-
+    
     func dismissUpdateStatusAlert(for presenter: UpdateStatusAlertPresenter) {
         switch presenter {
         case .mainWindow:
@@ -718,18 +721,18 @@ final class FanVM {
             menuBarUpdateStatusAlert = nil
         }
     }
-
+    
     private func presentUpdateStatusAlert(
         title: String,
         message: String,
         presenter: UpdateStatusAlertPresenter
     ) {
         let alert = UpdateStatusAlert(title: title, message: message)
-
+        
         mainWindowUpdateStatusAlert = nil
         settingsUpdateStatusAlert = nil
         menuBarUpdateStatusAlert = nil
-
+        
         switch presenter {
         case .mainWindow:
             mainWindowUpdateStatusAlert = alert
@@ -1172,10 +1175,10 @@ final class FanVM {
         errorDismissTask?.cancel()
         clearError()
     }
-
+    
     func copyErrorMessage() {
         guard let message = errorAlert?.message else { return }
-
+        
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(message, forType: .string)
@@ -1549,7 +1552,7 @@ final class FanVM {
             Self.logger.info("SMC helper status: \(String(describing: service.status))")
         }
     }
-
+    
     private func makeRemoteSMCService() -> RemoteSMCService {
         RemoteSMCService { [weak self] in
             Task { @MainActor [weak self] in
@@ -1848,6 +1851,7 @@ final class FanVM {
         
         let gracePeriodDeadline = lastActiveValidationDate.addingTimeInterval(Self.licenseOfflineGracePeriodSeconds)
         guard Date() > gracePeriodDeadline else { return nil }
+        
         return Self.offlineGracePeriodExpiredStatusText(gracePeriodDeadline: gracePeriodDeadline)
     }
     
@@ -1857,6 +1861,7 @@ final class FanVM {
     ) -> String {
         let lastVerifiedText = lastActiveValidationDate.formatted(date: .abbreviated, time: .shortened)
         let deadlineText = gracePeriodDeadline.formatted(date: .abbreviated, time: .shortened)
+        
         return String(
             localized: "License active offline until \(deadlineText) (last verified \(lastVerifiedText))"
         )
@@ -1864,6 +1869,7 @@ final class FanVM {
     
     private static func offlineGracePeriodExpiredStatusText(gracePeriodDeadline: Date) -> String {
         let deadlineText = gracePeriodDeadline.formatted(date: .abbreviated, time: .shortened)
+        
         return String(
             localized: "License deactivated after no verification for 7 days (deadline \(deadlineText))"
         )
