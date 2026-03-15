@@ -14,7 +14,7 @@ struct ContentView: View {
                 FanControlsView(model: model)
                     .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
                 
-                FanTemperatureCardView(sensors: model.temperatureSensors)
+                FanTemperatureCardView(sensors: model.temperatureSensors, isMacBook: model.isMacBook)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .frame(width: 280)
                     .fanCardSurface()

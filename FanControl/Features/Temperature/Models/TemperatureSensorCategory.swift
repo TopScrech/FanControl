@@ -1,6 +1,10 @@
 enum TemperatureSensorCategory: String, CaseIterable, Identifiable {
     case cpu, gpu, battery
     
+    static func averageCases(isMacBook: Bool) -> [Self] {
+        isMacBook ? allCases : allCases.filter { $0 != .battery }
+    }
+    
     var id: String {
         rawValue
     }

@@ -6,6 +6,7 @@ struct TemperatureView: View {
     @AppStorage("showsTemperatureSensorIcons") private var showsTemperatureSensorIcons = false
     
     let sensors: [TemperatureSensor]
+    let isMacBook: Bool
     
     var body: some View {
         ScrollView {
@@ -46,7 +47,7 @@ struct TemperatureView: View {
     }
     
     private var averageRows: [TemperatureAverageRow] {
-        TemperatureSensorCategory.allCases.map { category in
+        TemperatureSensorCategory.averageCases(isMacBook: isMacBook).map { category in
             let values = sensors
                 .filter { category.contains(sensor: $0) }
                 .map(\.celsius)
