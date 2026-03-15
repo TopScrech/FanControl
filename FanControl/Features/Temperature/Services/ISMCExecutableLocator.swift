@@ -1,7 +1,7 @@
 import Foundation
 
 enum ISMCExecutableLocator {
-    static func executableURL() throws -> URL {
+    nonisolated static func executableURL() throws -> URL {
         for candidate in candidateExecutableURLs() {
             if FileManager.default.isExecutableFile(atPath: candidate.path()) {
                 return candidate
@@ -15,7 +15,7 @@ enum ISMCExecutableLocator {
         throw ISMCCommandError.executableNotFound
     }
     
-    private static func candidateExecutableURLs() -> [URL] {
+    nonisolated private static func candidateExecutableURLs() -> [URL] {
         var candidates = [URL]()
         let environment = ProcessInfo.processInfo.environment
         
@@ -40,7 +40,7 @@ enum ISMCExecutableLocator {
         return uniqueURLs(candidates)
     }
     
-    private static func bundledExecutableURLs() -> [URL] {
+    nonisolated private static func bundledExecutableURLs() -> [URL] {
         var candidates = [URL]()
         
         if let resourceURL = Bundle.main.resourceURL {
@@ -68,7 +68,7 @@ enum ISMCExecutableLocator {
         return candidates
     }
     
-    private static func uniqueURLs(_ urls: [URL]) -> [URL] {
+    nonisolated private static func uniqueURLs(_ urls: [URL]) -> [URL] {
         var seenPaths = Set<String>()
         
         return urls.filter {
@@ -76,7 +76,7 @@ enum ISMCExecutableLocator {
         }
     }
     
-    private static func whichExecutableURL() throws -> URL? {
+    nonisolated private static func whichExecutableURL() throws -> URL? {
         let output = try run(executableURL: URL(filePath: "/usr/bin/which"), arguments: ["iSMC"])
             .trimmingCharacters(in: .whitespacesAndNewlines)
         
@@ -87,12 +87,12 @@ enum ISMCExecutableLocator {
         return URL(filePath: output)
     }
     
-    private static func goEnvironmentPath() throws -> String {
+    nonisolated private static func goEnvironmentPath() throws -> String {
         try run(executableURL: URL(filePath: "/usr/bin/env"), arguments: ["go", "env", "GOPATH"])
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
-    private static func run(executableURL: URL, arguments: [String]) throws -> String {
+    nonisolated private static func run(executableURL: URL, arguments: [String]) throws -> String {
         let process = Process()
         process.executableURL = executableURL
         process.arguments = arguments
