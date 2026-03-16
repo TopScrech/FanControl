@@ -5,8 +5,7 @@ struct FanTemperatureCardView: View {
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     @AppStorage("showsTemperatureSensorIcons") private var showsTemperatureSensorIcons = false
     
-    let sensors: [TemperatureSensor]
-    let isMacBook: Bool
+    @Bindable var model: FanVM
     var showAllSensors = true
     
     private var temperatureUnit: TemperatureUnit {
@@ -39,13 +38,13 @@ struct FanTemperatureCardView: View {
                 Divider()
                     .overlay(.primary.opacity(0.22))
                 
-                if sensors.isEmpty {
+                if model.temperatureSensors.isEmpty {
                     Text("No sensors available")
                         .secondary()
                 } else {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 8) {
-                            ForEach(sensors) {
+                            ForEach(model.temperatureSensors) {
                                 FanMetricRowView(
                                     $0.displayName,
                                     systemImage: showsTemperatureSensorIcons ? $0.systemImage : nil,
@@ -69,8 +68,8 @@ struct FanTemperatureCardView: View {
     }
     
     private var averageRows: [TemperatureAverageRow] {
-        TemperatureSensorCategory.averageCases(isMacBook: isMacBook).map { category in
-            let values = sensors
+        TemperatureSensorCategory.averageCases(isMacBook: model.isMacBook).map { category in
+            let values = model.temperatureSensors
                 .filter { category.contains(sensor: $0) }
                 .map(\.celsius)
             

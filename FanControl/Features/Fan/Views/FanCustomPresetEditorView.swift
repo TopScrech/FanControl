@@ -4,27 +4,18 @@ struct FanCustomPresetEditorView: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     
-    let sensors: [TemperatureSensor]
-    let isMacBook: Bool
-    let initialDraft: FanCustomPresetDraft
-    let isActive: Bool
+    let model: FanVM
     let applyPreset: (FanCustomPresetDraft) -> Void
     
     @State private var draft: FanCustomPresetDraft
     
     init(
-        sensors: [TemperatureSensor],
-        isMacBook: Bool,
-        initialDraft: FanCustomPresetDraft,
-        isActive: Bool,
+        model: FanVM,
         applyPreset: @escaping (FanCustomPresetDraft) -> Void
     ) {
-        self.sensors = sensors
-        self.isMacBook = isMacBook
-        self.initialDraft = initialDraft
-        self.isActive = isActive
+        self.model = model
         self.applyPreset = applyPreset
-        _draft = State(initialValue: initialDraft)
+        _draft = State(initialValue: model.selectedCustomPresetDraft)
     }
     
     var body: some View {
@@ -62,10 +53,10 @@ struct FanCustomPresetEditorView: View {
                     .buttonStyle(.borderedProminent)
             }
         }
-        .onChange(of: initialDraft, initial: true) { _, newValue in
+        .onChange(of: model.selectedCustomPresetDraft, initial: true) { _, newValue in
             draft = normalized(newValue)
         }
-        .onChange(of: sensors, initial: true) {
+        .onChange(of: model.temperatureSensors, initial: true) {
             draft = normalized(draft)
         }
     }
@@ -78,12 +69,20 @@ struct FanCustomPresetEditorView: View {
         TemperaturePrecision(rawValue: temperaturePrecisionRawValue) ?? .whole
     }
     
+    private var sensors: [TemperatureSensor] {
+        model.temperatureSensors
+    }
+    
+    private var isActive: Bool {
+        model.selectedCustomPresetIsActive
+    }
+    
     private var pickerSensors: [TemperatureSensor] {
         averagePickerSensors + sensors
     }
     
     private var averagePickerSensors: [TemperatureSensor] {
-        TemperatureSensorCategory.averageCases(isMacBook: isMacBook).compactMap {
+        TemperatureSensorCategory.averageCases(isMacBook: model.isMacBook).compactMap {
             $0.averageSensor(in: sensors)
         }
     }

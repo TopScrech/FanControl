@@ -32,13 +32,8 @@ struct FanPresetMenuView: View {
         )
         .popover(isPresented: $showsPresetMenu, arrowEdge: .bottom) {
             VStack(alignment: .leading, spacing: 12) {
-                FanCustomPresetEditorView(
-                    sensors: model.temperatureSensors,
-                    isMacBook: model.isMacBook,
-                    initialDraft: model.selectedCustomPresetDraft,
-                    isActive: model.selectedCustomPresetIsActive
-                ) { draft in
-                    setCustomPreset(draft)
+                FanCustomPresetEditorView(model: model) {
+                    setCustomPreset($0)
                     showsPresetMenu = false
                 }
                 

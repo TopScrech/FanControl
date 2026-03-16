@@ -3,13 +3,13 @@ import AutoUpdate
 
 struct PreparedUpdateInstaller {
     enum InstallError: LocalizedError {
-        case invalidBundle
-        case invalidCodeSignature(String?)
+        case invalidBundle, invalidCodeSignature(String?)
         
         var errorDescription: String? {
             switch self {
             case .invalidBundle:
                 String(localized: "Downloaded update is invalid")
+                
             case .invalidCodeSignature(let details):
                 if let details, !details.isEmpty {
                     String(localized: "Downloaded update failed code signing validation: \(details)")
@@ -29,12 +29,12 @@ struct PreparedUpdateInstaller {
         
         try validateCodeSignature(for: bundle.bundleURL)
         
-        let fileManager = FileManager.default
+        let fm = FileManager.default
         let installedBundleURL = Bundle.main.bundleURL
         
-        try fileManager.removeItem(at: installedBundleURL)
-        try fileManager.moveItem(at: preparedUpdate.bundleURL, to: installedBundleURL)
-        try? fileManager.removeItem(at: preparedUpdate.temporaryDirectoryURL)
+        try fm.removeItem(at: installedBundleURL)
+        try fm.moveItem(at: preparedUpdate.bundleURL, to: installedBundleURL)
+        try? fm.removeItem(at: preparedUpdate.temporaryDirectoryURL)
         
         return installedBundleURL
     }
@@ -42,8 +42,7 @@ struct PreparedUpdateInstaller {
     private func removeAppleDoubleFiles(in bundleURL: URL) throws {
         let enumerator = FileManager.default.enumerator(
             at: bundleURL,
-            includingPropertiesForKeys: [.isRegularFileKey],
-            options: []
+            includingPropertiesForKeys: [.isRegularFileKey]
         )
         
         while let fileURL = enumerator?.nextObject() as? URL {
@@ -66,6 +65,7 @@ struct PreparedUpdateInstaller {
         guard process.terminationStatus == 0 else {
             let details = String(decoding: errorPipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
+            
             throw InstallError.invalidCodeSignature(details.isEmpty ? nil : details)
         }
     }

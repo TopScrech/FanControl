@@ -22,13 +22,9 @@ struct FanControlsView: View {
             }
             
             if showSensors {
-                FanTemperatureCardView(
-                    sensors: model.temperatureSensors,
-                    isMacBook: model.isMacBook,
-                    showAllSensors: false
-                )
-                .frame(width: 280)
-                .fanCardSurface()
+                FanTemperatureCardView(model: model, showAllSensors: false)
+                    .frame(width: 280)
+                    .fanCardSurface()
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
