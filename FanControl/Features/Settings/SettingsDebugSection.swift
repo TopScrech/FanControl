@@ -1,3 +1,4 @@
+import AppKit
 import ScrechKit
 
 struct SettingsDebugSection: View {
@@ -5,7 +6,17 @@ struct SettingsDebugSection: View {
     
     var body: some View {
         Section("Debug") {
-            LabeledContent("Device", value: model.deviceName)
+            LabeledContent {
+                HStack {
+                    Text(model.deviceName)
+                    
+                    SFButton("document.on.document") {
+                        Pasteboard.copy(model.deviceName)
+                    }
+                }
+            } label: {
+                Text("Device")
+            }
             
             Button(action: model.presentFakeUpdatePrompt) {
                 LabeledContent {
