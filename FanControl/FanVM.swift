@@ -758,6 +758,26 @@ final class FanVM {
                 tagName: "v9.9.9-debug",
                 isPrerelease: true,
                 notes: String(localized: "Some release notes")
+            ),
+            UpdateChangelogEntry(
+                tagName: "v9.9.8-rc.2",
+                isPrerelease: true,
+                notes: String(localized: "Some release notes")
+            ),
+            UpdateChangelogEntry(
+                tagName: "v9.9.8-beta.4",
+                isPrerelease: true,
+                notes: String(localized: "Some release notes")
+            ),
+            UpdateChangelogEntry(
+                tagName: "v9.9.7",
+                isPrerelease: false,
+                notes: String(localized: "Some release notes")
+            ),
+            UpdateChangelogEntry(
+                tagName: "v9.9.6",
+                isPrerelease: false,
+                notes: String(localized: "Some release notes")
             )
         ]
         
