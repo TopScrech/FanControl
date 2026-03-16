@@ -1,13 +1,15 @@
 import Foundation
 
 struct ISMCTemperatureSensorService {
-    func readTemperatureSensors() async throws -> [TemperatureSensor] {
-        let executableURL = try ISMCExecutableLocator.executableURL()
-        let output = try run(executableURL: executableURL, arguments: ["temp"])
-        return try ISMCTemperatureSensorParser.parse(output)
+    nonisolated func readTemperatureSensors() async throws -> [TemperatureSensor] {
+        try await Task.detached(priority: .userInitiated) {
+            let executableURL = try ISMCExecutableLocator.executableURL()
+            let output = try Self.run(executableURL: executableURL, arguments: ["temp"])
+            return try ISMCTemperatureSensorParser.parse(output)
+        }.value
     }
     
-    private func run(executableURL: URL, arguments: [String]) throws -> String {
+    nonisolated private static func run(executableURL: URL, arguments: [String]) throws -> String {
         let process = Process()
         process.executableURL = executableURL
         process.arguments = arguments

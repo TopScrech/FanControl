@@ -12,7 +12,7 @@ struct TemperatureSensorsCardView: View {
                 Text("No sensors available")
                     .secondary()
             } else {
-                VStack(alignment: .leading, spacing: 8) {
+                LazyVStack(alignment: .leading, spacing: 8) {
                     ForEach(sensors) {
                         FanMetricRowView(
                             $0.displayName,
