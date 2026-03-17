@@ -21,6 +21,22 @@ final class FanVM {
         case mainWindow, settings, menuBar
     }
     
+    enum HelperConnectionStatus {
+        case runningAsRoot, connected, enabled, requiresApproval, notFound, notRegistered, unavailable
+        
+        var text: String {
+            switch self {
+            case .runningAsRoot: "Running as root"
+            case .connected: "Connected"
+            case .enabled: "Enabled, not connected"
+            case .requiresApproval: "Needs approval"
+            case .notFound: "Not found"
+            case .notRegistered: "Not registered"
+            case .unavailable: "Unavailable"
+            }
+        }
+    }
+    
     private static let updateRepositoryOwner = "TopScrech"
     private static let updateRepositoryName = "FanControl"
     private static let allFansSelectionID = -1
@@ -54,6 +70,7 @@ final class FanVM {
     var mainWindowUpdateStatusAlert: UpdateStatusAlert?
     var settingsUpdateStatusAlert: UpdateStatusAlert?
     var menuBarUpdateStatusAlert: UpdateStatusAlert?
+    var helperConnectionStatus = HelperConnectionStatus.unavailable
     
     var selectedFanID = 0 {
         didSet {
@@ -86,8 +103,8 @@ final class FanVM {
     var gitHubProxyURLString = UserDefaults.standard.string(forKey: FanVM.gitHubProxyURLDefaultsKey) ?? FanVM.defaultGitHubProxyURLString {
         didSet {
             UserDefaults.standard.set(gitHubProxyURLString, forKey: Self.gitHubProxyURLDefaultsKey)
-            
             let resolvedGitHubProxyURL = gitHubProxyURL
+            
             Task {
                 await appUpdater.setGitHubProxyURL(resolvedGitHubProxyURL)
             }
@@ -116,11 +133,11 @@ final class FanVM {
     let isMacBook: Bool
     
     var appVersionDescription: String {
-        let info = Bundle.main.infoDictionary
-        let version = info?["CFBundleShortVersionString"] as? String ?? String(localized: "Unknown")
-        
-        guard version.hasPrefix("v") else { return "v\(version)" }
-        return version
+        Bundle.main.versionTag
+    }
+    
+    var helperConnectionStatusText: String {
+        helperConnectionStatus.text
     }
     
     var updatePromptTitle: String {
@@ -144,11 +161,13 @@ final class FanVM {
     private let localSMC: LocalSMCService?
     private var remoteSMC: RemoteSMCService?
     private let temperatureSensorService = ISMCTemperatureSensorService()
+    
     private let appUpdater = AppUpdater(
         owner: FanVM.updateRepositoryOwner,
         repository: FanVM.updateRepositoryName,
         gitHubProxyURL: FanVM.storedGitHubProxyURL()
     )
+    
     private let preparedUpdateInstaller = PreparedUpdateInstaller()
     private let licenseVerificationService = LicenseVerificationService()
     private let licenseCredentialStore = LicenseCredentialStore()
@@ -167,7 +186,7 @@ final class FanVM {
     private let isRoot = geteuid() == 0
     
     init() {
-        let detectedDeviceName = Self.detectProcessorName()
+        let detectedDeviceName = MacDeviceDescriptionProvider.current()
         deviceName = detectedDeviceName
         isMacBook = detectedDeviceName.localizedCaseInsensitiveContains("MacBook")
         Self.logger.info("Initializing FanVM")
@@ -384,96 +403,6 @@ final class FanVM {
         Self.logger.info("Helper tool exists: \(fm.fileExists(atPath: helperURL.path))")
     }
     
-    nonisolated private static func detectProcessorName() -> String {
-        if let hardwareOverview = loadHardwareOverview() {
-            let machineName = hardwareOverview.machineName?.trimmingCharacters(in: .whitespacesAndNewlines)
-            let rawMachineModel = hardwareOverview.machineModel?.trimmingCharacters(in: .whitespacesAndNewlines)
-            let machineModel = rawMachineModel.map(formatMachineModelIdentifier)
-            
-            let chipName = normalizeChipName(
-                hardwareOverview.chipType ?? sysctlString("machdep.cpu.brand_string")
-            )
-            
-            let modelSize = rawMachineModel.flatMap { macBookSizeLabel(for: $0) }
-            
-            if let machineName, !machineName.isEmpty, let chipName, !chipName.isEmpty {
-                let deviceName: String
-                
-                if let modelSize, !modelSize.isEmpty {
-                    deviceName = "\(machineName) \(modelSize) \(chipName)"
-                } else {
-                    deviceName = "\(machineName) \(chipName)"
-                }
-                
-                if let machineModel, !machineModel.isEmpty {
-                    return "\(deviceName) (\(machineModel))"
-                }
-                
-                return deviceName
-            }
-        }
-        
-        if let processorName = sysctlString("machdep.cpu.brand_string") {
-            return processorName
-        }
-        
-        if let processorName = sysctlString("hw.model") {
-            return formatMachineModelIdentifier(processorName)
-        }
-        
-        if let processorName = sysctlString("hw.machine") {
-            return processorName
-        }
-        
-        return String(localized: "Unknown processor")
-    }
-    
-    nonisolated private static func sysctlString(_ name: String) -> String? {
-        var size = 0
-        guard sysctlbyname(name, nil, &size, nil, 0) == 0, size > 1 else { return nil }
-        
-        var buffer = [CChar](repeating: 0, count: size)
-        guard sysctlbyname(name, &buffer, &size, nil, 0) == 0 else { return nil }
-        
-        let value = String(cString: buffer).trimmingCharacters(in: .whitespacesAndNewlines)
-        return value.isEmpty ? nil : value
-    }
-    
-    nonisolated private static func loadHardwareOverview() -> HardwareOverview? {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
-        process.arguments = ["SPHardwareDataType", "-json"]
-        
-        let stdoutPipe = Pipe()
-        process.standardOutput = stdoutPipe
-        process.standardError = Pipe()
-        
-        do {
-            try process.run()
-            process.waitUntilExit()
-        } catch {
-            return nil
-        }
-        
-        guard process.terminationStatus == 0 else { return nil }
-        
-        let data = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-        
-        guard
-            let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let rows = object["SPHardwareDataType"] as? [[String: Any]],
-            let first = rows.first
-        else {
-            return nil
-        }
-        
-        return HardwareOverview(
-            machineName: first["machine_name"] as? String,
-            chipType: first["chip_type"] as? String ?? first["cpu_type"] as? String,
-            machineModel: first["machine_model"] as? String
-        )
-    }
-    
     nonisolated private static func updateCodeSigningValidation() -> AppUpdater.CodeSigningValidation {
         guard let authority = currentCodeSigningAuthority() else {
             return .required
@@ -523,39 +452,6 @@ final class FanVM {
         return String(authorityLine.dropFirst("Authority=".count))
     }
     
-    nonisolated private static func normalizeChipName(_ rawValue: String?) -> String? {
-        guard let rawValue else { return nil }
-        let value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !value.isEmpty else { return nil }
-        
-        if value.hasPrefix("Apple ") {
-            return String(value.dropFirst("Apple ".count))
-        }
-        
-        return value
-    }
-    
-    nonisolated private static func formatMachineModelIdentifier(_ rawValue: String) -> String {
-        guard let firstDigitIndex = rawValue.firstIndex(where: \.isNumber) else { return rawValue }
-        let prefix = rawValue[..<firstDigitIndex]
-        let suffix = rawValue[firstDigitIndex...]
-        return "\(prefix) \(suffix)"
-    }
-    
-    nonisolated private static func macBookSizeLabel(for machineModel: String) -> String? {
-        switch machineModel {
-        case "Mac15,3", "Mac15,4", "Mac15,5", "Mac15,6", "Mac15,7", "Mac15,8", "Mac15,9", "Mac16,3", "Mac16,5": "16"
-        case "Mac14,5", "Mac14,9", "Mac14,10", "Mac15,10", "Mac16,1", "Mac16,2", "Mac16,4": "14"
-        case "Mac14,2", "Mac14,15", "Mac15,12", "Mac15,13": "13"
-        default: nil
-        }
-    }
-    
-    private struct HardwareOverview {
-        let machineName: String?
-        let chipType: String?
-        let machineModel: String?
-    }
     
     func tick() async {
         if holdingManualOverride, let smc = writeService {
@@ -745,6 +641,10 @@ final class FanVM {
     
     func setSettingsOpen(_ isOpen: Bool) {
         isSettingsOpen = isOpen
+        
+        if isOpen {
+            updateHelperConnectionStatus()
+        }
     }
     
     func revealDebugSection() {
@@ -1571,6 +1471,8 @@ final class FanVM {
         } else {
             Self.logger.info("SMC helper status: \(String(describing: service.status))")
         }
+        
+        updateHelperConnectionStatus(serviceStatus: service.status)
     }
     
     private func makeRemoteSMCService() -> RemoteSMCService {
@@ -1578,6 +1480,7 @@ final class FanVM {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.remoteSMC = nil
+                self.updateHelperConnectionStatus()
                 Self.logger.info("SMC helper client cleared after disconnect")
             }
         }
@@ -1897,24 +1800,30 @@ final class FanVM {
     
     private func ensureHelperConnected() async -> SMAppService.Status {
         if remoteSMC != nil {
+            updateHelperConnectionStatus(serviceStatus: .enabled)
             return .enabled
         }
         
         let service = SMAppService.daemon(plistName: FanControlXPCConstants.launchdPlistName)
         
-        guard !helperInstallInProgress else { return service.status }
+        guard !helperInstallInProgress else {
+            updateHelperConnectionStatus(serviceStatus: service.status)
+            return service.status
+        }
         
         helperInstallInProgress = true
         defer { helperInstallInProgress = false }
         
         switch service.status {
         case .requiresApproval:
+            updateHelperConnectionStatus(serviceStatus: service.status)
             return service.status
             
         case .enabled, .notFound, .notRegistered:
             break
             
         @unknown default:
+            updateHelperConnectionStatus(serviceStatus: service.status)
             return service.status
         }
         
@@ -1926,11 +1835,43 @@ final class FanVM {
                 remoteSMC = makeRemoteSMCService()
             }
             
+            updateHelperConnectionStatus(serviceStatus: status)
+            
             return status
         } catch {
             presentError(error.localizedDescription)
             Self.logger.error("SMC helper register failed: \(error)")
+            updateHelperConnectionStatus(serviceStatus: service.status)
             return service.status
+        }
+    }
+    
+    private func updateHelperConnectionStatus(serviceStatus: SMAppService.Status? = nil) {
+        if isRoot, localSMC != nil {
+            helperConnectionStatus = .runningAsRoot
+            return
+        }
+        
+        if remoteSMC != nil {
+            helperConnectionStatus = .connected
+            return
+        }
+        
+        switch serviceStatus ?? SMAppService.daemon(plistName: FanControlXPCConstants.launchdPlistName).status {
+        case .enabled:
+            helperConnectionStatus = .enabled
+            
+        case .requiresApproval:
+            helperConnectionStatus = .requiresApproval
+            
+        case .notFound:
+            helperConnectionStatus = .notFound
+            
+        case .notRegistered:
+            helperConnectionStatus = .notRegistered
+            
+        @unknown default:
+            helperConnectionStatus = .unavailable
         }
     }
     

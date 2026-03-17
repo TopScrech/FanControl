@@ -10,7 +10,7 @@ final class LocalSMCService: SMCService {
     func readFans() async throws -> [Fan] {
         try smc.readFans()
     }
-
+    
     func setFanManualRPM(fanID: Int, rpm: Double) async throws {
         try smc.setFanManualRPM(fanID: fanID, rpm: rpm)
     }
