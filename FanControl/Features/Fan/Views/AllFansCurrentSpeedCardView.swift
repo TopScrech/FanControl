@@ -10,12 +10,26 @@ struct AllFansCurrentSpeedCardView: View {
                 .headline()
             
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(fans) {
-                    FanMetricRowView($0.localizedDisplayName, value: $0.currentRPM.formattedRPM)
+                ForEach(fans) { fan in
+                    HStack(spacing: 12) {
+                        fanLabel(fan)
+                            .secondary()
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                        
+                        Spacer(minLength: 0)
+                        
+                        Text(fan.currentRPM.formattedRPM)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             .monospacedDigit()
         }
         .fanCardSurface()
+    }
+    
+    private func fanLabel(_ fan: Fan) -> Text {
+        Text("Fan") + Text(" \(fan.userFacingID)")
     }
 }
