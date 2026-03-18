@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct TemperatureRangeSliderView: View {
+struct TemperatureRangeSlider: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     
     let bounds: ClosedRange<Int>

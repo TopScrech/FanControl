@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct FanPresetMenuView: View {
+struct FanPresetMenu: View {
     @Bindable var model: FanVM
     
     @State private var showsPresetMenu = false
@@ -34,7 +34,7 @@ struct FanPresetMenuView: View {
         )
         .popover(isPresented: $showsPresetMenu, arrowEdge: .bottom) {
             VStack(alignment: .leading, spacing: 12) {
-                FanCustomPresetEditorView(model: model) {
+                FanCustomPresetEditor(model: model) {
                     setCustomPreset($0)
                     showsPresetMenu = false
                 }
@@ -43,7 +43,7 @@ struct FanPresetMenuView: View {
                     Divider()
                         .overlay(.primary.opacity(0.18))
                     
-                    FanFixedPresetListView(presetRPMs: model.controlPresetRPMs) { rpm in
+                    FanFixedPresetList(presetRPMs: model.controlPresetRPMs) { rpm in
                         setPreset(rpm)
                         showsPresetMenu = false
                     }

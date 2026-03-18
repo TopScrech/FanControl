@@ -1,7 +1,7 @@
 import ScrechKit
 import CoreSMC
 
-struct AllFansCurrentSpeedCardView: View {
+struct AllFansCurrentSpeedCard: View {
     let fans: [Fan]
     
     var body: some View {

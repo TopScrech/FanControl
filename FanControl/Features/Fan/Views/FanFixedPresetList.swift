@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct FanFixedPresetListView: View {
+struct FanFixedPresetList: View {
     let presetRPMs: [Int]
     let setPreset: (Int) -> Void
     

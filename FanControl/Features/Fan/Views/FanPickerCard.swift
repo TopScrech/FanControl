@@ -1,7 +1,7 @@
 import ScrechKit
 import CoreSMC
 
-struct FanPickerCardView: View {
+struct FanPickerCard: View {
     @Bindable var model: FanVM
     
     var body: some View {

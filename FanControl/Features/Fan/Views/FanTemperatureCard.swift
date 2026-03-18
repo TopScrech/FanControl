@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct FanTemperatureCardView: View {
+struct FanTemperatureCard: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     @AppStorage("showsTemperatureSensorIcons") private var showsTemperatureSensorIcons = false
@@ -25,7 +25,7 @@ struct FanTemperatureCardView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(averageRows) {
-                    FanMetricRowView(
+                    FanMetricRow(
                         $0.title,
                         systemImage: showsTemperatureSensorIcons ? $0.systemImage : nil,
                         value: $0.value
@@ -45,7 +45,7 @@ struct FanTemperatureCardView: View {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 8) {
                             ForEach(model.temperatureSensors) {
-                                FanMetricRowView(
+                                FanMetricRow(
                                     $0.displayName,
                                     systemImage: showsTemperatureSensorIcons ? $0.systemImage : nil,
                                     value: $0.celsius.formattedTemperature(

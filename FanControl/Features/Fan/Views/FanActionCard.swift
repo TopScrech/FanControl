@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct FanActionCardView: View {
+struct FanActionCard: View {
     @Bindable var model: FanVM
     
     var body: some View {
@@ -72,7 +72,7 @@ struct FanActionCardView: View {
                     .keyboardShortcut("3")
                 }
                 
-                FanPresetMenuView(model: model)
+                FanPresetMenu(model: model)
                     .frame(maxWidth: .infinity)
             }
         }

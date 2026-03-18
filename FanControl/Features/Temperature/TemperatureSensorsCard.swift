@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct TemperatureSensorsCardView: View {
+struct TemperatureSensorsCard: View {
     let sensors: [TemperatureSensor]
     let temperatureUnit: TemperatureUnit
     let showsTemperatureTenths: Bool
@@ -14,7 +14,7 @@ struct TemperatureSensorsCardView: View {
             } else {
                 LazyVStack(alignment: .leading, spacing: 8) {
                     ForEach(sensors) {
-                        FanMetricRowView(
+                        FanMetricRow(
                             $0.displayName,
                             systemImage: showsIcons ? $0.systemImage : nil,
                             value: $0.celsius.formattedTemperature(

@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct FanCustomPresetEditorView: View {
+struct FanCustomPresetEditor: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     
@@ -43,7 +43,7 @@ struct FanCustomPresetEditorView: View {
                     }
                 }
                 
-                TemperatureRangeSliderView(
+                TemperatureRangeSlider(
                     bounds: FanCustomPreset.temperatureBounds,
                     minimumValue: $draft.minimumTemperature,
                     maximumValue: $draft.maximumTemperature
