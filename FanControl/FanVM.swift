@@ -81,8 +81,8 @@ final class FanVM {
     var allowsPrereleaseUpdates = UserDefaults.standard.bool(forKey: FanVM.allowPrereleaseUpdatesDefaultsKey) {
         didSet {
             UserDefaults.standard.set(allowsPrereleaseUpdates, forKey: Self.allowPrereleaseUpdatesDefaultsKey)
-            
             let allowsPrereleaseUpdates = allowsPrereleaseUpdates
+            
             Task {
                 await appUpdater.setAllowPrereleases(allowsPrereleaseUpdates)
             }
@@ -92,8 +92,8 @@ final class FanVM {
     var usesGitHubProxy = UserDefaults.standard.bool(forKey: FanVM.useGitHubProxyDefaultsKey) {
         didSet {
             UserDefaults.standard.set(usesGitHubProxy, forKey: Self.useGitHubProxyDefaultsKey)
-            
             let resolvedGitHubProxyURL = gitHubProxyURL
+            
             Task {
                 await appUpdater.setGitHubProxyURL(resolvedGitHubProxyURL)
             }
