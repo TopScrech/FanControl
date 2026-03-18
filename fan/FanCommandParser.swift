@@ -20,7 +20,7 @@ Other:
   -h, --help                    Show this help
   -r, --report                  Print support report
   -v, --version                 Print app version
-  -d, --device                  Print detected Mac model
+  -d, --device                  Print device model
 
 """
     
