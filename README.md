@@ -2,7 +2,7 @@
 
 Control fan speed with ease on any Apple Silicon Mac
 
-[**Download**](https://github.com/TopScrech/FanControl/releases/latest) • [Website](https://fancontrol.dev)
+[**Download**](https://github.com/TopScrech/FanControl/releases/latest) • [**Website**](https://fancontrol.dev)
 
 <img src="https://github.com/user-attachments/assets/e6a96188-47be-43f2-92d3-075ca72a10ab" width="300" alt="screenshot">
 
