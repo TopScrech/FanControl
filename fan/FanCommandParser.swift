@@ -7,14 +7,14 @@ Control all fans:
   min                           Set all fans to minimum
   max                           Set all fans to maximum
   -a, auto                      Set all fans to auto
-  [speed]                       Set all fans to [speed]. Speed formats: 4000, 4k, 1.6k
+  [speed]                       Set all fans to [speed, example: 4000, 4k, 1.6k]
   
 Control a specific fan:
   -l, list                      List all fans
   -id [fan id] min              Set one fan to minimum
   -id [fan id] max              Set one fan to maximum
   -id [fan id] -a, auto         Set one fan to auto
-  -id [fan id] [speed]          Set one fan to [speed]. Speed formats: 4000, 4k, 1.6k
+  -id [fan id] [speed]          Set one fan to [speed]
 
 Other:
   -h, --help                    Show this help
