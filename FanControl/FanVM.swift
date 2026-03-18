@@ -300,6 +300,22 @@ final class FanVM {
         
         return Array(stride(from: start, through: end, by: Self.presetStepRPM))
     }
+
+    func changeSelectedFan(by offset: Int) {
+        guard offset != 0 else { return }
+        
+        let selectionIDs = selectableFanIDs
+        guard !selectionIDs.isEmpty else { return }
+        
+        guard let currentIndex = selectionIDs.firstIndex(of: selectedFanID) else {
+            selectedFanID = offset > 0 ? selectionIDs[0] : selectionIDs[selectionIDs.count - 1]
+            return
+        }
+        
+        let rawNextIndex = (currentIndex + offset) % selectionIDs.count
+        let nextIndex = rawNextIndex >= 0 ? rawNextIndex : rawNextIndex + selectionIDs.count
+        selectedFanID = selectionIDs[nextIndex]
+    }
     
     func resetGitHubProxyURL() {
         gitHubProxyURLString = Self.defaultGitHubProxyURLString
@@ -1116,6 +1132,14 @@ final class FanVM {
         
         guard let selectedFan else { return [] }
         return [selectedFan]
+    }
+
+    private var selectableFanIDs: [Int] {
+        if showsAllFansOption {
+            return [allFansID] + fans.map(\.id)
+        }
+        
+        return fans.map(\.id)
     }
     
     private var writeService: SMCService? {

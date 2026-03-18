@@ -24,7 +24,10 @@ struct ContentView: View {
         }
         .padding()
         .frame(width: 680)
-        .background(MainWindowLevelView(keepsWindowOnTop: keepsWindowOnTop))
+        .background(MainWindowLevelView(
+            keepsWindowOnTop: keepsWindowOnTop,
+            changeSelectedFan: model.changeSelectedFan
+        ))
         .background(ContentViewBackground())
         .alert(item: $model.errorAlert) { error in
             Alert(

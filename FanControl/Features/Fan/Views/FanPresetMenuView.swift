@@ -14,12 +14,14 @@ struct FanPresetMenuView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .keyboardShortcut("4")
             } else {
                 Button(action: showPresetMenuOrLicenseAlert) {
                     Label(buttonTitle, systemImage: "dial.low")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                .keyboardShortcut("4")
             }
         }
         .monospacedDigit()
