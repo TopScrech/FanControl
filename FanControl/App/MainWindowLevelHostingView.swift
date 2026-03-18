@@ -57,9 +57,11 @@ final class MainWindowLevelHostingView: NSView {
         case 123:
             changeSelectedFan?(-1)
             return nil
+            
         case 124:
             changeSelectedFan?(1)
             return nil
+            
         default:
             return event
         }
