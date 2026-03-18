@@ -10,12 +10,14 @@ struct FanReportService {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             let temperatureOutput = try Self.run(executableURL: ismcExecutableURL, arguments: ["temp"])
                 .trimmingCharacters(in: .newlines)
+            let temperatureStatus = Self.temperatureStatus(from: temperatureOutput)
             
             return """
 
 \(deviceDescription)
 FanControl \(appVersion)
 \(ismcVersion)
+\(temperatureStatus)
 
 \(temperatureOutput)
 """
@@ -107,5 +109,36 @@ FanControl \(appVersion)
         }
         
         return output
+    }
+    
+    nonisolated private static func temperatureStatus(from output: String) -> String {
+        let temperatures = output
+            .split(whereSeparator: \.isNewline)
+            .compactMap(temperatureValue(from:))
+        
+        let safeTemperatureRange = 10.0...110.0
+        guard !temperatures.isEmpty else {
+            return "⚠️ Extreme values detected"
+        }
+        
+        let hasExtremeValues = temperatures.contains {
+            !safeTemperatureRange.contains($0)
+        }
+        
+        if hasExtremeValues {
+            return "⚠️ Extreme values detected"
+        }
+        
+        return "✅ All values within the 10-110 range"
+    }
+    
+    nonisolated private static func temperatureValue(from rawLine: Substring) -> Double? {
+        let temperaturePattern = #/(-?\d+(?:[.,]\d+)?)\s*°C/#
+        
+        guard let match = rawLine.firstMatch(of: temperaturePattern) else {
+            return nil
+        }
+        
+        return Double(String(match.output.1).replacing(",", with: "."))
     }
 }
