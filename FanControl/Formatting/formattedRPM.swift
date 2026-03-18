@@ -1,5 +1,7 @@
+import Foundation
+
 extension Double {
     var formattedRPM: String {
-        "\(Int(rounded())) RPM"
+        String(localized: "\(Int64(rounded())) RPM")
     }
 }

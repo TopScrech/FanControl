@@ -17,7 +17,7 @@ struct FanFixedPresetList: View {
             ScrollView {
                 LazyVGrid(columns: columns) {
                     ForEach(presetRPMs, id: \.self) { rpm in
-                        Button("\(rpm) RPM") {
+                        Button(Double(rpm).formattedRPM) {
                             setPreset(rpm)
                         }
                         .frame(maxWidth: .infinity)
