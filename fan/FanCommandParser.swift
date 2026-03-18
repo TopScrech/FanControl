@@ -2,11 +2,6 @@ import Foundation
 
 enum FanCommandParser {
     static let usage = """
-Usage:
-  -h, --help                    Show this help
-  -v, --version                 Print app version
-  -d, --device                  Print detected Mac model
-  -r, --report                  Print support report
 
 Control all fans:
   min                           Set all fans to minimum
@@ -20,6 +15,13 @@ Control a specific fan:
   -id [fan id] max              Set one fan to maximum
   -id [fan id] -a, auto         Set one fan to auto
   -id [fan id] [speed]          Set one fan to [speed]. Speed formats: 4000, 4k, 1.6k
+
+Other:
+  -h, --help                    Show this help
+  -r, --report                  Print support report
+  -v, --version                 Print app version
+  -d, --device                  Print detected Mac model
+
 """
     
     static func parse(arguments: [String]) throws -> FanCommand {
@@ -134,9 +136,11 @@ Control a specific fan:
         
         let thousandsValue = String(normalizedValue.dropLast())
         guard !thousandsValue.isEmpty else { return nil }
+        
         guard let decimalRPM = Decimal(string: thousandsValue, locale: Locale(identifier: "en_US_POSIX")) else {
             return nil
         }
+        
         guard decimalRPM > 0 else { return nil }
         
         let scaledRPM = decimalRPM * 1000
