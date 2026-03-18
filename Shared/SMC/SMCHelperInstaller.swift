@@ -13,7 +13,7 @@ struct SMCHelperInstaller {
         }
         
         if service.status == .enabled {
-            Self.logger.info("Refreshing enabled helper for bundle \(Bundle.main.bundleURL.path, privacy: .public)")
+            Self.logger.info("Refreshing enabled helper for bundle \(AppBundleLocator.current.bundleURL.path, privacy: .public)")
             
             do {
                 try service.unregister()
@@ -45,7 +45,7 @@ struct SMCHelperInstaller {
     private static func currentCodeSigningAuthority() -> String? {
         let process = Process()
         process.executableURL = URL(filePath: "/usr/bin/codesign")
-        process.arguments = ["-dvvv", Bundle.main.bundleURL.path(percentEncoded: false)]
+        process.arguments = ["-dvvv", AppBundleLocator.current.bundleURL.path(percentEncoded: false)]
         
         let standardError = Pipe()
         process.standardOutput = Pipe()

@@ -8,27 +8,23 @@ struct FanControlsView: View {
     var body: some View {
         VStack(spacing: 12) {
             if model.fans.isEmpty {
-                FanEmptyStateView()
+                FanEmptyState()
             } else {
-                FanPickerCardView(model: model)
+                FanPickerCard(model: model)
                 
                 if model.controlsAllFans {
-                    AllFansCurrentSpeedCardView(fans: model.fans)
+                    AllFansCurrentSpeedCard(fans: model.fans)
                 } else if let fan = model.selectedFan {
-                    FanDetailsCardView(fan: fan)
+                    FanDetailsCard(fan: fan)
                 }
                 
-                FanActionCardView(model: model)
+                FanActionCard(model: model)
             }
             
             if showSensors {
-                FanTemperatureCardView(
-                    sensors: model.temperatureSensors,
-                    isMacBook: model.isMacBook,
-                    showAllSensors: false
-                )
-                .frame(width: 280)
-                .fanCardSurface()
+                FanTemperatureCard(model: model, showAllSensors: false)
+                    .frame(width: 280)
+                    .fanCardSurface()
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)

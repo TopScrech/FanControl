@@ -26,7 +26,10 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .buttonStyle(.plain)
         .frame(width: 500, height: 600)
-        .background(MainWindowLevelView(keepsWindowOnTop: keepsWindowOnTop))
+        .background(MainWindowLevelView(
+            keepsWindowOnTop: keepsWindowOnTop,
+            changeSelectedFan: model.changeSelectedFan
+        ))
         .onAppear {
             let selectedOption = AppLanguageManager.option(from: preferredAppLanguageRawValue)
             preferredAppLanguageRawValue = selectedOption.rawValue

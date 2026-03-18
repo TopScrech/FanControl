@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct FanPresetMenuView: View {
+struct FanPresetMenu: View {
     @Bindable var model: FanVM
     
     @State private var showsPresetMenu = false
@@ -14,12 +14,14 @@ struct FanPresetMenuView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .keyboardShortcut("4")
             } else {
                 Button(action: showPresetMenuOrLicenseAlert) {
                     Label(buttonTitle, systemImage: "dial.low")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                .keyboardShortcut("4")
             }
         }
         .monospacedDigit()
@@ -32,13 +34,8 @@ struct FanPresetMenuView: View {
         )
         .popover(isPresented: $showsPresetMenu, arrowEdge: .bottom) {
             VStack(alignment: .leading, spacing: 12) {
-                FanCustomPresetEditorView(
-                    sensors: model.temperatureSensors,
-                    isMacBook: model.isMacBook,
-                    initialDraft: model.selectedCustomPresetDraft,
-                    isActive: model.selectedCustomPresetIsActive
-                ) { draft in
-                    setCustomPreset(draft)
+                FanCustomPresetEditor(model: model) {
+                    setCustomPreset($0)
                     showsPresetMenu = false
                 }
                 
@@ -46,7 +43,7 @@ struct FanPresetMenuView: View {
                     Divider()
                         .overlay(.primary.opacity(0.18))
                     
-                    FanFixedPresetListView(presetRPMs: model.controlPresetRPMs) { rpm in
+                    FanFixedPresetList(presetRPMs: model.controlPresetRPMs) { rpm in
                         setPreset(rpm)
                         showsPresetMenu = false
                     }

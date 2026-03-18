@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct FanMetricRowView: View {
+struct FanMetricRow: View {
     private let title: String
     private let systemImage: String?
     private let value: String

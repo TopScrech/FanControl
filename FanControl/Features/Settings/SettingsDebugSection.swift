@@ -18,6 +18,8 @@ struct SettingsDebugSection: View {
                 Text("Device")
             }
             
+            LabeledContent(String("Helper status"), value: model.helperConnectionStatusText)
+            
             Button(action: model.presentFakeUpdatePrompt) {
                 LabeledContent {
                     Image(systemName: "arrow.trianglehead.clockwise")

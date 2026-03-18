@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct TemperatureAveragesCardView: View {
+struct TemperatureAveragesCard: View {
     let rows: [TemperatureAverageRow]
     let showsIcons: Bool
     
@@ -8,7 +8,7 @@ struct TemperatureAveragesCardView: View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(rows) {
-                    FanMetricRowView(
+                    FanMetricRow(
                         $0.title,
                         systemImage: showsIcons ? $0.systemImage : nil,
                         value: $0.value

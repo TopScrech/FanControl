@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct FanActionCardView: View {
+struct FanActionCard: View {
     @Bindable var model: FanVM
     
     var body: some View {
@@ -18,25 +18,6 @@ struct FanActionCardView: View {
             }
             
             HStack(spacing: 10) {
-                if model.activeControlMode == .auto {
-                    Button(action: setAuto) {
-                        Label("Auto", systemImage: "fan")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                } else {
-                    Button(action: setAuto) {
-                        Label("Auto", systemImage: "fan")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                }
-                
-                FanPresetMenuView(model: model)
-                .frame(maxWidth: .infinity)
-            }
-            
-            HStack(spacing: 10) {
                 if model.activeControlMode == .min {
                     Button(action: setMin) {
                         Label("Min", systemImage: "arrow.down")
@@ -44,6 +25,7 @@ struct FanActionCardView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(!canSetManual)
+                    .keyboardShortcut("1")
                 } else {
                     Button(action: setMin) {
                         Label("Min", systemImage: "arrow.down")
@@ -51,6 +33,7 @@ struct FanActionCardView: View {
                     }
                     .buttonStyle(.bordered)
                     .disabled(!canSetManual)
+                    .keyboardShortcut("1")
                 }
                 
                 if model.activeControlMode == .max {
@@ -60,6 +43,7 @@ struct FanActionCardView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(!canSetManual)
+                    .keyboardShortcut("2")
                 } else {
                     Button(action: setMax) {
                         Label("Max", systemImage: "arrow.up")
@@ -67,7 +51,29 @@ struct FanActionCardView: View {
                     }
                     .buttonStyle(.bordered)
                     .disabled(!canSetManual)
+                    .keyboardShortcut("2")
                 }
+            }
+            
+            HStack(spacing: 10) {
+                if model.activeControlMode == .auto {
+                    Button(action: setAuto) {
+                        Label("Auto", systemImage: "fan")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut("3")
+                } else {
+                    Button(action: setAuto) {
+                        Label("Auto", systemImage: "fan")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .keyboardShortcut("3")
+                }
+                
+                FanPresetMenu(model: model)
+                    .frame(maxWidth: .infinity)
             }
         }
         .controlSize(.large)
@@ -76,23 +82,23 @@ struct FanActionCardView: View {
         .frame(maxHeight: .infinity, alignment: .top)
         .fanCardSurface()
     }
-
+    
     private var canSetManual: Bool {
         model.controlMinRPM != nil && model.controlMaxRPM != nil
     }
-
+    
     private func setAuto() {
         Task {
             await model.setAuto()
         }
     }
-
+    
     private func setMin() {
         Task {
             await model.setControlMin()
         }
     }
-
+    
     private func setMax() {
         Task {
             await model.setControlMax()

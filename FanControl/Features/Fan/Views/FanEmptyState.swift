@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct FanEmptyStateView: View {
+struct FanEmptyState: View {
     var body: some View {
         ContentUnavailableView(
             "No fans detected",

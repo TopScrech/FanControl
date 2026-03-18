@@ -14,7 +14,7 @@ struct ContentView: View {
                 FanControlsView(model: model)
                     .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
                 
-                FanTemperatureCardView(sensors: model.temperatureSensors, isMacBook: model.isMacBook)
+                FanTemperatureCard(model: model)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .frame(width: 280)
                     .fanCardSurface()
@@ -24,7 +24,10 @@ struct ContentView: View {
         }
         .padding()
         .frame(width: 680)
-        .background(MainWindowLevelView(keepsWindowOnTop: keepsWindowOnTop))
+        .background(MainWindowLevelView(
+            keepsWindowOnTop: keepsWindowOnTop,
+            changeSelectedFan: model.changeSelectedFan
+        ))
         .background(ContentViewBackground())
         .alert(item: $model.errorAlert) { error in
             Alert(

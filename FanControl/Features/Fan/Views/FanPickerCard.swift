@@ -1,7 +1,7 @@
 import ScrechKit
 import CoreSMC
 
-struct FanPickerCardView: View {
+struct FanPickerCard: View {
     @Bindable var model: FanVM
     
     var body: some View {
@@ -16,7 +16,7 @@ struct FanPickerCardView: View {
                 }
                 
                 ForEach(model.fans) {
-                    Text($0.localizedDisplayName)
+                    fanLabel($0)
                         .tag($0.id)
                 }
             }
@@ -24,5 +24,9 @@ struct FanPickerCardView: View {
             .pickerStyle(.segmented)
         }
         .fanCardSurface()
+    }
+    
+    private func fanLabel(_ fan: Fan) -> Text {
+        Text("Fan") + Text(" \(fan.userFacingID)")
     }
 }

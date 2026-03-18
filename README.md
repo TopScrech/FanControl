@@ -2,7 +2,7 @@
 
 Control fan speed with ease on any Apple Silicon Mac
 
-[**Download**](https://github.com/TopScrech/FanControl/releases/latest)
+[**Download**](https://github.com/TopScrech/FanControl/releases/latest) • [**Website**](https://fancontrol.dev)
 
 <img src="https://github.com/user-attachments/assets/e6a96188-47be-43f2-92d3-075ca72a10ab" width="300" alt="screenshot">
 
@@ -11,6 +11,36 @@ Control fan speed with ease on any Apple Silicon Mac
 
 ## Supported platforms
 - macOS 14+
+
+## CLI commands (fan)
+
+```bash
+Control all fans:
+  min                           Set all fans to minimum
+  max                           Set all fans to maximum
+  -a, auto                      Set all fans to auto
+  [speed]                       Set all fans to [speed, example: 4000, 4k, 1.6k]
+
+Control a specific fan:
+  -l, list                      List all fans
+  -id [fan id] min              Set one fan to minimum
+  -id [fan id] max              Set one fan to maximum
+  -id [fan id] -a, auto         Set one fan to auto
+  -id [fan id] [speed]          Set one fan to [speed]
+
+Other:
+  -h, --help                    Show this help
+  -r, --report                  Print support report
+  -v, --version                 Print app version
+  -d, --device                  Print device model
+```
+
+## Shortcuts
+Option + left/right arrows - change selected fan
+Command + 1 - Min mode
+Command + 2 - Max mode
+Command + 3 - Auto mode
+Command + 4 - Open preset mode sheet
 
 ## Build
 

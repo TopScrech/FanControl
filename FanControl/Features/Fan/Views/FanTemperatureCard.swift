@@ -1,12 +1,11 @@
 import ScrechKit
 
-struct FanTemperatureCardView: View {
+struct FanTemperatureCard: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     @AppStorage("showsTemperatureSensorIcons") private var showsTemperatureSensorIcons = false
     
-    let sensors: [TemperatureSensor]
-    let isMacBook: Bool
+    @Bindable var model: FanVM
     var showAllSensors = true
     
     private var temperatureUnit: TemperatureUnit {
@@ -26,7 +25,7 @@ struct FanTemperatureCardView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(averageRows) {
-                    FanMetricRowView(
+                    FanMetricRow(
                         $0.title,
                         systemImage: showsTemperatureSensorIcons ? $0.systemImage : nil,
                         value: $0.value
@@ -39,14 +38,14 @@ struct FanTemperatureCardView: View {
                 Divider()
                     .overlay(.primary.opacity(0.22))
                 
-                if sensors.isEmpty {
+                if model.temperatureSensors.isEmpty {
                     Text("No sensors available")
                         .secondary()
                 } else {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 8) {
-                            ForEach(sensors) {
-                                FanMetricRowView(
+                            ForEach(model.temperatureSensors) {
+                                FanMetricRow(
                                     $0.displayName,
                                     systemImage: showsTemperatureSensorIcons ? $0.systemImage : nil,
                                     value: $0.celsius.formattedTemperature(
@@ -69,8 +68,8 @@ struct FanTemperatureCardView: View {
     }
     
     private var averageRows: [TemperatureAverageRow] {
-        TemperatureSensorCategory.averageCases(isMacBook: isMacBook).map { category in
-            let values = sensors
+        TemperatureSensorCategory.averageCases(isMacBook: model.isMacBook).map { category in
+            let values = model.temperatureSensors
                 .filter { category.contains(sensor: $0) }
                 .map(\.celsius)
             

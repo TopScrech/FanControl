@@ -22,10 +22,10 @@ struct TemperatureView: View {
 #endif
                 }
                 
-                TemperatureAveragesCardView(rows: averageRows, showsIcons: showsTemperatureSensorIcons)
+                TemperatureAveragesCard(rows: averageRows, showsIcons: showsTemperatureSensorIcons)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
-                TemperatureSensorsCardView(
+                TemperatureSensorsCard(
                     sensors: otherSensors,
                     temperatureUnit: temperatureUnit,
                     showsTemperatureTenths: temperaturePrecision.showsTenths,

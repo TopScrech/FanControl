@@ -39,6 +39,7 @@ enum AppDownloadsMovePrompter {
     
     private static var sourceBundleURL: URL {
         var error: Unmanaged<CFError>?
+        
         guard let originalURL = secTranslocateCreateOriginalPathForURL(
             runningBundleURL as CFURL,
             &error
@@ -73,24 +74,18 @@ enum AppDownloadsMovePrompter {
     }
     
     private static func installApp() throws -> URL {
-        let fileManager = FileManager.default
+        let fm = FileManager.default
         
         guard sourceBundleURL != destinationURL else {
             return destinationURL
         }
         
         if destinationAppExists {
-            let resultingURL = try fileManager.replaceItemAt(
-                destinationURL,
-                withItemAt: sourceBundleURL,
-                backupItemName: nil,
-                options: []
-            )
-            
+            let resultingURL = try fm.replaceItemAt(destinationURL, withItemAt: sourceBundleURL)
             return resultingURL?.standardizedFileURL ?? destinationURL
         }
         
-        try fileManager.moveItem(at: sourceBundleURL, to: destinationURL)
+        try fm.moveItem(at: sourceBundleURL, to: destinationURL)
         return destinationURL
     }
     
