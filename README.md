@@ -35,6 +35,13 @@ Other:
   -d, --device                  Print device model
 ```
 
+## Shortcuts
+Option + left/right arrows - change selected fan
+Command + 1 - Min mode
+Command + 2 - Max mode
+Command + 3 - Auto mode
+Command + 4 - Open preset mode sheet
+
 ## Build
 
 Requires Xcode 26.4+ and access to the private [CoreSMC](https://github.com/TopScrech/CoreSMC?tab=readme-ov-file) library
