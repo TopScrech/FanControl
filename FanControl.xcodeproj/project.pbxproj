@@ -652,7 +652,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = fan;
 				INFOPLIST_KEY_CFBundleShortVersionString = "$(MARKETING_VERSION)";
 				INFOPLIST_KEY_CFBundleVersion = "$(CURRENT_PROJECT_VERSION)";
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 14;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.topscrech.FanControl.fan;
 				PRODUCT_NAME = fan;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
@@ -672,7 +672,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = fan;
 				INFOPLIST_KEY_CFBundleShortVersionString = "$(MARKETING_VERSION)";
 				INFOPLIST_KEY_CFBundleVersion = "$(CURRENT_PROJECT_VERSION)";
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 14;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.topscrech.FanControl.fan;
 				PRODUCT_NAME = fan;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
