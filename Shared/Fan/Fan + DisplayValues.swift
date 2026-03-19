@@ -11,11 +11,8 @@ extension Fan {
     
     var cliModeDescription: String {
         switch mode {
-        case 0, 3:
-            "Auto"
-            
-        default:
-            "Manual"
+        case 0, 3: "Auto"
+        default: "Manual"
         }
     }
 }
