@@ -6,14 +6,17 @@ struct MenuBarContentView: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            ContentViewHeader(model: model, showsShowWindowButton: true)
+            MenuBarContentViewHeader(model: model)
             
-            FanControlsView(model: model, showSensors: true)
-                .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
+            ScrollView {
+                FanControlsView(model: model, showSensors: true)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .padding()
         .frame(width: 340)
-        .frame(minHeight: 515, alignment: .top)
+        .frame(minHeight: 515, maxHeight: .infinity, alignment: .top)
         .background(ContentViewBackground())
         .alert(item: $model.errorAlert) { error in
             Alert(
