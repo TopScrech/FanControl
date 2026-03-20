@@ -68,12 +68,12 @@ struct FanPresetMenu: View {
         showsLicenseAlert = true
     }
     
-    private var buttonTitle: LocalizedStringKey {
+    private var buttonTitle: String {
         if model.activeControlMode == .custom, let customPresetPercentageText = model.selectedCustomPresetPercentageText {
-            return "Preset \(customPresetPercentageText)"
+            String(localized: "Preset \(customPresetPercentageText)")
+        } else {
+            String(localized: "Preset")
         }
-        
-        return "Preset"
     }
 
     private func setPreset(_ rpm: Int) {

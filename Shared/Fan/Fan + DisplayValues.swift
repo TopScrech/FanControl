@@ -1,3 +1,4 @@
+import Foundation
 import CoreSMC
 
 extension Fan {
@@ -13,6 +14,15 @@ extension Fan {
         switch mode {
         case 0, 3: "Auto"
         default: "Manual"
+        }
+    }
+    
+    var localizedModeName: String {
+        switch mode {
+        case 0: String(localized: "Auto")
+        case 1: String(localized: "Manual")
+        case 3: String(localized: "System")
+        default: "\(String(localized: "Mode")) \(mode)"
         }
     }
 }

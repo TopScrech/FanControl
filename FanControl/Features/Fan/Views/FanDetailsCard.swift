@@ -10,7 +10,7 @@ struct FanDetailsCard: View {
                 .headline()
             
             VStack(alignment: .leading, spacing: 8) {
-                FanMetricRow(String(localized: "Mode"), value: fan.modeName)
+                FanMetricRow(String(localized: "Mode"), value: fan.localizedModeName)
                 FanMetricRow(String(localized: "Current"), value: fan.currentRPM.formattedRPM)
                 FanMetricRow(String(localized: "Target"), value: fan.targetRPM.formattedRPM)
                 FanMetricRow(String(localized: "Min"), value: fan.minRPM.formattedRPM)

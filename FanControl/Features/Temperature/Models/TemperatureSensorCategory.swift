@@ -1,3 +1,5 @@
+import Foundation
+
 enum TemperatureSensorCategory: String, CaseIterable, Identifiable {
     case cpu, gpu, battery
     
@@ -11,9 +13,9 @@ enum TemperatureSensorCategory: String, CaseIterable, Identifiable {
     
     var title: String {
         switch self {
-        case .cpu: "Avg. CPU"
-        case .gpu: "Avg. GPU"
-        case .battery: "Avg. Battery"
+        case .cpu: String(localized: "Avg. CPU")
+        case .gpu: String(localized: "Avg. GPU")
+        case .battery: String(localized: "Avg. Battery")
         }
     }
     
