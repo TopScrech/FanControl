@@ -9,16 +9,8 @@ struct TemperatureSensorsSheetView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                Text("Temperature sensors")
-                    .headline()
-                
-                Spacer(minLength: 0)
-#if DEBUG
-                Button("Copy", action: copyAllSensors)
-                    .disabled(sensors.isEmpty)
-#endif
-            }
+            Text("Temperature sensors")
+                .headline()
             
             ScrollView {
                 TemperatureSensorsCard(
