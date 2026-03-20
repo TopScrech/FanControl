@@ -10,20 +10,15 @@ struct ContentView: View {
         VStack(spacing: 12) {
             ContentViewHeader(model: model)
             
-            HStack(alignment: .top, spacing: 12) {
+            ScrollView {
                 FanControlsView(model: model)
-                    .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
-                
-                FanTemperatureCard(model: model)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .frame(width: 280)
-                    .fanCardSurface()
-                    .frame(maxHeight: 400, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .padding()
-        .frame(width: 680)
+        .frame(width: 400)
+        .frame(maxHeight: .infinity)
         .background(MainWindowLevelView(
             keepsWindowOnTop: keepsWindowOnTop,
             changeSelectedFan: model.changeSelectedFan
