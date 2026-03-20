@@ -139,6 +139,46 @@ final class FanVM {
     var helperConnectionStatusText: String {
         helperConnectionStatus.text
     }
+
+    var isErrorAlertPresented: Bool {
+        get {
+            errorAlert != nil
+        }
+        set {
+            guard !newValue else { return }
+            dismissError()
+        }
+    }
+
+    var isMainWindowUpdateStatusAlertPresented: Bool {
+        get {
+            mainWindowUpdateStatusAlert != nil
+        }
+        set {
+            guard !newValue else { return }
+            dismissUpdateStatusAlert(for: .mainWindow)
+        }
+    }
+
+    var isSettingsUpdateStatusAlertPresented: Bool {
+        get {
+            settingsUpdateStatusAlert != nil
+        }
+        set {
+            guard !newValue else { return }
+            dismissUpdateStatusAlert(for: .settings)
+        }
+    }
+
+    var isMenuBarUpdateStatusAlertPresented: Bool {
+        get {
+            menuBarUpdateStatusAlert != nil
+        }
+        set {
+            guard !newValue else { return }
+            dismissUpdateStatusAlert(for: .menuBar)
+        }
+    }
     
     var updatePromptTitle: String {
         let template = String(localized: "Update %@ available")
