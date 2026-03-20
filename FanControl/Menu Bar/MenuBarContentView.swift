@@ -17,6 +17,7 @@ struct MenuBarContentView: View {
         .padding()
         .frame(width: 340)
         .frame(minHeight: 515, maxHeight: .infinity, alignment: .top)
+        .background(FanSelectionShortcutsView(changeSelectedFan: model.changeSelectedFan))
         .background(ContentViewBackground())
         .alert(item: $model.errorAlert) { error in
             Alert(
