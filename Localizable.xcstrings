@@ -1157,24 +1157,24 @@
         }
       }
     },
-    "Helper not found in app bundle\n\nApp bundle\nBundle: %@\nHelper exists: %@\nPlist exists: %@\n\nInstalled system files\nHelper exists: %@\nPlist exists: %@" : {
+    "Helper not found in app bundle\nBundle: %@\nHelper exists: %@\nPlist exists: %@\nSystem helper exists: %@\nSystem plist exists: %@" : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Helper niet gevonden in appbundle\n\nAppbundle\nBundel: %@\nHelper bestaat: %@\nPlist bestaat: %@\n\nGeinstalleerde systeembestanden\nHelper bestaat: %@\nPlist bestaat: %@"
+            "value" : "Helper niet gevonden in appbundle\nBundel: %@\nHelper bestaat: %@\nPlist bestaat: %@\nSysteemhelper bestaat: %@\nSysteemplist bestaat: %@"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Helper не найден в бандле приложения\n\nБандл приложения\nБандл: %@\nHelper существует: %@\nPlist существует: %@\n\nУстановленные системные файлы\nHelper существует: %@\nPlist существует: %@"
+            "value" : "Helper не найден в бандле приложения\nБандл: %@\nHelper существует: %@\nPlist существует: %@\nСистемный helper существует: %@\nСистемный plist существует: %@"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Helper не знайдено в бандлі застосунку\n\nБандл застосунку\nБандл: %@\nHelper існує: %@\nPlist існує: %@\n\nВстановлені системні файли\nHelper існує: %@\nPlist існує: %@"
+            "value" : "Helper не знайдено в бандлі застосунку\nБандл: %@\nHelper існує: %@\nPlist існує: %@\nСистемний helper існує: %@\nСистемний plist існує: %@"
           }
         }
       }
