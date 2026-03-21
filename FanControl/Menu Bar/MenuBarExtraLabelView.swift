@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MenuBarExtraLabelView: View {
-    private static let speedLabelWidth = 42.0
+    private static let speedLabelWidth = 50.0
     
     @AppStorage(FanVM.showsMenuBarFanSpeedDefaultsKey) private var showsMenuBarFanSpeed = false
     

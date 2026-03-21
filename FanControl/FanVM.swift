@@ -42,6 +42,7 @@ final class FanVM {
     private static let allFansSelectionID = -1
     private static let selectedFanIDDefaultsKey = "selectedFanID"
     static let showsMenuBarFanSpeedDefaultsKey = "showsMenuBarFanSpeed"
+    static let showsMenuBarAverageTemperaturesDefaultsKey = "showsMenuBarAverageTemperatures"
     private static let allowPrereleaseUpdatesDefaultsKey = "allowPrereleaseUpdates"
     private static let useGitHubProxyDefaultsKey = "useGitHubProxy"
     private static let gitHubProxyURLDefaultsKey = "gitHubProxyURL"
