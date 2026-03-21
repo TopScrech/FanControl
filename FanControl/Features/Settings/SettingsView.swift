@@ -14,6 +14,7 @@ struct SettingsView: View {
             SettingsLicenseSection(model: model)
             SettingsLaunchSection()
             SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
+            SettingsMenuBarSection()
             SettingsTemperatureSection()
             
             SettingsUpdatesSection(model: model)
@@ -26,10 +27,8 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .buttonStyle(.plain)
         .frame(width: 500, height: 600)
-        .background(MainWindowLevelView(
-            keepsWindowOnTop: keepsWindowOnTop,
-            changeSelectedFan: model.changeSelectedFan
-        ))
+        .background(MainWindowLevelView(keepsWindowOnTop: keepsWindowOnTop))
+        .background(FanSelectionShortcutsView(changeSelectedFan: model.changeSelectedFan))
         .onAppear {
             let selectedOption = AppLanguageManager.option(from: preferredAppLanguageRawValue)
             preferredAppLanguageRawValue = selectedOption.rawValue
@@ -42,14 +41,16 @@ struct SettingsView: View {
         .sheet($model.isUpdatePromptPresented) {
             UpdateSheet(model: model)
         }
-        .alert(item: $model.settingsUpdateStatusAlert) { updateStatusAlert in
-            Alert(
-                title: Text(updateStatusAlert.title),
-                message: Text(updateStatusAlert.message),
-                dismissButton: .cancel(Text("OK")) {
-                    model.dismissUpdateStatusAlert(for: .settings)
-                }
-            )
+        .alert(
+            model.settingsUpdateStatusAlert?.title ?? "",
+            isPresented: $model.isSettingsUpdateStatusAlertPresented,
+            presenting: model.settingsUpdateStatusAlert
+        ) { _ in
+            Button("OK", role: .cancel) {
+                model.dismissUpdateStatusAlert(for: .settings)
+            }
+        } message: {
+            Text($0.message)
         }
     }
     

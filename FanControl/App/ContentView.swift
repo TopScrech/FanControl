@@ -10,41 +10,34 @@ struct ContentView: View {
         VStack(spacing: 12) {
             ContentViewHeader(model: model)
             
-            HStack(alignment: .top, spacing: 12) {
+            ScrollView {
                 FanControlsView(model: model)
-                    .frame(maxWidth: .infinity, maxHeight: 400, alignment: .topLeading)
-                
-                FanTemperatureCard(model: model)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .frame(width: 280)
-                    .fanCardSurface()
-                    .frame(maxHeight: 400, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .padding()
-        .frame(width: 680)
-        .background(MainWindowLevelView(
-            keepsWindowOnTop: keepsWindowOnTop,
-            changeSelectedFan: model.changeSelectedFan
-        ))
+        .frame(width: 400)
+        .frame(maxHeight: .infinity)
+        .background(MainWindowLevelView(keepsWindowOnTop: keepsWindowOnTop))
+        .background(FanSelectionShortcutsView(changeSelectedFan: model.changeSelectedFan))
         .background(ContentViewBackground())
-        .alert(item: $model.errorAlert) { error in
-            Alert(
-                title: Text("Error"),
-                message: Text(error.message),
-                primaryButton: .default(Text("Copy error message"), action: model.copyErrorMessage),
-                secondaryButton: .cancel(Text("OK"), action: model.dismissError)
-            )
+        .alert("Error", isPresented: $model.isErrorAlertPresented, presenting: model.errorAlert) { _ in
+            Button("Copy error message", action: model.copyErrorMessage)
+            Button("OK", role: .cancel, action: model.dismissError)
+        } message: {
+            Text($0.message)
         }
-        .alert(item: $model.mainWindowUpdateStatusAlert) { updateStatusAlert in
-            Alert(
-                title: Text(updateStatusAlert.title),
-                message: Text(updateStatusAlert.message),
-                dismissButton: .cancel(Text("OK")) {
-                    model.dismissUpdateStatusAlert(for: .mainWindow)
-                }
-            )
+        .alert(
+            model.mainWindowUpdateStatusAlert?.title ?? "",
+            isPresented: $model.isMainWindowUpdateStatusAlertPresented,
+            presenting: model.mainWindowUpdateStatusAlert
+        ) { _ in
+            Button("OK", role: .cancel) {
+                model.dismissUpdateStatusAlert(for: .mainWindow)
+            }
+        } message: {
+            Text($0.message)
         }
         .sheet(showsUpdateAlert && !model.isSettingsOpen ? $model.isUpdatePromptPresented : .constant(false)) {
             UpdateSheet(model: model)

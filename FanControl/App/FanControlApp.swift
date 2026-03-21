@@ -9,6 +9,7 @@ struct FanControlApp: App {
     @State private var model = FanVM()
     
     @AppStorage("hideWindowOnLaunch") private var hideWindowOnLaunch = false
+    @AppStorage(FanVM.showsMenuBarAverageTemperaturesDefaultsKey) private var showsMenuBarAverageTemperatures = true
     @AppStorage(AppLanguageOption.storageKey) private var preferredAppLanguageRawValue = AppLanguageManager.defaultOption.rawValue
     
     @State private var didApplyLaunchWindowPreference = false
@@ -19,6 +20,13 @@ struct FanControlApp: App {
     }
     
     var body: some Scene {
+        mainWindowScene
+        settingsScene
+        primaryMenuBarExtraScene
+        averageTemperatureMenuBarExtraScene
+    }
+    
+    private var mainWindowScene: some Scene {
         WindowGroup(id: "main") {
             ContentView(model: model, showsUpdateAlert: true)
                 .environment(\.locale, appLocale)
@@ -43,22 +51,41 @@ struct FanControlApp: App {
                     .keyboardShortcut("d", modifiers: [.command])
             }
         }
-        
+    }
+    
+    private var settingsScene: some Scene {
         Settings {
             NavigationStack {
                 SettingsView(model: model)
             }
             .environment(\.locale, appLocale)
         }
-        
-        MenuBarExtra("FanControl", systemImage: model.isAnyFanSpinning ? "fanblades.fill" : "fanblades") {
-            MenuBarContentView(model: model, showsUpdateAlert: false)
-                .environment(\.locale, appLocale)
-                .task {
-                    configureTerminationDelegate()
-                }
+    }
+    
+    private var primaryMenuBarExtraScene: some Scene {
+        MenuBarExtra {
+            menuBarContentView
+        } label: {
+            MenuBarExtraLabelView(model: model)
         }
         .menuBarExtraStyle(.window)
+    }
+    
+    private var averageTemperatureMenuBarExtraScene: some Scene {
+        MenuBarExtra(isInserted: $showsMenuBarAverageTemperatures) {
+            menuBarContentView
+        } label: {
+            MenuBarTemperatureExtraLabelView(sensors: model.temperatureSensors)
+        }
+        .menuBarExtraStyle(.window)
+    }
+    
+    private var menuBarContentView: some View {
+        MenuBarContentView(model: model, showsUpdateAlert: false)
+            .environment(\.locale, appLocale)
+            .task {
+                configureTerminationDelegate()
+            }
     }
     
     private var preferredAppLanguage: AppLanguageOption {

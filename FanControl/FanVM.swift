@@ -41,6 +41,8 @@ final class FanVM {
     private static let updateRepositoryName = "FanControl"
     private static let allFansSelectionID = -1
     private static let selectedFanIDDefaultsKey = "selectedFanID"
+    static let showsMenuBarFanSpeedDefaultsKey = "showsMenuBarFanSpeed"
+    static let showsMenuBarAverageTemperaturesDefaultsKey = "showsMenuBarAverageTemperatures"
     private static let allowPrereleaseUpdatesDefaultsKey = "allowPrereleaseUpdates"
     private static let useGitHubProxyDefaultsKey = "useGitHubProxy"
     private static let gitHubProxyURLDefaultsKey = "gitHubProxyURL"
@@ -138,6 +140,46 @@ final class FanVM {
     
     var helperConnectionStatusText: String {
         helperConnectionStatus.text
+    }
+
+    var isErrorAlertPresented: Bool {
+        get {
+            errorAlert != nil
+        }
+        set {
+            guard !newValue else { return }
+            dismissError()
+        }
+    }
+
+    var isMainWindowUpdateStatusAlertPresented: Bool {
+        get {
+            mainWindowUpdateStatusAlert != nil
+        }
+        set {
+            guard !newValue else { return }
+            dismissUpdateStatusAlert(for: .mainWindow)
+        }
+    }
+
+    var isSettingsUpdateStatusAlertPresented: Bool {
+        get {
+            settingsUpdateStatusAlert != nil
+        }
+        set {
+            guard !newValue else { return }
+            dismissUpdateStatusAlert(for: .settings)
+        }
+    }
+
+    var isMenuBarUpdateStatusAlertPresented: Bool {
+        get {
+            menuBarUpdateStatusAlert != nil
+        }
+        set {
+            guard !newValue else { return }
+            dismissUpdateStatusAlert(for: .menuBar)
+        }
     }
     
     var updatePromptTitle: String {
@@ -254,6 +296,13 @@ final class FanVM {
         fans.contains {
             $0.currentRPM > 0
         }
+    }
+
+    var menuBarCurrentSpeeds: [String] {
+        fans
+            .map {
+                String(Int($0.currentRPM.rounded()))
+            }
     }
     
     var canUsePresetControl: Bool {

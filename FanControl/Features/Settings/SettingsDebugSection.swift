@@ -1,4 +1,3 @@
-import AppKit
 import ScrechKit
 
 struct SettingsDebugSection: View {

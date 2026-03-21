@@ -12,6 +12,7 @@ struct SettingsLicenseSection: View {
     @State private var isResetConfirmationPresented = false
     @FocusState private var focusedField: Field?
     
+    private let buyURL = URL(string: "https://fancontrol.dev")!
     private let restoreURL = URL(string: "https://fancontrol.dev/restore-license")!
     
     var body: some View {
@@ -37,6 +38,14 @@ struct SettingsLicenseSection: View {
                     .secondary()
                     .disabled(model.licenseEmail.isEmpty && model.licenseKey.isEmpty)
                 } else {
+                    Button("Buy") {
+                        openURL(buyURL)
+                    }
+                    .secondary()
+                    
+                    Text("•")
+                        .foregroundStyle(.secondary)
+                    
                     Button("Restore") {
                         openURL(restoreURL)
                     }

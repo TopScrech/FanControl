@@ -4,9 +4,11 @@ struct FanTemperatureCard: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     @AppStorage("showsTemperatureSensorIcons") private var showsTemperatureSensorIcons = false
+    @State private var showsTemperatureSensorsSheet = false
     
     @Bindable var model: FanVM
     var showAllSensors = true
+    var showsShowMoreButton = false
     
     private var temperatureUnit: TemperatureUnit {
         TemperatureUnit(rawValue: temperatureUnitRawValue) ?? .celsius
@@ -21,6 +23,16 @@ struct FanTemperatureCard: View {
             HStack(spacing: 10) {
                 Label("Sensors", systemImage: "thermometer.medium")
                     .headline()
+                
+                Spacer(minLength: 0)
+                
+                if showsShowMoreButton {
+                    Button("Show more", action: showTemperatureSensors)
+                        .buttonStyle(.plain)
+                        .footnote()
+                        .secondary()
+                        .disabled(model.temperatureSensors.isEmpty)
+                }
             }
             
             VStack(alignment: .leading, spacing: 8) {
@@ -64,7 +76,10 @@ struct FanTemperatureCard: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .sheet($showsTemperatureSensorsSheet) {
+            TemperatureSensorsSheetView(sensors: model.temperatureSensors)
+        }
     }
     
     private var averageRows: [TemperatureAverageRow] {
@@ -89,5 +104,9 @@ struct FanTemperatureCard: View {
                 value: averageText
             )
         }
+    }
+    
+    private func showTemperatureSensors() {
+        showsTemperatureSensorsSheet = true
     }
 }
