@@ -2,6 +2,8 @@ import SwiftUI
 import AppKit
 
 struct MenuBarExtraLabelView: View {
+    private static let speedLabelWidth: CGFloat = 42
+    
     @AppStorage(FanVM.showsMenuBarFanSpeedDefaultsKey) private var showsMenuBarFanSpeed = false
     
     @Bindable var model: FanVM
@@ -25,7 +27,8 @@ struct MenuBarExtraLabelView: View {
         let renderer = ImageRenderer(
             content: MenuBarRenderedLabelContentView(
                 systemImage: systemImage,
-                speeds: model.menuBarCurrentSpeeds
+                speeds: model.menuBarCurrentSpeeds,
+                width: Self.speedLabelWidth
             )
         )
         renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
