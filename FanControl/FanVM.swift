@@ -41,6 +41,7 @@ final class FanVM {
     private static let updateRepositoryName = "FanControl"
     private static let allFansSelectionID = -1
     private static let selectedFanIDDefaultsKey = "selectedFanID"
+    static let showsMenuBarFanSpeedDefaultsKey = "showsMenuBarFanSpeed"
     private static let allowPrereleaseUpdatesDefaultsKey = "allowPrereleaseUpdates"
     private static let useGitHubProxyDefaultsKey = "useGitHubProxy"
     private static let gitHubProxyURLDefaultsKey = "gitHubProxyURL"
@@ -294,6 +295,13 @@ final class FanVM {
         fans.contains {
             $0.currentRPM > 0
         }
+    }
+
+    var menuBarCurrentSpeeds: [String] {
+        fans
+            .map {
+                String(Int($0.currentRPM.rounded()))
+            }
     }
     
     var canUsePresetControl: Bool {

@@ -14,6 +14,7 @@ struct SettingsView: View {
             SettingsLicenseSection(model: model)
             SettingsLaunchSection()
             SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
+            SettingsMenuBarSection()
             SettingsTemperatureSection()
             
             SettingsUpdatesSection(model: model)

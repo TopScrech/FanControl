@@ -51,12 +51,14 @@ struct FanControlApp: App {
             .environment(\.locale, appLocale)
         }
         
-        MenuBarExtra("FanControl", systemImage: model.isAnyFanSpinning ? "fanblades.fill" : "fanblades") {
+        MenuBarExtra {
             MenuBarContentView(model: model, showsUpdateAlert: false)
                 .environment(\.locale, appLocale)
                 .task {
                     configureTerminationDelegate()
                 }
+        } label: {
+            MenuBarExtraLabelView(model: model)
         }
         .menuBarExtraStyle(.window)
     }
