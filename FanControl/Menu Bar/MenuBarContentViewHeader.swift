@@ -2,7 +2,6 @@ import ScrechKit
 
 struct MenuBarContentViewHeader: View {
     @Environment(\.openWindow) private var openWindow
-    @Environment(\.openSettings) private var openSettings
     
     @Bindable var model: FanVM
     
@@ -19,23 +18,10 @@ struct MenuBarContentViewHeader: View {
             
             Spacer(minLength: 0)
             
-            HStack {
-                Button("Settings", systemImage: "gearshape", action: openAppSettings)
-                    .labelStyle(.iconOnly)
-                    .help("Settings")
-
-                Button("Show window", systemImage: "macwindow", action: showWindow)
-                    .labelStyle(.iconOnly)
-                    .help("Show window")
-            }
+            Button("Show window", systemImage: "macwindow", action: showWindow)
+                .labelStyle(.iconOnly)
+                .help("Show window")
         }
-    }
-    
-    private func openAppSettings() {
-        let menuBarWindow = NSApplication.shared.keyWindow
-        openSettings()
-        NSApplication.shared.activate(ignoringOtherApps: true)
-        menuBarWindow?.orderOut(nil)
     }
 
     private func showWindow() {
