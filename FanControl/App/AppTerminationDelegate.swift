@@ -8,6 +8,10 @@ final class AppTerminationDelegate: NSObject, NSApplicationDelegate {
     private var isHandlingTermination = false
     private var terminationTask: Task<Void, Never>?
     private var terminationTimeoutTask: Task<Void, Never>?
+
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        DockIconVisibilityController.applyStoredPreference()
+    }
     
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard !isHandlingTermination else { return .terminateNow }
