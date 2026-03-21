@@ -66,7 +66,7 @@ struct FanControlApp: App {
         MenuBarExtra {
             menuBarContentView
         } label: {
-            MenuBarExtraLabelView(model: model)
+            MenuBarExtraLabel(model: model)
         }
         .menuBarExtraStyle(.window)
     }
@@ -75,7 +75,7 @@ struct FanControlApp: App {
         MenuBarExtra(isInserted: $showsMenuBarAverageTemperatures) {
             menuBarContentView
         } label: {
-            MenuBarTemperatureExtraLabelView(sensors: model.temperatureSensors)
+            MenuBarTemperatureExtraLabel(sensors: model.temperatureSensors)
         }
         .menuBarExtraStyle(.window)
     }
