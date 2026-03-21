@@ -156,11 +156,7 @@ final class FanCLIService {
         try await applyManualRPM(targetFans: targetFans, targetRPMsByFanID: targetRPMsByFanID, smc: smc)
     }
     
-    private func applyManualRPM(
-        targetFans: [Fan],
-        targetRPMsByFanID: [Int: Double],
-        smc: SMCService
-    ) async throws {
+    private func applyManualRPM(targetFans: [Fan], targetRPMsByFanID: [Int: Double], smc: SMCService) async throws {
         var lastAttemptError: Error?
         var latestFansByID = [Int: Fan]()
         
@@ -206,10 +202,7 @@ final class FanCLIService {
         }
         
         if let unmatchedFan = targetFans.first(where: {
-            guard
-                let targetRPM = targetRPMsByFanID[$0.id],
-                let latestFan = latestFansByID[$0.id]
-            else {
+            guard let targetRPM = targetRPMsByFanID[$0.id], let latestFan = latestFansByID[$0.id] else {
                 return true
             }
             
@@ -241,22 +234,30 @@ final class FanCLIService {
     
     private func helperMessage(for status: SMAppService.Status) -> String {
         switch status {
-        case .requiresApproval:
-            return "Helper needs approval in System Settings > General > Login Items > Allow in Background"
-            
-        case .notFound:
-            let bundlePath = AppBundleLocator.current.bundleURL.path(percentEncoded: false)
-            let helperPath = AppBundleLocator.current.bundleURL
-                .appending(path: "Contents/Library/PrivilegedHelperTools/FanControlHelper")
-                .path(percentEncoded: false)
-            let plistPath = AppBundleLocator.current.bundleURL
-                .appending(path: "Contents/Library/LaunchDaemons/\(FanControlXPCConstants.launchdPlistName)")
-                .path(percentEncoded: false)
-            let systemHelperPath = "/Library/PrivilegedHelperTools/FanControlHelper"
-            let systemPlistPath = "/Library/LaunchDaemons/\(FanControlXPCConstants.launchdPlistName)"
-            let fm = FileManager.default
-            
-            return """
+        case .requiresApproval: "Helper needs approval in System Settings > General > Login Items > Allow in Background"
+        case .notFound: helperNotFoundMessage()
+        case .notRegistered: "Helper not registered. Run the embedded tool from /Applications/FanControl.app"
+        case .enabled: "Helper connected but no writable SMC client is available"
+        @unknown default: "Helper status is unknown"
+        }
+    }
+    
+    private func helperNotFoundMessage() -> String {
+        let bundlePath = AppBundleLocator.current.bundleURL.path(percentEncoded: false)
+        
+        let helperPath = AppBundleLocator.current.bundleURL
+            .appending(path: "Contents/Library/PrivilegedHelperTools/FanControlHelper")
+            .path(percentEncoded: false)
+        
+        let plistPath = AppBundleLocator.current.bundleURL
+            .appending(path: "Contents/Library/LaunchDaemons/\(FanControlXPCConstants.launchdPlistName)")
+            .path(percentEncoded: false)
+        
+        let systemHelperPath = "/Library/PrivilegedHelperTools/FanControlHelper"
+        let systemPlistPath = "/Library/LaunchDaemons/\(FanControlXPCConstants.launchdPlistName)"
+        let fm = FileManager.default
+        
+        return """
 Helper not found in app bundle
 Bundle: \(bundlePath)
 Helper exists: \(fm.fileExists(atPath: helperPath))
@@ -264,15 +265,5 @@ Plist exists: \(fm.fileExists(atPath: plistPath))
 System helper exists: \(fm.fileExists(atPath: systemHelperPath))
 System plist exists: \(fm.fileExists(atPath: systemPlistPath))
 """
-            
-        case .notRegistered:
-            return "Helper not registered. Run the embedded tool from /Applications/FanControl.app"
-            
-        case .enabled:
-            return "Helper connected but no writable SMC client is available"
-            
-        @unknown default:
-            return "Helper status is unknown"
-        }
     }
 }
