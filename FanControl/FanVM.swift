@@ -1974,11 +1974,15 @@ final class FanVM {
             let template = String(
                 localized: """
 Helper not found in app bundle
+
+App bundle
 Bundle: %@
 Helper exists: %@
 Plist exists: %@
-System helper exists: %@
-System plist exists: %@
+
+Installed system files
+Helper exists: %@
+Plist exists: %@
 """
             )
             

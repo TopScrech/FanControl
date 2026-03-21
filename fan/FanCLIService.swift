@@ -254,15 +254,19 @@ final class FanCLIService {
                 .path(percentEncoded: false)
             let systemHelperPath = "/Library/PrivilegedHelperTools/FanControlHelper"
             let systemPlistPath = "/Library/LaunchDaemons/\(FanControlXPCConstants.launchdPlistName)"
-            let fileManager = FileManager.default
+            let fm = FileManager.default
             
             return """
 Helper not found in app bundle
+
+App bundle
 Bundle: \(bundlePath)
-Helper exists: \(fileManager.fileExists(atPath: helperPath))
-Plist exists: \(fileManager.fileExists(atPath: plistPath))
-System helper exists: \(fileManager.fileExists(atPath: systemHelperPath))
-System plist exists: \(fileManager.fileExists(atPath: systemPlistPath))
+Helper exists: \(fm.fileExists(atPath: helperPath))
+Plist exists: \(fm.fileExists(atPath: plistPath))
+
+Installed system files
+Helper exists: \(fm.fileExists(atPath: systemHelperPath))
+Plist exists: \(fm.fileExists(atPath: systemPlistPath))
 """
             
         case .notRegistered:
