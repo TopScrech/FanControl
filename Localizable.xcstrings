@@ -252,7 +252,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ср. CPU"
+            "value" : "Ср. ГПУ"
           }
         },
         "uk" : {
@@ -274,7 +274,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ср. GPU"
+            "value" : "Ср. ГПУ"
           }
         },
         "uk" : {
