@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct MenuBarTemperatureExtraLabelView: View {
+struct MenuBarTemperatureExtraLabel: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     
@@ -35,7 +35,7 @@ struct MenuBarTemperatureExtraLabelView: View {
         guard !sensors.isEmpty else { return nil }
         
         let renderer = ImageRenderer(
-            content: MenuBarTemperatureRenderedLabelContentView(
+            content: MenuBarTemperatureRenderedLabel(
                 cpuText: cpuText,
                 gpuText: gpuText
             )

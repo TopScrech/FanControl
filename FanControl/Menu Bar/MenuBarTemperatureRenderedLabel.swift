@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct MenuBarTemperatureRenderedLabelContentView: View {
+struct MenuBarTemperatureRenderedLabel: View {
     let cpuText: String
     let gpuText: String
     

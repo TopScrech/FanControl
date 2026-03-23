@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct MenuBarRenderedLabelContentView: View {
+struct MenuBarRenderedLabel: View {
     let systemImage: String
     let speeds: [String]
     let width: CGFloat
@@ -11,7 +11,7 @@ struct MenuBarRenderedLabelContentView: View {
                 .imageScale(.medium)
             
             if !speeds.isEmpty {
-                MenuBarFanSpeedTextView(speeds: speeds)
+                MenuBarFanSpeedText(speeds: speeds)
             }
         }
         .frame(width: width, alignment: .leading)

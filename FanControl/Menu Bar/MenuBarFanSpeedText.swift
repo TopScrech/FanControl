@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct MenuBarFanSpeedTextView: View {
+struct MenuBarFanSpeedText: View {
     let speeds: [String]
     
     var body: some View {
