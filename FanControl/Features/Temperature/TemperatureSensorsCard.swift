@@ -1,8 +1,9 @@
 import ScrechKit
 
 struct TemperatureSensorsCard: View {
+    @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
+    
     let sensors: [TemperatureSensor]
-    let temperatureUnit: TemperatureUnit
     let showsTemperatureTenths: Bool
     let showsIcons: Bool
     
@@ -31,5 +32,9 @@ struct TemperatureSensorsCard: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.thinMaterial, in: .rect(cornerRadius: 12))
+    }
+    
+    private var temperatureUnit: TemperatureUnit {
+        TemperatureUnit(rawValue: temperatureUnitRawValue) ?? .celsius
     }
 }

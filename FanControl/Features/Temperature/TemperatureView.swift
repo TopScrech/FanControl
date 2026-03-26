@@ -27,7 +27,6 @@ struct TemperatureView: View {
                 
                 TemperatureSensorsCard(
                     sensors: otherSensors,
-                    temperatureUnit: temperatureUnit,
                     showsTemperatureTenths: temperaturePrecision.showsTenths,
                     showsIcons: showsTemperatureSensorIcons
                 )

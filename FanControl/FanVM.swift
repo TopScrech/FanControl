@@ -697,8 +697,10 @@ final class FanVM {
         switch presenter {
         case .mainWindow:
             mainWindowUpdateStatusAlert = alert
+            
         case .settings:
             settingsUpdateStatusAlert = alert
+            
         case .menuBar:
             menuBarUpdateStatusAlert = alert
         }
@@ -752,6 +754,7 @@ final class FanVM {
     func verifyLicenseNow() async {
         let email = self.licenseEmail.trimmingCharacters(in: .whitespacesAndNewlines)
         let licenseKey = self.licenseKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        
         guard !email.isEmpty, !licenseKey.isEmpty else {
             licenseStatusText = String(localized: "Email and license key are required")
             isLicenseActive = false
