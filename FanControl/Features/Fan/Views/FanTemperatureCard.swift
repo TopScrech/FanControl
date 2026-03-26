@@ -27,11 +27,13 @@ struct FanTemperatureCard: View {
                 Spacer(minLength: 0)
                 
                 if showsShowMoreButton {
-                    Button("Show more", action: showTemperatureSensors)
-                        .buttonStyle(.plain)
-                        .footnote()
-                        .secondary()
-                        .disabled(model.temperatureSensors.isEmpty)
+                    Button("Show more") {
+                        showsTemperatureSensorsSheet = true
+                    }
+                    .buttonStyle(.plain)
+                    .footnote()
+                    .secondary()
+                    .disabled(model.temperatureSensors.isEmpty)
                 }
             }
             
@@ -78,7 +80,7 @@ struct FanTemperatureCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .sheet($showsTemperatureSensorsSheet) {
-            TemperatureSensorsSheetView(sensors: model.temperatureSensors)
+            TemperatureSensorListSheet(sensors: model.temperatureSensors)
         }
     }
     
@@ -104,9 +106,5 @@ struct FanTemperatureCard: View {
                 value: averageText
             )
         }
-    }
-    
-    private func showTemperatureSensors() {
-        showsTemperatureSensorsSheet = true
     }
 }
