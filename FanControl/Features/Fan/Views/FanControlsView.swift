@@ -18,12 +18,8 @@ struct FanControlsView: View {
                     FanDetailsCard(fan: fan)
                 }
                 
-                FanTemperatureCard(
-                    model: model,
-                    showAllSensors: false,
-                    showsShowMoreButton: true
-                )
-                .fanCardSurface()
+                FanTemperatureCard(model: model, showAllSensors: false)
+                    .fanCardSurface()
                 
                 FanActionCard(model: model)
             }
