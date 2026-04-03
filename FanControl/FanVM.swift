@@ -6,37 +6,6 @@ import OSLog
 
 @Observable
 final class FanVM {
-    struct ErrorAlert: Identifiable {
-        let id = UUID()
-        let message: String
-    }
-    
-    struct UpdateStatusAlert: Identifiable {
-        let id = UUID()
-        let title: String
-        let message: String
-    }
-    
-    enum UpdateStatusAlertPresenter {
-        case mainWindow, settings, menuBar
-    }
-    
-    enum HelperConnectionStatus {
-        case runningAsRoot, connected, enabled, requiresApproval, notFound, notRegistered, unavailable
-        
-        var text: String {
-            switch self {
-            case .runningAsRoot: "Running as root"
-            case .connected: "Connected"
-            case .enabled: "Enabled, not connected"
-            case .requiresApproval: "Needs approval"
-            case .notFound: "Not found"
-            case .notRegistered: "Not registered"
-            case .unavailable: "Unavailable"
-            }
-        }
-    }
-    
     private static let updateRepositoryOwner = "TopScrech"
     private static let updateRepositoryName = "FanControl"
     private static let allFansSelectionID = -1
@@ -141,7 +110,7 @@ final class FanVM {
     var helperConnectionStatusText: String {
         helperConnectionStatus.text
     }
-
+    
     var isErrorAlertPresented: Bool {
         get {
             errorAlert != nil
@@ -151,7 +120,7 @@ final class FanVM {
             dismissError()
         }
     }
-
+    
     var isMainWindowUpdateStatusAlertPresented: Bool {
         get {
             mainWindowUpdateStatusAlert != nil
@@ -161,7 +130,7 @@ final class FanVM {
             dismissUpdateStatusAlert(for: .mainWindow)
         }
     }
-
+    
     var isSettingsUpdateStatusAlertPresented: Bool {
         get {
             settingsUpdateStatusAlert != nil
@@ -171,7 +140,7 @@ final class FanVM {
             dismissUpdateStatusAlert(for: .settings)
         }
     }
-
+    
     var isMenuBarUpdateStatusAlertPresented: Bool {
         get {
             menuBarUpdateStatusAlert != nil
@@ -297,7 +266,7 @@ final class FanVM {
             $0.currentRPM > 0
         }
     }
-
+    
     var menuBarCurrentSpeeds: [String] {
         fans
             .map {
@@ -349,7 +318,7 @@ final class FanVM {
         
         return Array(stride(from: start, through: end, by: Self.presetStepRPM))
     }
-
+    
     func changeSelectedFan(by offset: Int) {
         guard offset != 0 else { return }
         
@@ -1185,7 +1154,7 @@ final class FanVM {
         guard let selectedFan else { return [] }
         return [selectedFan]
     }
-
+    
     private var selectableFanIDs: [Int] {
         if showsAllFansOption {
             return [allFansID] + fans.map(\.id)

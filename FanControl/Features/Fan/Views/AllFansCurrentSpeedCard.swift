@@ -12,7 +12,7 @@ struct AllFansCurrentSpeedCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(fans) { fan in
                     HStack(spacing: 12) {
-                        fanLabel(fan)
+                        Text("Fan \(fan.userFacingID)")
                             .secondary()
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -27,9 +27,5 @@ struct AllFansCurrentSpeedCard: View {
             .monospacedDigit()
         }
         .fanCardSurface()
-    }
-    
-    private func fanLabel(_ fan: Fan) -> Text {
-        Text("Fan") + Text(" \(fan.userFacingID)")
     }
 }
