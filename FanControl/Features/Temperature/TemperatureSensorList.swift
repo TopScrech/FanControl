@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct TemperatureSensorsCard: View {
+struct TemperatureSensorList: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     
     let sensors: [TemperatureSensor]

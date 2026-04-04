@@ -838,11 +838,13 @@ final class FanVM {
                     do {
                         try await smc.setFanManualRPM(fanID: fan.id, rpm: targetRPM)
                         successfulSignals += 1
+                        
                         Self.logger.info(
                             "Custom preset signal sent fan=\(fan.id) sensor=\(sensor.key) rpm=\(targetRPM) attempt=\(attempt)"
                         )
                     } catch {
                         lastAttemptError = error
+                        
                         Self.logger.error(
                             "Custom preset signal failed fan=\(fan.id) sensor=\(sensor.key) rpm=\(targetRPM) attempt=\(attempt) error=\(error)"
                         )
@@ -870,6 +872,7 @@ final class FanVM {
             setCustomPresetEnabled(true, fanIDs: targetFanIDs)
             holdingManualOverride = true
             await refresh()
+            
             Self.logger.info(
                 "Custom preset applied fans=\(String(describing: targetFanIDs)) sensor=\(sensor.key) signals=\(successfulSignals)"
             )

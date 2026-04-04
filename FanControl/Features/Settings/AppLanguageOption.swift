@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum AppLanguageOption: String, CaseIterable, Identifiable {
-    case english, dutch, russian, ukrainian
+    case english, dutch, german, french, russian, ukrainian
     
     static let storageKey = "preferredAppLanguageOption"
     static let appleLanguagesKey = "AppleLanguages"
@@ -12,6 +12,8 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         switch self {
         case .english: "English"
         case .dutch: "Nederlands"
+        case .german: "Deutsch"
+        case .french: "Français"
         case .russian: "Русский"
         case .ukrainian: "Українська"
         }
@@ -21,6 +23,8 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         switch self {
         case .english: "🇺🇸"
         case .dutch: "🇳🇱"
+        case .german: "🇩🇪"
+        case .french: "🇫🇷"
         case .russian: "🇷🇺"
         case .ukrainian: "🇺🇦"
         }
@@ -30,6 +34,8 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         switch self {
         case .english: Locale(identifier: "en")
         case .dutch: Locale(identifier: "nl")
+        case .german: Locale(identifier: "de")
+        case .french: Locale(identifier: "fr")
         case .russian: Locale(identifier: "ru")
         case .ukrainian: Locale(identifier: "uk")
         }
@@ -39,6 +45,8 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         switch self {
         case .english: "en"
         case .dutch: "nl"
+        case .german: "de"
+        case .french: "fr"
         case .russian: "ru"
         case .ukrainian: "uk"
         }
@@ -46,7 +54,7 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
 }
 
 enum AppLanguageManager {
-    private static let supportedLanguageCodes = ["en", "nl", "ru", "uk"]
+    private static let supportedLanguageCodes = ["en", "nl", "de", "fr", "ru", "uk"]
     private static let fallbackLanguageCode = "en"
     
     static var defaultOption: AppLanguageOption {
@@ -72,6 +80,8 @@ enum AppLanguageManager {
     private static func option(for languageCode: String) -> AppLanguageOption {
         switch languageCode {
         case "nl": .dutch
+        case "de": .german
+        case "fr": .french
         case "ru": .russian
         case "uk": .ukrainian
         default: .english
