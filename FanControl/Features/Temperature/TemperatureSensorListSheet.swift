@@ -28,7 +28,7 @@ struct TemperatureSensorListSheet: View {
             }
             
             ScrollView {
-                TemperatureSensorsCard(
+                TemperatureSensorList(
                     sensors: sensors,
                     showsTemperatureTenths: temperaturePrecision.showsTenths,
                     showsIcons: showsTemperatureSensorIcons

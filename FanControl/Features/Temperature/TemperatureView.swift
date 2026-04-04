@@ -25,7 +25,7 @@ struct TemperatureView: View {
                 AverageTemperatureCard(rows: averageRows, showsIcons: showsTemperatureSensorIcons)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
-                TemperatureSensorsCard(
+                TemperatureSensorList(
                     sensors: otherSensors,
                     showsTemperatureTenths: temperaturePrecision.showsTenths,
                     showsIcons: showsTemperatureSensorIcons
