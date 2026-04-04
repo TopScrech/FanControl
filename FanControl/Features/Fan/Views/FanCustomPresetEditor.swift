@@ -127,12 +127,12 @@ struct FanCustomPresetEditor: View {
     private func pickerDisplayName(for sensor: TemperatureSensor) -> String {
         if let category = TemperatureSensorCategory.allCases.first(where: { $0.sensorKey == sensor.key }) {
             switch category {
-            case .cpu: return "CPU"
-            case .gpu: return "GPU"
-            case .battery: return "Battery"
+            case .cpu: "CPU"
+            case .gpu: "GPU"
+            case .battery: "Battery"
             }
+        } else {
+            sensor.displayName
         }
-        
-        return sensor.displayName
     }
 }
