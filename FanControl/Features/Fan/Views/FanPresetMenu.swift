@@ -72,7 +72,7 @@ struct FanPresetMenu: View {
         if model.activeControlMode == .custom, let customPresetPercentageText = model.selectedCustomPresetPercentageText {
             String(localized: "Preset \(customPresetPercentageText)")
         } else {
-            String(localized: "Preset")
+            String(localized: "Presets")
         }
     }
 
