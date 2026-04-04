@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct TemperatureAveragesCard: View {
+struct AverageTemperatureCard: View {
     let rows: [TemperatureAverageRow]
     let showsIcons: Bool
     
