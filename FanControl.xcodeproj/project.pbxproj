@@ -106,9 +106,9 @@
 			path = FanControlHelper;
 			sourceTree = "<group>";
 		};
-		F40100062FA0000100C10001 /* fan */ = {
+		F40100062FA0000100C10001 /* CLI */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = fan;
+			path = CLI;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -146,7 +146,7 @@
 				F3A812022F2180AA00D96952 /* FanControl */,
 				F3B0001A2F5A000100000003 /* Shared */,
 				F3B0001A2F5A000100000004 /* FanControlHelper */,
-				F40100062FA0000100C10001 /* fan */,
+				F40100062FA0000100C10001 /* CLI */,
 				F3609F9B2F4BAD0300D5A1E1 /* AGENTS.md */,
 				F3609FBD2F4BB50200D5A1E1 /* LICENSE.txt */,
 				F3A812012F2180AA00D96952 /* Products */,
@@ -240,7 +240,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				F3B0001A2F5A000100000003 /* Shared */,
-				F40100062FA0000100C10001 /* fan */,
+				F40100062FA0000100C10001 /* CLI */,
 			);
 			name = fan;
 			packageProductDependencies = (
