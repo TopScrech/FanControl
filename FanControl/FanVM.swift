@@ -643,12 +643,9 @@ final class FanVM {
     
     func dismissUpdateStatusAlert(for presenter: UpdateStatusAlertPresenter) {
         switch presenter {
-        case .mainWindow:
-            mainWindowUpdateStatusAlert = nil
-        case .settings:
-            settingsUpdateStatusAlert = nil
-        case .menuBar:
-            menuBarUpdateStatusAlert = nil
+        case .mainWindow: mainWindowUpdateStatusAlert = nil
+        case .settings: settingsUpdateStatusAlert = nil
+        case .menuBar: menuBarUpdateStatusAlert = nil
         }
     }
     
@@ -664,14 +661,9 @@ final class FanVM {
         menuBarUpdateStatusAlert = nil
         
         switch presenter {
-        case .mainWindow:
-            mainWindowUpdateStatusAlert = alert
-            
-        case .settings:
-            settingsUpdateStatusAlert = alert
-            
-        case .menuBar:
-            menuBarUpdateStatusAlert = alert
+        case .mainWindow: mainWindowUpdateStatusAlert = alert
+        case .settings: settingsUpdateStatusAlert = alert
+        case .menuBar: menuBarUpdateStatusAlert = alert
         }
     }
     
@@ -1591,6 +1583,7 @@ final class FanVM {
             case .prepared(let preparedUpdate):
                 await setPreparedUpdate(preparedUpdate)
                 updateChangelogEntries = await loadUpdateChangelogEntries(for: preparedUpdate.release)
+                
                 let template = String(localized: "Update available: %@")
                 updateStatusText = String(format: template, locale: .current, preparedUpdate.release.tagName)
                 isUpdatePromptPresented = true

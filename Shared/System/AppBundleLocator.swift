@@ -1,7 +1,7 @@
 import Foundation
 
 enum AppBundleLocator {
-    static var current: Bundle {
+    nonisolated static var current: Bundle {
         let mainBundle = Bundle.main
         let resolvedMainBundleURL = mainBundle.bundleURL.standardizedFileURL.resolvingSymlinksInPath()
         

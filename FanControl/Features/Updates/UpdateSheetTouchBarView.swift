@@ -74,6 +74,7 @@ final class UpdateSheetTouchBarView: NSView, NSTouchBarDelegate {
             item.view = button
             cancelButton = button
             return item
+            
         case Self.installItemIdentifier:
             let item = NSCustomTouchBarItem(identifier: identifier)
             let button = NSButton(title: String(localized: "Update"), target: self, action: #selector(installUpdate))
@@ -82,6 +83,7 @@ final class UpdateSheetTouchBarView: NSView, NSTouchBarDelegate {
             item.view = button
             installButton = button
             return item
+            
         default:
             return nil
         }

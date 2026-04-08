@@ -61,10 +61,8 @@ Other:
             }
 
             switch arguments[1] {
-            case "zsh":
-                return .completionZsh
-            default:
-                throw FanCLIError.usage("Supported completion shells: zsh")
+            case "zsh": return .completionZsh
+            default: throw FanCLIError.usage("Supported completion shells: zsh")
             }
             
         case "list", "-l":
