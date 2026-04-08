@@ -1,6 +1,10 @@
 import Foundation
 
-struct FanReportService {
+struct FanSupportReportService {
+    private nonisolated static let safeTemperatureRange = 10.0...110.0
+    private nonisolated static let temperatureReadAttempts = 3
+    private nonisolated static let retryInterval: Duration = .milliseconds(400)
+    
     nonisolated func makeReport() async throws -> String {
         try await Task.detached(priority: .userInitiated) {
             let deviceDescription = MacDeviceDescriptionProvider.current()
@@ -8,9 +12,9 @@ struct FanReportService {
             let ismcExecutableURL = try Self.iSMCExecutableURL()
             let ismcVersion = try Self.run(executableURL: ismcExecutableURL, arguments: ["version"])
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            let temperatureOutput = try Self.run(executableURL: ismcExecutableURL, arguments: ["temp"])
-                .trimmingCharacters(in: .newlines)
-            let temperatureStatus = Self.temperatureStatus(from: temperatureOutput)
+            let temperatureSnapshot = try await Self.readStableTemperatureSnapshot(executableURL: ismcExecutableURL)
+            let temperatureOutput = temperatureSnapshot.output
+            let temperatureStatus = temperatureSnapshot.status
             
             return """
 
@@ -35,7 +39,7 @@ FanControl \(appVersion)
             return executableURL
         }
         
-        throw FanCLIError.failure("iSMC executable not found")
+        throw FanSupportReportServiceError.ismcExecutableNotFound
     }
     
     nonisolated private static func candidateExecutableURLs() -> [URL] {
@@ -105,10 +109,34 @@ FanControl \(appVersion)
         guard process.terminationStatus == 0 else {
             let message = errorOutput.trimmingCharacters(in: .whitespacesAndNewlines)
             let fallbackMessage = output.trimmingCharacters(in: .whitespacesAndNewlines)
-            throw FanCLIError.failure(message.isEmpty ? fallbackMessage : message)
+            throw FanSupportReportServiceError.commandFailed(message.isEmpty ? fallbackMessage : message)
         }
         
         return output
+    }
+    
+    nonisolated private static func readStableTemperatureSnapshot(executableURL: URL) async throws -> (output: String, status: String) {
+        var latestSnapshot: (output: String, status: String)?
+        
+        for attempt in 1...temperatureReadAttempts {
+            let output = try run(executableURL: executableURL, arguments: ["temp"])
+                .trimmingCharacters(in: .newlines)
+            let status = temperatureStatus(from: output)
+            let snapshot = (output, status)
+            latestSnapshot = snapshot
+            
+            if status == "✅ All values within the 10-110 range" || attempt == temperatureReadAttempts {
+                return snapshot
+            }
+            
+            try await Task.sleep(for: retryInterval)
+        }
+        
+        guard let latestSnapshot else {
+            throw FanSupportReportServiceError.commandFailed("Temperature output unavailable")
+        }
+        
+        return latestSnapshot
     }
     
     nonisolated private static func temperatureStatus(from output: String) -> String {
@@ -116,7 +144,6 @@ FanControl \(appVersion)
             .split(whereSeparator: \.isNewline)
             .compactMap(temperatureValue(from:))
         
-        let safeTemperatureRange = 10.0...110.0
         guard !temperatures.isEmpty else {
             return "⚠️ Extreme values detected"
         }

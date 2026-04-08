@@ -1,6 +1,6 @@
 final class FanCLI {
     private let service = FanCLIService()
-    private let reportService = FanReportService()
+    private let reportService = FanSupportReportService()
     
     func run(_ command: FanCommand) async throws {
         switch command {

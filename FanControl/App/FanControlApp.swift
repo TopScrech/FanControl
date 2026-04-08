@@ -4,6 +4,7 @@ import LaunchAtLogin
 @main
 struct FanControlApp: App {
     private static let didConfigureLaunchAtLoginDefaultsKey = "didConfigureLaunchAtLoginOnFirstLaunch"
+    private static let appLaunchReportSender = AppLaunchReportSender()
     
     @NSApplicationDelegateAdaptor(AppTerminationDelegate.self) private var appTerminationDelegate
     @State private var model = FanVM()
@@ -33,6 +34,7 @@ struct FanControlApp: App {
                 .frame(minHeight: 460, idealHeight: 460, maxHeight: 600)
                 .task {
                     configureTerminationDelegate()
+                    sendLaunchReportIfNeeded()
                     let selectedOption = preferredAppLanguage
                     preferredAppLanguageRawValue = selectedOption.rawValue
                     AppLanguageManager.apply(option: selectedOption)
@@ -85,6 +87,7 @@ struct FanControlApp: App {
             .environment(\.locale, appLocale)
             .task {
                 configureTerminationDelegate()
+                sendLaunchReportIfNeeded()
             }
     }
     
@@ -134,5 +137,9 @@ struct FanControlApp: App {
         appTerminationDelegate.onTerminate = {
             await model.prepareForTermination()
         }
+    }
+    
+    private func sendLaunchReportIfNeeded() {
+        Self.appLaunchReportSender.sendIfNeeded()
     }
 }
