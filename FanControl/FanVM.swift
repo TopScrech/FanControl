@@ -114,8 +114,7 @@ final class FanVM {
     var isErrorAlertPresented: Bool {
         get {
             errorAlert != nil
-        }
-        set {
+        } set {
             guard !newValue else { return }
             dismissError()
         }
@@ -124,8 +123,7 @@ final class FanVM {
     var isMainWindowUpdateStatusAlertPresented: Bool {
         get {
             mainWindowUpdateStatusAlert != nil
-        }
-        set {
+        } set {
             guard !newValue else { return }
             dismissUpdateStatusAlert(for: .mainWindow)
         }
@@ -134,8 +132,7 @@ final class FanVM {
     var isSettingsUpdateStatusAlertPresented: Bool {
         get {
             settingsUpdateStatusAlert != nil
-        }
-        set {
+        } set {
             guard !newValue else { return }
             dismissUpdateStatusAlert(for: .settings)
         }
@@ -144,8 +141,7 @@ final class FanVM {
     var isMenuBarUpdateStatusAlertPresented: Bool {
         get {
             menuBarUpdateStatusAlert != nil
-        }
-        set {
+        } set {
             guard !newValue else { return }
             dismissUpdateStatusAlert(for: .menuBar)
         }
@@ -268,10 +264,9 @@ final class FanVM {
     }
     
     var menuBarCurrentSpeeds: [String] {
-        fans
-            .map {
-                String(Int($0.currentRPM.rounded()))
-            }
+        fans.map {
+            String(Int($0.currentRPM.rounded()))
+        }
     }
     
     var canUsePresetControl: Bool {
@@ -514,8 +509,10 @@ final class FanVM {
                 
                 if fans.isEmpty {
                     selectedFanID = Self.allFansSelectionID
+                    
                 } else if fans.count == 1 {
                     selectedFanID = fans[0].id
+                    
                 } else if !controlsAllFans, !fans.contains(where: { $0.id == selectedFanID }) {
                     selectedFanID = fans[0].id
                 }
@@ -790,6 +787,7 @@ final class FanVM {
         }
         
         let targetFanIDs = targetFans.map(\.id)
+        
         storeCustomPresetConfiguration(
             fanIDs: targetFanIDs,
             sensor: sensor,
@@ -927,6 +925,7 @@ final class FanVM {
         }
         
         let fanIDs = targetFans.map(\.id)
+        
         let previouslyEnabledCustomPresetFanIDs = fanIDs.filter {
             customPreset(for: $0)?.isEnabled == true
         }
@@ -1019,6 +1018,7 @@ final class FanVM {
         }
         
         let fanIDs = targetFans.map(\.id)
+        
         let previouslyEnabledCustomPresetFanIDs = fanIDs.filter {
             customPreset(for: $0)?.isEnabled == true
         }
@@ -1034,6 +1034,7 @@ final class FanVM {
             Self.logger.info("Auto request ignored: missing writable SMC client")
             return
         }
+        
         var successfulSignals = 0
         var lastAttemptError: Error?
         
@@ -1316,18 +1317,18 @@ final class FanVM {
     
     private func resolvedSensorKey(preferred sensorKey: String) -> String? {
         if selectableTemperatureSensors.contains(where: { $0.key == sensorKey }) {
-            return sensorKey
+            sensorKey
+        } else {
+            selectableTemperatureSensors.first?.key
         }
-        
-        return selectableTemperatureSensors.first?.key
     }
     
     private func resolvedTemperatureSensor(for sensorKey: String) -> TemperatureSensor? {
         if let matchedSensor = selectableTemperatureSensors.first(where: { $0.key == sensorKey }) {
-            return matchedSensor
+            matchedSensor
+        } else {
+            selectableTemperatureSensors.first
         }
-        
-        return selectableTemperatureSensors.first
     }
     
     private func storeCustomPresetConfiguration(
@@ -1432,11 +1433,13 @@ final class FanVM {
             do {
                 try await smc.setFanManualRPM(fanID: fan.id, rpm: targetRPM)
                 successfulSignals += 1
+                
                 Self.logger.info(
                     "Custom preset tick applied fan=\(fan.id) sensor=\(sensor.key) rpm=\(targetRPM)"
                 )
             } catch {
                 lastAttemptError = error
+                
                 Self.logger.error(
                     "Custom preset tick failed fan=\(fan.id) sensor=\(sensor.key) rpm=\(targetRPM) error=\(error)"
                 )
@@ -1484,6 +1487,7 @@ final class FanVM {
                 successfulSignals += 1
             } catch {
                 lastAttemptError = error
+                
                 Self.logger.error(
                     "Failed to disable custom preset after license deactivation fan=\(fanID) error=\(error)"
                 )
@@ -1672,7 +1676,9 @@ final class FanVM {
     private static func gitHubProxyURL(from proxyURLString: String, isEnabled: Bool) -> URL? {
         guard isEnabled else { return nil }
         
-        let trimmedProxyURLString = proxyURLString.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedProxyURLString = proxyURLString
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        
         guard
             let components = URLComponents(string: trimmedProxyURLString),
             let scheme = components.scheme,
@@ -1724,6 +1730,7 @@ final class FanVM {
         
         do {
             let verifiedAt = Date()
+            
             let result = try await licenseVerificationService.verify(
                 email: email,
                 licenseKey: licenseKey,
@@ -1796,15 +1803,18 @@ final class FanVM {
         
         let gracePeriodDeadline = lastActiveValidationDate.addingTimeInterval(Self.licenseOfflineGracePeriodSeconds)
         let now = Date()
+        
         guard now <= gracePeriodDeadline else {
             return false
         }
         
         isLicenseActive = true
+        
         licenseStatusText = Self.offlineGracePeriodStatusText(
             lastActiveValidationDate: lastActiveValidationDate,
             gracePeriodDeadline: gracePeriodDeadline
         )
+        
         return true
     }
     
@@ -1882,6 +1892,7 @@ final class FanVM {
         } catch {
             presentError(error.localizedDescription)
             Self.logger.error("SMC helper register failed: \(error)")
+            
             updateHelperConnectionStatus(serviceStatus: service.status)
             return service.status
         }
