@@ -8,6 +8,7 @@ enum FanSupportReportServiceError: LocalizedError {
         switch self {
         case .ismcExecutableNotFound:
             "iSMC executable not found"
+            
         case .commandFailed(let message):
             message
         }
