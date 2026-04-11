@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum AppLanguageOption: String, CaseIterable, Identifiable {
-    case english, danish, dutch, german, french, italian, spanish, turkish, russian, ukrainian
+    case english, danish, dutch, german, french, italian, spanish, turkish, russian, ukrainian, hindi, simplifiedChinese
     
     static let storageKey = "preferredAppLanguageOption"
     static let appleLanguagesKey = "AppleLanguages"
@@ -20,6 +20,8 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         case .turkish: "Türkçe"
         case .russian: "Русский"
         case .ukrainian: "Українська"
+        case .hindi: "हिंदी"
+        case .simplifiedChinese: "简体中文"
         }
     }
     
@@ -35,6 +37,8 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         case .turkish: "🇹🇷"
         case .russian: "🇷🇺"
         case .ukrainian: "🇺🇦"
+        case .hindi: "🇮🇳"
+        case .simplifiedChinese: "🇨🇳"
         }
     }
     
@@ -50,6 +54,8 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         case .turkish: Locale(identifier: "tr")
         case .russian: Locale(identifier: "ru")
         case .ukrainian: Locale(identifier: "uk")
+        case .hindi: Locale(identifier: "hi")
+        case .simplifiedChinese: Locale(identifier: "zh-Hans")
         }
     }
     
@@ -65,12 +71,14 @@ enum AppLanguageOption: String, CaseIterable, Identifiable {
         case .turkish: "tr"
         case .russian: "ru"
         case .ukrainian: "uk"
+        case .hindi: "hi"
+        case .simplifiedChinese: "zh-Hans"
         }
     }
 }
 
 enum AppLanguageManager {
-    private static let supportedLanguageCodes = ["en", "da", "nl", "de", "fr", "it", "es", "tr", "ru", "uk"]
+    private static let supportedLanguageCodes = ["en", "da", "nl", "de", "fr", "it", "es", "tr", "ru", "uk", "hi", "zh-hans"]
     private static let fallbackLanguageCode = "en"
     
     static var defaultOption: AppLanguageOption {
@@ -94,7 +102,7 @@ enum AppLanguageManager {
     }
     
     private static func option(for languageCode: String) -> AppLanguageOption {
-        switch languageCode {
+        switch languageCode.lowercased() {
         case "da": .danish
         case "nl": .dutch
         case "de": .german
@@ -104,6 +112,8 @@ enum AppLanguageManager {
         case "tr": .turkish
         case "ru": .russian
         case "uk": .ukrainian
+        case "hi": .hindi
+        case "zh-hans": .simplifiedChinese
         default: .english
         }
     }
@@ -111,11 +121,13 @@ enum AppLanguageManager {
     private static func resolvedSystemLanguageCode() -> String {
         for preferredLanguage in Locale.preferredLanguages {
             let normalized = preferredLanguage.lowercased().replacingOccurrences(of: "_", with: "-")
-            let baseLanguage = normalized.split(separator: "-").first.map(String.init) ?? normalized
             
-            if supportedLanguageCodes.contains(baseLanguage) {
-                return baseLanguage
+            if let supportedCode = supportedLanguageCodes.first(where: {
+                normalized == $0 || normalized.hasPrefix("\($0)-")
+            }) {
+                return supportedCode
             }
+            
         }
         
         return fallbackLanguageCode
