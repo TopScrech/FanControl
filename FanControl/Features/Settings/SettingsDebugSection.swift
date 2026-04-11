@@ -23,8 +23,12 @@ struct SettingsDebugSection: View {
                 LabeledContent {
                     Image(systemName: "arrow.trianglehead.clockwise")
                 } label: {
-                    Text("Show fake update alert")
+                    Text(String("Show fake update alert"))
                 }
+            }
+            
+            Button(String("Check for updates in 2 seconds"), systemImage: "clock.badge.exclamationmark") {
+                model.scheduleDebugUpdateCheck()
             }
             
             Button(action: copyDebugText) {

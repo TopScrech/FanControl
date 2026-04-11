@@ -15,6 +15,7 @@ final class FanVM {
     private static let allowPrereleaseUpdatesDefaultsKey = "allowPrereleaseUpdates"
     private static let useGitHubProxyDefaultsKey = "useGitHubProxy"
     private static let gitHubProxyURLDefaultsKey = "gitHubProxyURL"
+    private static let lastAutomaticUpdateCheckDateDefaultsKey = "lastAutomaticUpdateCheckDate"
     private static let manualRetryAttempts = 15
     private static let manualRetryInterval: Duration = .seconds(1)
     private static let presetStepRPM = 500
@@ -22,6 +23,7 @@ final class FanVM {
     private static let errorDisplaySeconds = 5.0
     private static let errorDisplayDuration: Duration = .seconds(errorDisplaySeconds)
     private static let updateCheckIntervalSeconds = 24.0 * 60 * 60
+    private static let automaticUpdateCheckRetrySeconds = 60.0
     private static let licenseOfflineGracePeriodSeconds = 7.0 * 24 * 60 * 60
     private static let defaultCustomPresetMinimumTemperature = 40
     private static let defaultCustomPresetMaximumTemperature = 80
@@ -147,8 +149,7 @@ final class FanVM {
     }
     
     var updatePromptTitle: String {
-        let template = String(localized: "Update %@ available")
-        return String(format: template, locale: .current, updateTargetVersionTag)
+        updatePromptTitle(for: updateTargetVersionTag)
     }
     
     var updateTargetVersionTag: String {
@@ -181,6 +182,7 @@ final class FanVM {
     private var isInstallingPreparedUpdate = false
     private var showsFakeUpdatePrompt = false
     private var automaticUpdateTask: Task<Void, Never>?
+    private var debugDelayedUpdateCheckTask: Task<Void, Never>?
     private var timer: Timer?
     private var holdingManualOverride = false
     private var helperInstallInProgress = false
@@ -222,7 +224,6 @@ final class FanVM {
         Task {
             await configureAppUpdater()
             await startAutomaticUpdateChecks()
-            await checkForUpdatesOnLaunch()
             await verifySavedLicenseOnLaunch()
             await refresh()
             await applyActiveCustomPresetsIfNeeded(refreshAfterApply: true)
@@ -238,6 +239,7 @@ final class FanVM {
     deinit {
         Self.logger.info("Deinitializing FanVM")
         automaticUpdateTask?.cancel()
+        debugDelayedUpdateCheckTask?.cancel()
         errorDismissTask?.cancel()
         timer?.invalidate()
     }
@@ -553,14 +555,8 @@ final class FanVM {
                 Self.logger.info("Update check: already on latest version")
                 
             case .prepared(let preparedUpdate):
-                await setPreparedUpdate(preparedUpdate)
-                updateChangelogEntries = await loadUpdateChangelogEntries(for: preparedUpdate.release)
-                
-                let template = String(localized: "Update available: %@")
-                updateStatusText = String(format: template, locale: .current, preparedUpdate.release.tagName)
-                
+                await presentPreparedUpdate(preparedUpdate)
                 Self.logger.info("Update prepared tag=\(preparedUpdate.release.tagName)")
-                isUpdatePromptPresented = true
             }
         } catch {
             updateStatusText = String(localized: "Update failed")
@@ -696,6 +692,20 @@ final class FanVM {
         ]
         
         isUpdatePromptPresented = true
+    }
+    
+    func scheduleDebugUpdateCheck() {
+        debugDelayedUpdateCheckTask?.cancel()
+        
+        debugDelayedUpdateCheckTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: .seconds(2))
+            } catch {
+                return
+            }
+            
+            await self?.checkForUpdatesAutomatically()
+        }
     }
     
     func verifyLicenseNow() async {
@@ -1367,13 +1377,24 @@ final class FanVM {
             guard let self else { return }
             
             while !Task.isCancelled {
+                let secondsUntilNextCheck = self.secondsUntilNextAutomaticUpdateCheck()
+                
+                if secondsUntilNextCheck > 0 {
+                    do {
+                        try await Task.sleep(for: .seconds(secondsUntilNextCheck))
+                    } catch {
+                        return
+                    }
+                }
+                
+                let didRunCheck = await self.checkForUpdatesOnLaunch()
+                guard !didRunCheck else { continue }
+                
                 do {
-                    try await Task.sleep(for: .seconds(Self.updateCheckIntervalSeconds))
+                    try await Task.sleep(for: .seconds(Self.automaticUpdateCheckRetrySeconds))
                 } catch {
                     return
                 }
-                
-                await self.checkForUpdatesAutomatically()
             }
         }
         
@@ -1386,8 +1407,11 @@ final class FanVM {
         await appUpdater.setCodeSigningValidation(Self.updateCodeSigningValidation())
     }
     
-    private func checkForUpdatesOnLaunch() async {
+    private func checkForUpdatesOnLaunch() async -> Bool {
+        guard shouldCheckForUpdatesAutomatically else { return false }
+        guard !isCheckingForUpdates else { return false }
         await checkForUpdatesAutomatically()
+        return true
     }
     
     private func verifySavedLicenseOnLaunch() async {
@@ -1404,27 +1428,73 @@ final class FanVM {
     private func checkForUpdatesAutomatically() async {
         guard !isCheckingForUpdates else { return }
         
+        let checkDate = Date()
         isCheckingForUpdates = true
-        defer { isCheckingForUpdates = false }
+        defer {
+            isCheckingForUpdates = false
+            UserDefaults.standard.set(checkDate, forKey: Self.lastAutomaticUpdateCheckDateDefaultsKey)
+        }
         
         do {
             switch try await appUpdater.prepareUpdateIfAvailable() {
             case .upToDate:
-                if preparedUpdate == nil {
-                    updateStatusText = String(localized: "You are on the latest version")
+                if !showsFakeUpdatePrompt {
+                    clearPreparedUpdate()
                 }
                 
             case .prepared(let preparedUpdate):
-                await setPreparedUpdate(preparedUpdate)
-                updateChangelogEntries = await loadUpdateChangelogEntries(for: preparedUpdate.release)
-                
-                let template = String(localized: "Update available: %@")
-                updateStatusText = String(format: template, locale: .current, preparedUpdate.release.tagName)
-                isUpdatePromptPresented = true
+                await presentPreparedUpdate(preparedUpdate)
             }
         } catch {
             Self.logger.error("Automatic update check failed: \(error)")
         }
+    }
+    
+    private var shouldCheckForUpdatesAutomatically: Bool {
+        guard
+            let lastAutomaticUpdateCheckDate = UserDefaults.standard.object(
+                forKey: Self.lastAutomaticUpdateCheckDateDefaultsKey
+            ) as? Date
+        else {
+            return true
+        }
+        
+        return Date().timeIntervalSince(lastAutomaticUpdateCheckDate) >= Self.updateCheckIntervalSeconds
+    }
+    
+    private func secondsUntilNextAutomaticUpdateCheck() -> TimeInterval {
+        guard
+            let lastAutomaticUpdateCheckDate = UserDefaults.standard.object(
+                forKey: Self.lastAutomaticUpdateCheckDateDefaultsKey
+            ) as? Date
+        else {
+            return 0
+        }
+        
+        let nextAutomaticUpdateCheckDate = lastAutomaticUpdateCheckDate.addingTimeInterval(
+            Self.updateCheckIntervalSeconds
+        )
+        
+        return max(0, nextAutomaticUpdateCheckDate.timeIntervalSinceNow)
+    }
+    
+    private func updatePromptTitle(for versionTag: String) -> String {
+        let template = String(localized: "Update %@ available")
+        return String(format: template, locale: .current, versionTag)
+    }
+    
+    private func updateAvailableStatusText(for versionTag: String) -> String {
+        let template = String(localized: "Update available: %@")
+        return String(format: template, locale: .current, versionTag)
+    }
+    
+    private func presentPreparedUpdate(
+        _ preparedUpdate: PreparedUpdate
+    ) async {
+        await setPreparedUpdate(preparedUpdate)
+        updateChangelogEntries = await loadUpdateChangelogEntries(for: preparedUpdate.release)
+        updateStatusText = updateAvailableStatusText(for: preparedUpdate.release.tagName)
+        isUpdatePromptPresented = true
     }
     
     private func setPreparedUpdate(_ preparedUpdate: PreparedUpdate) async {
