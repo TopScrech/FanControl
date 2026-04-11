@@ -12,6 +12,9 @@ struct FanSupportReportService {
             let ismcExecutableURL = try Self.iSMCExecutableURL()
             let ismcVersion = try Self.run(executableURL: ismcExecutableURL, arguments: ["version"])
                 .trimmingCharacters(in: .whitespacesAndNewlines)
+            let smcExecutableURL = try Self.smcExecutableURL()
+            let smcOutput = try Self.readSMCTemperatureSnapshot(executableURL: smcExecutableURL)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
             let temperatureSnapshot = try await Self.readStableTemperatureSnapshot(executableURL: ismcExecutableURL)
             let temperatureOutput = temperatureSnapshot.output
             let temperatureStatus = temperatureSnapshot.status
@@ -24,6 +27,8 @@ FanControl \(appVersion)
 \(temperatureStatus)
 
 \(temperatureOutput)
+
+\(smcOutput)
 """
         }.value
     }
@@ -35,11 +40,25 @@ FanControl \(appVersion)
             }
         }
         
-        if let executableURL = try whichExecutableURL() {
+        if let executableURL = try whichExecutableURL(named: "iSMC") {
             return executableURL
         }
         
-        throw FanSupportReportServiceError.ismcExecutableNotFound
+        throw FanSupportReportServiceError.executableNotFound("iSMC")
+    }
+    
+    nonisolated private static func smcExecutableURL() throws -> URL {
+        for candidate in smcCandidateExecutableURLs() {
+            if FileManager.default.isExecutableFile(atPath: candidate.path()) {
+                return candidate
+            }
+        }
+        
+        if let executableURL = try whichExecutableURL(named: "smc") {
+            return executableURL
+        }
+        
+        throw FanSupportReportServiceError.executableNotFound("smc")
     }
     
     nonisolated private static func candidateExecutableURLs() -> [URL] {
@@ -64,6 +83,28 @@ FanControl \(appVersion)
         return uniqueURLs(candidates)
     }
     
+    nonisolated private static func smcCandidateExecutableURLs() -> [URL] {
+        var candidates = [URL]()
+        let environment = ProcessInfo.processInfo.environment
+        
+        if let smcPath = environment["SMC_PATH"], !smcPath.isEmpty {
+            candidates.append(URL(filePath: smcPath))
+        }
+        
+        let bundle = AppBundleLocator.current
+        
+        if let resourceURL = bundle.resourceURL {
+            candidates.append(resourceURL.appending(path: "smc"))
+        }
+        
+        candidates.append(bundle.bundleURL.appending(path: "Contents/Resources/smc"))
+        candidates.append(bundle.bundleURL.appending(path: "Contents/Library/PrivilegedHelperTools/smc"))
+        candidates.append(URL(filePath: "/opt/homebrew/bin/smc"))
+        candidates.append(URL(filePath: "/usr/local/bin/smc"))
+        
+        return uniqueURLs(candidates)
+    }
+    
     nonisolated private static func uniqueURLs(_ urls: [URL]) -> [URL] {
         var seenPaths = Set<String>()
         
@@ -72,8 +113,8 @@ FanControl \(appVersion)
         }
     }
     
-    nonisolated private static func whichExecutableURL() throws -> URL? {
-        let output = try run(executableURL: URL(filePath: "/usr/bin/which"), arguments: ["iSMC"])
+    nonisolated private static func whichExecutableURL(named executableName: String) throws -> URL? {
+        let output = try run(executableURL: URL(filePath: "/usr/bin/which"), arguments: [executableName])
             .trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !output.isEmpty else {
@@ -137,6 +178,16 @@ FanControl \(appVersion)
         }
         
         return latestSnapshot
+    }
+    
+    nonisolated private static func readSMCTemperatureSnapshot(executableURL: URL) throws -> String {
+        let command = "\(shellQuoted(executableURL.path(percentEncoded: false))) -l | egrep '[[:space:]]+Tp'"
+        
+        return try run(executableURL: URL(filePath: "/bin/sh"), arguments: ["-lc", command])
+    }
+    
+    nonisolated private static func shellQuoted(_ value: String) -> String {
+        "'\(value.replacing("'", with: "'\\''"))'"
     }
     
     nonisolated private static func temperatureStatus(from output: String) -> String {

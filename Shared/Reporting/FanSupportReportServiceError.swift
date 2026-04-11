@@ -1,13 +1,13 @@
 import Foundation
 
 enum FanSupportReportServiceError: LocalizedError {
-    case ismcExecutableNotFound
+    case executableNotFound(String)
     case commandFailed(String)
     
     var errorDescription: String? {
         switch self {
-        case .ismcExecutableNotFound:
-            "iSMC executable not found"
+        case .executableNotFound(let executableName):
+            "\(executableName) executable not found"
             
         case .commandFailed(let message):
             message
