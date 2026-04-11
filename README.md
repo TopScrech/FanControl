@@ -5,6 +5,7 @@ Control fan speed with ease on any Apple Silicon Mac
 [**Download**](https://github.com/TopScrech/FanControl/releases/latest) • [**Website**](https://fancontrol.dev)
 
 <img src="https://github.com/user-attachments/assets/e6a96188-47be-43f2-92d3-075ca72a10ab" width="300" alt="screenshot">
+<br><br>
 
 > [!WARNING]
 > When switching from system fan mode to manual, the app tries to set fan speed every second for up to 15 seconds, since manual mode can only be applied after auto mode is set, which may take a moment
