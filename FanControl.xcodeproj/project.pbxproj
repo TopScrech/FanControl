@@ -106,9 +106,9 @@
 			path = FanControlHelper;
 			sourceTree = "<group>";
 		};
-		F40100062FA0000100C10001 /* fan */ = {
+		F40100062FA0000100C10001 /* CLI */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = fan;
+			path = CLI;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -146,7 +146,7 @@
 				F3A812022F2180AA00D96952 /* FanControl */,
 				F3B0001A2F5A000100000003 /* Shared */,
 				F3B0001A2F5A000100000004 /* FanControlHelper */,
-				F40100062FA0000100C10001 /* fan */,
+				F40100062FA0000100C10001 /* CLI */,
 				F3609F9B2F4BAD0300D5A1E1 /* AGENTS.md */,
 				F3609FBD2F4BB50200D5A1E1 /* LICENSE.txt */,
 				F3A812012F2180AA00D96952 /* Products */,
@@ -240,7 +240,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				F3B0001A2F5A000100000003 /* Shared */,
-				F40100062FA0000100C10001 /* fan */,
+				F40100062FA0000100C10001 /* CLI */,
 			);
 			name = fan;
 			packageProductDependencies = (
@@ -322,33 +322,52 @@
 			isa = PBXShellScriptBuildPhase;
 			inputPaths = (
 				"$(PROJECT_DIR)/Vendor/iSMC/iSMC",
+				"$(PROJECT_DIR)/Vendor/smc/smc",
 			);
 			name = "Embed iSMC";
 			outputPaths = (
 				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/iSMC",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/smc",
 				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/PrivilegedHelperTools/iSMC",
+				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/PrivilegedHelperTools/smc",
 			);
 			shellPath = /bin/sh;
 			shellScript = (
 				"#!/bin/bash",
 				"set -euo pipefail",
 				"",
-				"source_binary=\"$PROJECT_DIR/Vendor/iSMC/iSMC\"",
-				"resource_binary=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/iSMC\"",
-				"helper_binary=\"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Library/PrivilegedHelperTools/iSMC\"",
+				"ismc_source_binary=\"$PROJECT_DIR/Vendor/iSMC/iSMC\"",
+				"smc_source_binary=\"$PROJECT_DIR/Vendor/smc/smc\"",
+				"ismc_resource_binary=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/iSMC\"",
+				"smc_resource_binary=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/smc\"",
+				"ismc_helper_binary=\"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Library/PrivilegedHelperTools/iSMC\"",
+				"smc_helper_binary=\"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Library/PrivilegedHelperTools/smc\"",
 				"",
-				"if [ ! -x \"$source_binary\" ]; then",
-				"echo \"error: Missing vendored iSMC executable at $source_binary\"",
+				"if [ ! -x \"$ismc_source_binary\" ]; then",
+				"echo \"error: Missing vendored iSMC executable at $ismc_source_binary\"",
 				"exit 1",
 				"fi",
 				"",
-				"mkdir -p \"$(dirname \"$resource_binary\")\"",
-				"cp \"$source_binary\" \"$resource_binary\"",
-				"chmod 755 \"$resource_binary\"",
+				"if [ ! -x \"$smc_source_binary\" ]; then",
+				"echo \"error: Missing vendored smc executable at $smc_source_binary\"",
+				"exit 1",
+				"fi",
 				"",
-				"mkdir -p \"$(dirname \"$helper_binary\")\"",
-				"cp \"$source_binary\" \"$helper_binary\"",
-				"chmod 755 \"$helper_binary\"",
+				"mkdir -p \"$(dirname \"$ismc_resource_binary\")\"",
+				"cp \"$ismc_source_binary\" \"$ismc_resource_binary\"",
+				"chmod 755 \"$ismc_resource_binary\"",
+				"",
+				"mkdir -p \"$(dirname \"$smc_resource_binary\")\"",
+				"cp \"$smc_source_binary\" \"$smc_resource_binary\"",
+				"chmod 755 \"$smc_resource_binary\"",
+				"",
+				"mkdir -p \"$(dirname \"$ismc_helper_binary\")\"",
+				"cp \"$ismc_source_binary\" \"$ismc_helper_binary\"",
+				"chmod 755 \"$ismc_helper_binary\"",
+				"",
+				"mkdir -p \"$(dirname \"$smc_helper_binary\")\"",
+				"cp \"$smc_source_binary\" \"$smc_helper_binary\"",
+				"chmod 755 \"$smc_helper_binary\"",
 				"",
 			);
 		};
@@ -445,7 +464,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.5.5;
+				MARKETING_VERSION = 1.5.6;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -512,7 +531,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.5.5;
+				MARKETING_VERSION = 1.5.6;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;

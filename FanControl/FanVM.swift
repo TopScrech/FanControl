@@ -15,7 +15,6 @@ final class FanVM {
     private static let allowPrereleaseUpdatesDefaultsKey = "allowPrereleaseUpdates"
     private static let useGitHubProxyDefaultsKey = "useGitHubProxy"
     private static let gitHubProxyURLDefaultsKey = "gitHubProxyURL"
-    private static let customPresetsDefaultsKey = "customPresets"
     private static let manualRetryAttempts = 15
     private static let manualRetryInterval: Duration = .seconds(1)
     private static let presetStepRPM = 500
@@ -114,8 +113,7 @@ final class FanVM {
     var isErrorAlertPresented: Bool {
         get {
             errorAlert != nil
-        }
-        set {
+        } set {
             guard !newValue else { return }
             dismissError()
         }
@@ -124,8 +122,7 @@ final class FanVM {
     var isMainWindowUpdateStatusAlertPresented: Bool {
         get {
             mainWindowUpdateStatusAlert != nil
-        }
-        set {
+        } set {
             guard !newValue else { return }
             dismissUpdateStatusAlert(for: .mainWindow)
         }
@@ -134,8 +131,7 @@ final class FanVM {
     var isSettingsUpdateStatusAlertPresented: Bool {
         get {
             settingsUpdateStatusAlert != nil
-        }
-        set {
+        } set {
             guard !newValue else { return }
             dismissUpdateStatusAlert(for: .settings)
         }
@@ -144,8 +140,7 @@ final class FanVM {
     var isMenuBarUpdateStatusAlertPresented: Bool {
         get {
             menuBarUpdateStatusAlert != nil
-        }
-        set {
+        } set {
             guard !newValue else { return }
             dismissUpdateStatusAlert(for: .menuBar)
         }
@@ -189,7 +184,7 @@ final class FanVM {
     private var timer: Timer?
     private var holdingManualOverride = false
     private var helperInstallInProgress = false
-    private var customPresetsByFanID: [Int: FanCustomPreset] = [:]
+    private var customPresetStore = FanCustomPresetStore()
     private var controlActionToken = 0
     private var errorDismissToken = 0
     private var errorDismissTask: Task<Void, Never>?
@@ -203,8 +198,6 @@ final class FanVM {
         Self.logger.info("Initializing FanVM")
         Self.logHelperBundleDiagnostics()
         selectedFanID = UserDefaults.standard.integer(forKey: Self.selectedFanIDDefaultsKey)
-        customPresetsByFanID = Self.loadCustomPresets()
-        
         var localError: String?
         
         do {
@@ -268,10 +261,9 @@ final class FanVM {
     }
     
     var menuBarCurrentSpeeds: [String] {
-        fans
-            .map {
-                String(Int($0.currentRPM.rounded()))
-            }
+        fans.map {
+            String(Int($0.currentRPM.rounded()))
+        }
     }
     
     var canUsePresetControl: Bool {
@@ -340,33 +332,25 @@ final class FanVM {
     }
     
     var selectedCustomPresetDraft: FanCustomPresetDraft {
-        let targetFans = selectedFansForControl
-        guard !targetFans.isEmpty else { return defaultCustomPresetDraft() }
-        
-        if let sharedPreset = sharedCustomPreset(for: targetFans) {
-            return draft(from: sharedPreset)
-        }
-        
-        if let firstPreset = targetFans.compactMap({ customPreset(for: $0.id) }).first {
-            return draft(from: firstPreset)
-        }
-        
-        return defaultCustomPresetDraft()
+        customPresetStore.draft(
+            for: selectedFansForControl,
+            selectableTemperatureSensors: selectableTemperatureSensors,
+            defaultMinimumTemperature: Self.defaultCustomPresetMinimumTemperature,
+            defaultMaximumTemperature: Self.defaultCustomPresetMaximumTemperature
+        )
     }
     
     var selectedCustomPresetIsActive: Bool {
-        let targetFans = selectedFansForControl
-        guard !targetFans.isEmpty else { return false }
-        
-        return targetFans.allSatisfy {
-            customPreset(for: $0.id)?.isEnabled == true
-        }
+        customPresetStore.isActive(for: selectedFansForControl)
     }
     
     var selectedCustomPresetPercentageText: String? {
         let draft = selectedCustomPresetDraft
         
-        guard let sensor = resolvedTemperatureSensor(for: draft.sensorKey) else {
+        guard let sensor = customPresetStore.resolvedTemperatureSensor(
+            for: draft.sensorKey,
+            selectableTemperatureSensors: selectableTemperatureSensors
+        ) else {
             return nil
         }
         
@@ -396,7 +380,7 @@ final class FanVM {
         let presetRPMs = controlPresetRPMs.map(Double.init)
         
         let fanModes = targetFans.compactMap {
-            activeControlMode(for: $0, presetRPMs: presetRPMs, customPreset: customPreset(for: $0.id))
+            activeControlMode(for: $0, presetRPMs: presetRPMs, customPreset: customPresetStore.preset(for: $0.id))
         }
         
         guard fanModes.count == targetFans.count, let firstMode = fanModes.first else { return nil }
@@ -514,8 +498,10 @@ final class FanVM {
                 
                 if fans.isEmpty {
                     selectedFanID = Self.allFansSelectionID
+                    
                 } else if fans.count == 1 {
                     selectedFanID = fans[0].id
+                    
                 } else if !controlsAllFans, !fans.contains(where: { $0.id == selectedFanID }) {
                     selectedFanID = fans[0].id
                 }
@@ -782,15 +768,22 @@ final class FanVM {
             return
         }
         
-        let normalizedDraft = normalizedCustomPresetDraft(draft)
+        let normalizedDraft = customPresetStore.normalizedDraft(
+            draft,
+            selectableTemperatureSensors: selectableTemperatureSensors
+        )
         
-        guard let sensor = resolvedTemperatureSensor(for: normalizedDraft.sensorKey) else {
+        guard let sensor = customPresetStore.resolvedTemperatureSensor(
+            for: normalizedDraft.sensorKey,
+            selectableTemperatureSensors: selectableTemperatureSensors
+        ) else {
             presentError(String(localized: "No temperature sensors available"))
             return
         }
         
         let targetFanIDs = targetFans.map(\.id)
-        storeCustomPresetConfiguration(
+        
+        customPresetStore.storeConfiguration(
             fanIDs: targetFanIDs,
             sensor: sensor,
             draft: normalizedDraft,
@@ -820,7 +813,7 @@ final class FanVM {
                 }
                 
                 for fan in targetFans {
-                    let targetRPM = targetRPM(
+                    let targetRPM = customPresetStore.targetRPM(
                         for: fan,
                         sensorTemperature: sensor.celsius,
                         minimumTemperature: normalizedDraft.minimumTemperature,
@@ -861,7 +854,7 @@ final class FanVM {
                 return
             }
             
-            setCustomPresetEnabled(true, fanIDs: targetFanIDs)
+            customPresetStore.setEnabled(true, fanIDs: targetFanIDs)
             holdingManualOverride = true
             await refresh()
             
@@ -927,17 +920,18 @@ final class FanVM {
         }
         
         let fanIDs = targetFans.map(\.id)
+        
         let previouslyEnabledCustomPresetFanIDs = fanIDs.filter {
-            customPreset(for: $0)?.isEnabled == true
+            customPresetStore.preset(for: $0)?.isEnabled == true
         }
         
-        setCustomPresetEnabled(false, fanIDs: previouslyEnabledCustomPresetFanIDs)
+        customPresetStore.setEnabled(false, fanIDs: previouslyEnabledCustomPresetFanIDs)
         
         let helperStatus = await ensureHelperConnected()
         
         guard let smc = writeService else {
-            setCustomPresetEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-            holdingManualOverride = hasEnabledCustomPresets
+            customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
+            holdingManualOverride = customPresetStore.hasEnabledPresets
             setWriteUnavailableError(status: helperStatus)
             Self.logger.info("Manual request ignored: no writable SMC client")
             return
@@ -981,8 +975,8 @@ final class FanVM {
             }
             
             guard successfulSignals > 0 else {
-                setCustomPresetEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-                holdingManualOverride = hasEnabledCustomPresets
+                customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
+                holdingManualOverride = customPresetStore.hasEnabledPresets
                 
                 if let lastAttemptError {
                     presentError(lastAttemptError.localizedDescription)
@@ -996,13 +990,13 @@ final class FanVM {
             Self.logger.info("\(actionSummary) fans=\(String(describing: fanIDs)) signals=\(successfulSignals)")
             
         } catch is CancellationError {
-            setCustomPresetEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-            holdingManualOverride = hasEnabledCustomPresets
+            customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
+            holdingManualOverride = customPresetStore.hasEnabledPresets
             Self.logger.info("Manual retries canceled")
             
         } catch {
-            setCustomPresetEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-            holdingManualOverride = hasEnabledCustomPresets
+            customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
+            holdingManualOverride = customPresetStore.hasEnabledPresets
             
             Self.logger.error("Manual failed error=\(error)")
             presentError(error.localizedDescription)
@@ -1019,21 +1013,23 @@ final class FanVM {
         }
         
         let fanIDs = targetFans.map(\.id)
+        
         let previouslyEnabledCustomPresetFanIDs = fanIDs.filter {
-            customPreset(for: $0)?.isEnabled == true
+            customPresetStore.preset(for: $0)?.isEnabled == true
         }
         
-        setCustomPresetEnabled(false, fanIDs: previouslyEnabledCustomPresetFanIDs)
+        customPresetStore.setEnabled(false, fanIDs: previouslyEnabledCustomPresetFanIDs)
         
         let helperStatus = await ensureHelperConnected()
         
         guard let smc = writeService else {
-            setCustomPresetEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-            holdingManualOverride = hasEnabledCustomPresets
+            customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
+            holdingManualOverride = customPresetStore.hasEnabledPresets
             setWriteUnavailableError(status: helperStatus)
             Self.logger.info("Auto request ignored: missing writable SMC client")
             return
         }
+        
         var successfulSignals = 0
         var lastAttemptError: Error?
         
@@ -1050,8 +1046,8 @@ final class FanVM {
         }
         
         guard successfulSignals > 0 else {
-            setCustomPresetEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-            holdingManualOverride = hasEnabledCustomPresets
+            customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
+            holdingManualOverride = customPresetStore.hasEnabledPresets
             
             if let lastAttemptError {
                 presentError(lastAttemptError.localizedDescription)
@@ -1060,7 +1056,7 @@ final class FanVM {
             return
         }
         
-        holdingManualOverride = hasEnabledCustomPresets
+        holdingManualOverride = customPresetStore.hasEnabledPresets
         await refresh()
         Self.logger.info("Auto applied fans=\(String(describing: fanIDs))")
     }
@@ -1083,7 +1079,7 @@ final class FanVM {
             return
         }
         
-        setCustomPresetEnabled(false, fanIDs: fanIDs)
+        customPresetStore.setEnabled(false, fanIDs: fanIDs)
         
         var successfulSignals = 0
         var lastAttemptError: Error?
@@ -1098,7 +1094,7 @@ final class FanVM {
             }
         }
         
-        holdingManualOverride = hasEnabledCustomPresets
+        holdingManualOverride = customPresetStore.hasEnabledPresets
         
         if successfulSignals == 0, let lastAttemptError {
             Self.logger.error("Termination auto reset failed error=\(lastAttemptError)")
@@ -1195,7 +1191,7 @@ final class FanVM {
     }
     
     private func activeControlModeForAllFans(_ fans: [Fan]) -> FanControlMode? {
-        if fans.allSatisfy({ customPreset(for: $0.id)?.isEnabled == true }) && holdingManualOverride {
+        if fans.allSatisfy({ customPresetStore.preset(for: $0.id)?.isEnabled == true }) && holdingManualOverride {
             return .custom
         }
         
@@ -1227,174 +1223,11 @@ final class FanVM {
         abs(lhs - rhs) <= rpmMatchTolerance
     }
     
-    private static func loadCustomPresets() -> [Int: FanCustomPreset] {
-        guard let data = UserDefaults.standard.data(forKey: Self.customPresetsDefaultsKey) else {
-            return [:]
-        }
-        
-        guard let presets = try? JSONDecoder().decode([FanCustomPreset].self, from: data) else {
-            return [:]
-        }
-        
-        return Dictionary(uniqueKeysWithValues: presets.map { ($0.fanID, $0) })
-    }
-    
-    private func persistCustomPresets() {
-        let presets = customPresetsByFanID.values.sorted {
-            $0.fanID < $1.fanID
-        }
-        
-        guard let data = try? JSONEncoder().encode(presets) else { return }
-        UserDefaults.standard.set(data, forKey: Self.customPresetsDefaultsKey)
-    }
-    
-    private var hasEnabledCustomPresets: Bool {
-        customPresetsByFanID.values.contains {
-            $0.isEnabled
-        }
-    }
-    
-    private func customPreset(for fanID: Int) -> FanCustomPreset? {
-        customPresetsByFanID[fanID]
-    }
-    
-    private func defaultCustomPresetDraft() -> FanCustomPresetDraft {
-        FanCustomPresetDraft(
-            sensorKey: selectableTemperatureSensors.first?.key ?? "",
-            minimumTemperature: Self.defaultCustomPresetMinimumTemperature,
-            maximumTemperature: Self.defaultCustomPresetMaximumTemperature
-        )
-    }
-    
-    private func draft(from preset: FanCustomPreset) -> FanCustomPresetDraft {
-        let defaultDraft = defaultCustomPresetDraft()
-        let sensorKey = resolvedSensorKey(preferred: preset.sensorKey) ?? defaultDraft.sensorKey
-        
-        return FanCustomPresetDraft(
-            sensorKey: sensorKey,
-            minimumTemperature: preset.minimumTemperature,
-            maximumTemperature: preset.maximumTemperature
-        )
-    }
-    
-    private func normalizedCustomPresetDraft(_ draft: FanCustomPresetDraft) -> FanCustomPresetDraft {
-        let minimumTemperature = min(
-            max(draft.minimumTemperature, FanCustomPreset.temperatureBounds.lowerBound),
-            FanCustomPreset.temperatureBounds.upperBound
-        )
-        let maximumTemperature = min(
-            max(draft.maximumTemperature, minimumTemperature),
-            FanCustomPreset.temperatureBounds.upperBound
-        )
-        let sensorKey = resolvedSensorKey(preferred: draft.sensorKey) ?? ""
-        
-        return FanCustomPresetDraft(
-            sensorKey: sensorKey,
-            minimumTemperature: minimumTemperature,
-            maximumTemperature: maximumTemperature
-        )
-    }
-    
-    private func sharedCustomPreset(for fans: [Fan]) -> FanCustomPreset? {
-        let presets = fans.compactMap {
-            customPreset(for: $0.id)
-        }
-        
-        guard presets.count == fans.count, let firstPreset = presets.first else { return nil }
-        
-        guard presets.allSatisfy({
-            $0.sensorKey == firstPreset.sensorKey &&
-            $0.minimumTemperature == firstPreset.minimumTemperature &&
-            $0.maximumTemperature == firstPreset.maximumTemperature &&
-            $0.isEnabled == firstPreset.isEnabled
-        }) else {
-            return nil
-        }
-        
-        return firstPreset
-    }
-    
-    private func resolvedSensorKey(preferred sensorKey: String) -> String? {
-        if selectableTemperatureSensors.contains(where: { $0.key == sensorKey }) {
-            return sensorKey
-        }
-        
-        return selectableTemperatureSensors.first?.key
-    }
-    
-    private func resolvedTemperatureSensor(for sensorKey: String) -> TemperatureSensor? {
-        if let matchedSensor = selectableTemperatureSensors.first(where: { $0.key == sensorKey }) {
-            return matchedSensor
-        }
-        
-        return selectableTemperatureSensors.first
-    }
-    
-    private func storeCustomPresetConfiguration(
-        fanIDs: [Int],
-        sensor: TemperatureSensor,
-        draft: FanCustomPresetDraft,
-        isEnabled: Bool
-    ) {
-        for fanID in fanIDs {
-            customPresetsByFanID[fanID] = FanCustomPreset(
-                fanID: fanID,
-                sensorKey: sensor.key,
-                sensorDisplayName: sensor.displayName,
-                minimumTemperature: draft.minimumTemperature,
-                maximumTemperature: draft.maximumTemperature,
-                isEnabled: isEnabled
-            )
-        }
-        
-        persistCustomPresets()
-    }
-    
-    private func setCustomPresetEnabled(_ isEnabled: Bool, fanIDs: [Int]) {
-        var needsSave = false
-        
-        for fanID in fanIDs {
-            guard var preset = customPresetsByFanID[fanID] else { continue }
-            guard preset.isEnabled != isEnabled else { continue }
-            preset.isEnabled = isEnabled
-            customPresetsByFanID[fanID] = preset
-            needsSave = true
-        }
-        
-        if needsSave {
-            persistCustomPresets()
-        }
-    }
-    
-    private func targetRPM(
-        for fan: Fan,
-        sensorTemperature: Double,
-        minimumTemperature: Int,
-        maximumTemperature: Int
-    ) -> Double {
-        let minimumRPM = fan.minRPM
-        let maximumRPM = fan.maxRPM
-        let minimumTemperature = Double(minimumTemperature)
-        let maximumTemperature = Double(maximumTemperature)
-        
-        if sensorTemperature <= minimumTemperature {
-            return minimumRPM
-        }
-        
-        if maximumTemperature <= minimumTemperature || sensorTemperature >= maximumTemperature {
-            return maximumRPM
-        }
-        
-        let progress = (sensorTemperature - minimumTemperature) / (maximumTemperature - minimumTemperature)
-        let interpolatedRPM = minimumRPM + progress * (maximumRPM - minimumRPM)
-        return min(max(interpolatedRPM.rounded(), minimumRPM), maximumRPM)
-    }
-    
     private func applyActiveCustomPresetsIfNeeded(refreshAfterApply: Bool = false) async {
         guard isLicenseActive else { return }
         
         let activeFans: [(Fan, FanCustomPreset)] = fans.compactMap { fan in
-            guard let preset = customPreset(for: fan.id), preset.isEnabled else { return nil }
+            guard let preset = customPresetStore.preset(for: fan.id), preset.isEnabled else { return nil }
             return (fan, preset)
         }
         
@@ -1416,7 +1249,7 @@ final class FanVM {
                 continue
             }
             
-            let targetRPM = targetRPM(
+            let targetRPM = customPresetStore.targetRPM(
                 for: fan,
                 sensorTemperature: sensor.celsius,
                 minimumTemperature: preset.minimumTemperature,
@@ -1432,11 +1265,13 @@ final class FanVM {
             do {
                 try await smc.setFanManualRPM(fanID: fan.id, rpm: targetRPM)
                 successfulSignals += 1
+                
                 Self.logger.info(
                     "Custom preset tick applied fan=\(fan.id) sensor=\(sensor.key) rpm=\(targetRPM)"
                 )
             } catch {
                 lastAttemptError = error
+                
                 Self.logger.error(
                     "Custom preset tick failed fan=\(fan.id) sensor=\(sensor.key) rpm=\(targetRPM) error=\(error)"
                 )
@@ -1459,14 +1294,12 @@ final class FanVM {
     }
     
     private func disableCustomPresetsForInactiveLicense() async {
-        let activeFanIDs = customPresetsByFanID.values.compactMap {
-            $0.isEnabled ? $0.fanID : nil
-        }
+        let activeFanIDs = customPresetStore.activeFanIDs
         
         guard !activeFanIDs.isEmpty else { return }
         
-        setCustomPresetEnabled(false, fanIDs: activeFanIDs)
-        holdingManualOverride = hasEnabledCustomPresets
+        customPresetStore.setEnabled(false, fanIDs: activeFanIDs)
+        holdingManualOverride = customPresetStore.hasEnabledPresets
         
         let helperStatus = await ensureHelperConnected()
         
@@ -1484,13 +1317,14 @@ final class FanVM {
                 successfulSignals += 1
             } catch {
                 lastAttemptError = error
+                
                 Self.logger.error(
                     "Failed to disable custom preset after license deactivation fan=\(fanID) error=\(error)"
                 )
             }
         }
         
-        holdingManualOverride = hasEnabledCustomPresets
+        holdingManualOverride = customPresetStore.hasEnabledPresets
         
         if successfulSignals > 0 {
             await refresh()
@@ -1672,7 +1506,9 @@ final class FanVM {
     private static func gitHubProxyURL(from proxyURLString: String, isEnabled: Bool) -> URL? {
         guard isEnabled else { return nil }
         
-        let trimmedProxyURLString = proxyURLString.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedProxyURLString = proxyURLString
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        
         guard
             let components = URLComponents(string: trimmedProxyURLString),
             let scheme = components.scheme,
@@ -1724,6 +1560,7 @@ final class FanVM {
         
         do {
             let verifiedAt = Date()
+            
             let result = try await licenseVerificationService.verify(
                 email: email,
                 licenseKey: licenseKey,
@@ -1796,15 +1633,18 @@ final class FanVM {
         
         let gracePeriodDeadline = lastActiveValidationDate.addingTimeInterval(Self.licenseOfflineGracePeriodSeconds)
         let now = Date()
+        
         guard now <= gracePeriodDeadline else {
             return false
         }
         
         isLicenseActive = true
+        
         licenseStatusText = Self.offlineGracePeriodStatusText(
             lastActiveValidationDate: lastActiveValidationDate,
             gracePeriodDeadline: gracePeriodDeadline
         )
+        
         return true
     }
     
@@ -1882,6 +1722,7 @@ final class FanVM {
         } catch {
             presentError(error.localizedDescription)
             Self.logger.error("SMC helper register failed: \(error)")
+            
             updateHelperConnectionStatus(serviceStatus: service.status)
             return service.status
         }
