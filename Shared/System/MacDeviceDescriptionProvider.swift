@@ -1,5 +1,4 @@
-import Foundation
-import CoreGraphics
+import SwiftUI
 
 enum MacDeviceDescriptionProvider {
     nonisolated static func current() -> String {
@@ -145,6 +144,7 @@ enum MacDeviceDescriptionProvider {
         guard let rawValue else { return nil }
         
         let components = rawValue.split(separator: ":")
+        
         guard components.count >= 3 else {
             let value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
             return value.isEmpty ? nil : value
