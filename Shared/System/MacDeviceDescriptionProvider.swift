@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 enum MacDeviceDescriptionProvider {
     nonisolated static func current() -> String {
@@ -11,7 +12,7 @@ enum MacDeviceDescriptionProvider {
                 hardwareOverview.chipType ?? sysctlString("machdep.cpu.brand_string")
             )
             
-            let modelSize = rawMachineModel.flatMap(macBookSizeLabel(for:))
+            let modelSize = builtInDisplaySizeLabel()
             
             if let machineName, !machineName.isEmpty, let chipName, !chipName.isEmpty {
                 let deviceName: String
@@ -43,6 +44,11 @@ enum MacDeviceDescriptionProvider {
         }
         
         return String(localized: "Unknown processor")
+    }
+    
+    nonisolated static func cpuCoresDescription() -> String? {
+        guard let hardwareOverview = loadHardwareOverview() else { return nil }
+        return formatCPUCores(hardwareOverview.numberProcessors)
     }
     
     private nonisolated static func sysctlString(_ name: String) -> String? {
@@ -87,7 +93,8 @@ enum MacDeviceDescriptionProvider {
         return HardwareOverview(
             machineName: first["machine_name"] as? String,
             chipType: first["chip_type"] as? String ?? first["cpu_type"] as? String,
-            machineModel: first["machine_model"] as? String
+            machineModel: first["machine_model"] as? String,
+            numberProcessors: first["number_processors"] as? String
         )
     }
     
@@ -110,18 +117,58 @@ enum MacDeviceDescriptionProvider {
         return "\(prefix) \(suffix)"
     }
     
-    private nonisolated static func macBookSizeLabel(for machineModel: String) -> String? {
-        switch machineModel {
-        case "Mac15,3", "Mac15,4", "Mac15,5", "Mac15,6", "Mac15,7", "Mac15,8", "Mac15,9", "Mac16,3", "Mac16,5": "16"
-        case "Mac14,5", "Mac14,9", "Mac14,10", "Mac15,10", "Mac16,1", "Mac16,2", "Mac16,4": "14"
-        case "Mac14,2", "Mac14,15", "Mac15,12", "Mac15,13": "13"
-        default: nil
+    private nonisolated static func builtInDisplaySizeLabel() -> String? {
+        let maxDisplayCount: UInt32 = 16
+        var activeDisplayCount: UInt32 = 0
+        var activeDisplayIDs = [CGDirectDisplayID](repeating: 0, count: Int(maxDisplayCount))
+        
+        guard CGGetActiveDisplayList(maxDisplayCount, &activeDisplayIDs, &activeDisplayCount) == .success else {
+            return nil
         }
+        
+        for displayID in activeDisplayIDs.prefix(Int(activeDisplayCount)) where CGDisplayIsBuiltin(displayID) != 0 {
+            let sizeInMillimeters = CGDisplayScreenSize(displayID)
+            guard sizeInMillimeters.width > 0, sizeInMillimeters.height > 0 else { continue }
+            
+            let diagonalInMillimeters = hypot(sizeInMillimeters.width, sizeInMillimeters.height)
+            let diagonalInInches = diagonalInMillimeters / 25.4
+            let roundedSize = Int(diagonalInInches.rounded())
+            
+            guard roundedSize > 0 else { continue }
+            return String(roundedSize)
+        }
+        
+        return nil
+    }
+    
+    private nonisolated static func formatCPUCores(_ rawValue: String?) -> String? {
+        guard let rawValue else { return nil }
+        
+        let components = rawValue.split(separator: ":")
+        guard components.count >= 3 else {
+            let value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            return value.isEmpty ? nil : value
+        }
+        
+        let totalValue = components[0].replacing("proc ", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let performanceValue = String(components[1]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let efficiencyValue = String(components[2]).trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard
+            !totalValue.isEmpty,
+            !performanceValue.isEmpty,
+            !efficiencyValue.isEmpty
+        else {
+            return nil
+        }
+        
+        return "\(totalValue) (\(performanceValue) Performance and \(efficiencyValue) Efficiency)"
     }
     
     private struct HardwareOverview {
         let machineName: String?
         let chipType: String?
         let machineModel: String?
+        let numberProcessors: String?
     }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import IOKit
 
 struct FanSupportReportService {
     private nonisolated static let safeTemperatureRange = 10.0...110.0
@@ -8,6 +9,8 @@ struct FanSupportReportService {
     nonisolated func makeReport() async throws -> String {
         try await Task.detached(priority: .userInitiated) {
             let deviceDescription = MacDeviceDescriptionProvider.current()
+            let cpuCoresDescription = MacDeviceDescriptionProvider.cpuCoresDescription() ?? "Unavailable"
+            let deviceIdentifier = Self.deviceIdentifier() ?? "Unavailable"
             let appVersion = AppBundleLocator.current.versionTag
             let ismcExecutableURL = try Self.iSMCExecutableURL()
             let ismcVersion = try Self.run(executableURL: ismcExecutableURL, arguments: ["version"])
@@ -22,6 +25,8 @@ struct FanSupportReportService {
             return """
 
 \(deviceDescription)
+CPU Cores: \(cpuCoresDescription)
+Device ID: \(deviceIdentifier)
 FanControl \(appVersion)
 \(ismcVersion)
 \(temperatureStatus)
@@ -218,5 +223,23 @@ FanControl \(appVersion)
         }
         
         return Double(String(match.output.1).replacing(",", with: "."))
+    }
+
+    nonisolated private static func deviceIdentifier() -> String? {
+        let entry = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+
+        guard entry != 0 else { return nil }
+        defer { IOObjectRelease(entry) }
+
+        guard
+            let uuidValue = IORegistryEntryCreateCFProperty(
+                entry, kIOPlatformUUIDKey as CFString, kCFAllocatorDefault, 0
+            )?.takeRetainedValue() as? String
+        else {
+            return nil
+        }
+
+        let uuid = uuidValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        return uuid.isEmpty ? nil : uuid
     }
 }
