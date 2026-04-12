@@ -181,7 +181,7 @@ FanControl \(appVersion)
     }
     
     nonisolated private static func readSMCTemperatureSnapshot(executableURL: URL) throws -> String {
-        let command = "\(shellQuoted(executableURL.path(percentEncoded: false))) -l | egrep '[[:space:]]+Tp'"
+        let command = "\(shellQuoted(executableURL.path(percentEncoded: false))) -l | egrep '[[:space:]]+T'"
         
         return try run(executableURL: URL(filePath: "/bin/sh"), arguments: ["-lc", command])
     }
