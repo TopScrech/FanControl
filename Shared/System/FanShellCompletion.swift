@@ -24,18 +24,12 @@ enum FanShellCompletion {
                 '-a:Set all fans to auto'
                 '-id:Set a specific fan'
                 '--id:Set a specific fan'
-                'completion:Print shell completion'
                 '--version:Print app version'
                 '-v:Print app version'
                 '--device:Print device model'
                 '-d:Print device model'
                 '--report:Print support report'
                 '-r:Print support report'
-            )
-
-            local -a completionShellSpecs
-            completionShellSpecs=(
-                'zsh:Zsh completion'
             )
 
             local -a fanValueSpecs
@@ -69,11 +63,6 @@ enum FanShellCompletion {
                 3)
                     if [[ ${words[2]} == -id || ${words[2]} == --id ]]; then
                         _fan_ids
-                        return
-                    fi
-
-                    if [[ ${words[2]} == completion ]]; then
-                        _describe -t fan-shells 'completion shells' completionShellSpecs
                         return
                     fi
                     ;;

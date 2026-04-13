@@ -17,7 +17,6 @@ Control a specific fan:
   -id [fan id] [speed]          Set one fan to [speed]
 
 Other:
-  completion zsh                Print zsh completion
   -h, --help                    Show this help
   -r, --report                  Print support report
   -v, --version                 Print app version
@@ -55,16 +54,6 @@ Other:
             
             return .report
 
-        case "completion":
-            guard arguments.count == 2 else {
-                throw FanCLIError.usage("Completion requires a shell name")
-            }
-
-            switch arguments[1] {
-            case "zsh": return .completionZsh
-            default: throw FanCLIError.usage("Supported completion shells: zsh")
-            }
-            
         case "list", "-l":
             guard arguments.count == 1 else {
                 throw FanCLIError.usage("List does not accept extra arguments")
