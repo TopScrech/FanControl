@@ -19,9 +19,6 @@ final class FanCLI {
         case .list:
             let fans = try await service.readFans()
             print(FanTableFormatter.format(fans))
-
-        case .completionZsh:
-            print(FanShellCompletion.zshScript())
             
         case .minAll:
             try await service.setMinimumRPM(userFacingFanID: nil)

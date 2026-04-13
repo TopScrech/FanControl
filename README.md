@@ -30,27 +30,10 @@ Control a specific fan:
   -id [fan id] [speed]          Set one fan to [speed]
 
 Other:
-  completion zsh                Print zsh completion
   -h, --help                    Show this help
   -r, --report                  Print support report
   -v, --version                 Print app version
   -d, --device                  Print device model
-```
-
-## Autocomplete
-
-FanControl now installs zsh completion for `fan` into a standard `site-functions` directory when that location is writable
-
-If your terminal was already open before the install, open a new shell or run:
-
-```bash
-autoload -Uz compinit && compinit
-```
-
-Manual install is also available:
-
-```bash
-fan completion zsh > /opt/homebrew/share/zsh/site-functions/_fan
 ```
 
 ## Shortcuts
