@@ -1,6 +1,7 @@
 final class FanCLI {
     private let service = FanCLIService()
     private let reportService = FanSupportReportService()
+    private let reportUploadService = FanReportUploadService()
     
     func run(_ command: FanCommand) async throws {
         switch command {
@@ -14,7 +15,9 @@ final class FanCLI {
             print(MacDeviceDescriptionProvider.current())
             
         case .report:
-            print(try await reportService.makeReport())
+            let report = try await reportService.makeReport()
+            print(report)
+            try? await reportUploadService.submit(report: report)
             
         case .list:
             let fans = try await service.readFans()
