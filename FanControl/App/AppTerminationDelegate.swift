@@ -30,6 +30,7 @@ final class AppTerminationDelegate: NSObject, NSApplicationDelegate {
             self.terminationTask = nil
             self.terminationTimeoutTask = nil
             self.isHandlingTermination = false
+            
             sender.reply(toApplicationShouldTerminate: true)
         }
         
