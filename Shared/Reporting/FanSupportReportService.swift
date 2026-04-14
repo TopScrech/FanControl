@@ -15,8 +15,7 @@ struct FanSupportReportService {
             let ismcExecutableURL = try Self.iSMCExecutableURL()
             let ismcVersion = try Self.run(executableURL: ismcExecutableURL, arguments: ["version"])
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            let smcExecutableURL = try Self.smcExecutableURL()
-            let smcOutput = try Self.readSMCTemperatureSnapshot(executableURL: smcExecutableURL)
+            let rawOutput = try Self.readRawSnapshot(executableURL: ismcExecutableURL)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             let temperatureSnapshot = try await Self.readStableTemperatureSnapshot(executableURL: ismcExecutableURL)
             let temperatureOutput = temperatureSnapshot.output
@@ -33,7 +32,7 @@ FanControl \(appVersion)
 
 \(temperatureOutput)
 
-\(smcOutput)
+\(rawOutput)
 """
         }.value
     }
@@ -50,20 +49,6 @@ FanControl \(appVersion)
         }
         
         throw FanSupportReportServiceError.executableNotFound("iSMC")
-    }
-    
-    nonisolated private static func smcExecutableURL() throws -> URL {
-        for candidate in smcCandidateExecutableURLs() {
-            if FileManager.default.isExecutableFile(atPath: candidate.path()) {
-                return candidate
-            }
-        }
-        
-        if let executableURL = try whichExecutableURL(named: "smc") {
-            return executableURL
-        }
-        
-        throw FanSupportReportServiceError.executableNotFound("smc")
     }
     
     nonisolated private static func candidateExecutableURLs() -> [URL] {
@@ -84,28 +69,6 @@ FanControl \(appVersion)
         candidates.append(bundle.bundleURL.appending(path: "Contents/Library/PrivilegedHelperTools/iSMC"))
         candidates.append(URL(filePath: "/opt/homebrew/bin/iSMC"))
         candidates.append(URL(filePath: "/usr/local/bin/iSMC"))
-        
-        return uniqueURLs(candidates)
-    }
-    
-    nonisolated private static func smcCandidateExecutableURLs() -> [URL] {
-        var candidates = [URL]()
-        let environment = ProcessInfo.processInfo.environment
-        
-        if let smcPath = environment["SMC_PATH"], !smcPath.isEmpty {
-            candidates.append(URL(filePath: smcPath))
-        }
-        
-        let bundle = AppBundleLocator.current
-        
-        if let resourceURL = bundle.resourceURL {
-            candidates.append(resourceURL.appending(path: "smc"))
-        }
-        
-        candidates.append(bundle.bundleURL.appending(path: "Contents/Resources/smc"))
-        candidates.append(bundle.bundleURL.appending(path: "Contents/Library/PrivilegedHelperTools/smc"))
-        candidates.append(URL(filePath: "/opt/homebrew/bin/smc"))
-        candidates.append(URL(filePath: "/usr/local/bin/smc"))
         
         return uniqueURLs(candidates)
     }
@@ -185,14 +148,8 @@ FanControl \(appVersion)
         return latestSnapshot
     }
     
-    nonisolated private static func readSMCTemperatureSnapshot(executableURL: URL) throws -> String {
-        let command = "\(shellQuoted(executableURL.path(percentEncoded: false))) -l | egrep '[[:space:]]+T'"
-        
-        return try run(executableURL: URL(filePath: "/bin/sh"), arguments: ["-lc", command])
-    }
-    
-    nonisolated private static func shellQuoted(_ value: String) -> String {
-        "'\(value.replacing("'", with: "'\\''"))'"
+    nonisolated private static func readRawSnapshot(executableURL: URL) throws -> String {
+        try run(executableURL: executableURL, arguments: ["raw"])
     }
     
     nonisolated private static func temperatureStatus(from output: String) -> String {

@@ -324,14 +324,11 @@
 			isa = PBXShellScriptBuildPhase;
 			inputPaths = (
 				"$(PROJECT_DIR)/Vendor/iSMC/iSMC",
-				"$(PROJECT_DIR)/Vendor/smc/smc",
 			);
 			name = "Embed iSMC";
 			outputPaths = (
 				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/iSMC",
-				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/smc",
 				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/PrivilegedHelperTools/iSMC",
-				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/PrivilegedHelperTools/smc",
 			);
 			shellPath = /bin/sh;
 			shellScript = (
@@ -339,19 +336,11 @@
 				"set -euo pipefail",
 				"",
 				"ismc_source_binary=\"$PROJECT_DIR/Vendor/iSMC/iSMC\"",
-				"smc_source_binary=\"$PROJECT_DIR/Vendor/smc/smc\"",
 				"ismc_resource_binary=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/iSMC\"",
-				"smc_resource_binary=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/smc\"",
 				"ismc_helper_binary=\"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Library/PrivilegedHelperTools/iSMC\"",
-				"smc_helper_binary=\"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Library/PrivilegedHelperTools/smc\"",
 				"",
 				"if [ ! -x \"$ismc_source_binary\" ]; then",
 				"echo \"error: Missing vendored iSMC executable at $ismc_source_binary\"",
-				"exit 1",
-				"fi",
-				"",
-				"if [ ! -x \"$smc_source_binary\" ]; then",
-				"echo \"error: Missing vendored smc executable at $smc_source_binary\"",
 				"exit 1",
 				"fi",
 				"",
@@ -359,17 +348,9 @@
 				"cp \"$ismc_source_binary\" \"$ismc_resource_binary\"",
 				"chmod 755 \"$ismc_resource_binary\"",
 				"",
-				"mkdir -p \"$(dirname \"$smc_resource_binary\")\"",
-				"cp \"$smc_source_binary\" \"$smc_resource_binary\"",
-				"chmod 755 \"$smc_resource_binary\"",
-				"",
 				"mkdir -p \"$(dirname \"$ismc_helper_binary\")\"",
 				"cp \"$ismc_source_binary\" \"$ismc_helper_binary\"",
 				"chmod 755 \"$ismc_helper_binary\"",
-				"",
-				"mkdir -p \"$(dirname \"$smc_helper_binary\")\"",
-				"cp \"$smc_source_binary\" \"$smc_helper_binary\"",
-				"chmod 755 \"$smc_helper_binary\"",
 				"",
 			);
 		};
