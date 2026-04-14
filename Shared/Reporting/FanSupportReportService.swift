@@ -5,7 +5,6 @@ struct FanSupportReportService {
     private nonisolated static let safeTemperatureRange = 10.0...110.0
     private nonisolated static let temperatureReadAttempts = 3
     private nonisolated static let retryInterval: Duration = .milliseconds(400)
-    private static let reportDateFormatter = ISO8601DateFormatter()
     
     nonisolated func makeReport() async throws -> String {
         try await Task.detached(priority: .userInitiated) {
@@ -13,7 +12,7 @@ struct FanSupportReportService {
             let cpuCoresDescription = MacDeviceDescriptionProvider.cpuCoresDescription() ?? "Unavailable"
             let deviceIdentifier = Self.deviceIdentifier() ?? "Unavailable"
             let appVersion = AppBundleLocator.current.versionTag
-            let reportDate = Self.reportDateFormatter.string(from: .now)
+            let reportDate = Date.now.ISO8601Format()
             let ismcExecutableURL = try Self.iSMCExecutableURL()
             let ismcVersion = try Self.run(executableURL: ismcExecutableURL, arguments: ["version"])
                 .trimmingCharacters(in: .whitespacesAndNewlines)
