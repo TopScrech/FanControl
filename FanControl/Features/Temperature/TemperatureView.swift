@@ -78,7 +78,7 @@ struct TemperatureView: View {
     }
 #if DEBUG
     private func copyAllSensors() {
-        let text = sensors
+        let text = sensors.sorted()
             .map {
                 "\($0.key) (\($0.displayName)): \($0.celsius.formattedTemperature(in: temperatureUnit, showsTenths: temperaturePrecision.showsTenths))"
             }

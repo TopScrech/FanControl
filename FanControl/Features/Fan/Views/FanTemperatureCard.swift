@@ -56,7 +56,7 @@ struct FanTemperatureCard: View {
                 } else {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 8) {
-                            ForEach(model.temperatureSensors) {
+                            ForEach(model.temperatureSensors.sorted()) {
                                 FanMetricRow(
                                     $0.displayName,
                                     systemImage: showsTemperatureSensorIcons ? $0.systemImage : nil,

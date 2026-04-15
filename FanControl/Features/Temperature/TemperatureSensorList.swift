@@ -14,7 +14,7 @@ struct TemperatureSensorList: View {
                     .secondary()
             } else {
                 LazyVStack(alignment: .leading, spacing: 8) {
-                    ForEach(sensors) {
+                    ForEach(sensors.sorted()) {
                         FanMetricRow(
                             $0.displayName,
                             systemImage: showsIcons ? $0.systemImage : nil,
