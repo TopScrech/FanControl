@@ -5,7 +5,7 @@ enum ISMCTemperatureSensorParser {
         let sensors = output
             .split(whereSeparator: \.isNewline)
             .compactMap(parseSensor)
-            .sorted(using: KeyPathComparator(\.displayName))
+            .sorted()
         
         guard !sensors.isEmpty else {
             throw ISMCCommandError.invalidOutput
