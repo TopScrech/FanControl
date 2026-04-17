@@ -1,8 +1,9 @@
 import ScrechKit
 
 struct AverageTemperatureCard: View {
+    @AppStorage("showsTemperatureSensorIcons") private var showsIcons = false
+    
     let rows: [TemperatureAverageRow]
-    let showsIcons: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {

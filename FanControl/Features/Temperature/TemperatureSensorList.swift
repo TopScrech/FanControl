@@ -2,10 +2,10 @@ import ScrechKit
 
 struct TemperatureSensorList: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
+    @AppStorage("showsTemperatureSensorIcons") private var showsIcons = false
     
     let sensors: [TemperatureSensor]
     let showsTemperatureTenths: Bool
-    let showsIcons: Bool
     
     private var temperatureUnit: TemperatureUnit {
         TemperatureUnit(rawValue: temperatureUnitRawValue) ?? .celsius

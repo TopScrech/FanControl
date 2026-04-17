@@ -4,7 +4,6 @@ struct TemperatureSensorListSheet: View {
     @Environment(\.dismiss) private var dismiss
     
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
-    @AppStorage("showsTemperatureSensorIcons") private var showsTemperatureSensorIcons = false
     
     let sensors: [TemperatureSensor]
     
@@ -30,8 +29,7 @@ struct TemperatureSensorListSheet: View {
             ScrollView {
                 TemperatureSensorList(
                     sensors: sensors,
-                    showsTemperatureTenths: temperaturePrecision.showsTenths,
-                    showsIcons: showsTemperatureSensorIcons
+                    showsTemperatureTenths: temperaturePrecision.showsTenths
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
