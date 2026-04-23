@@ -1,7 +1,11 @@
 import ScrechKit
 
 struct UpdateChangelogCard: View {
-    let entry: UpdateChangelogEntry
+    private let entry: UpdateChangelogEntry
+    
+    init(_ entry: UpdateChangelogEntry) {
+        self.entry = entry
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

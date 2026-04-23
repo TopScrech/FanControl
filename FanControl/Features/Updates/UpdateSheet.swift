@@ -14,7 +14,7 @@ struct UpdateSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(model.updateChangelogEntries) {
-                        UpdateChangelogCard(entry: $0)
+                        UpdateChangelogCard($0)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
