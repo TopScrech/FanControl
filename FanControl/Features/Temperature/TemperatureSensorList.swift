@@ -2,10 +2,14 @@ import ScrechKit
 
 struct TemperatureSensorList: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
+    @AppStorage("showsTemperatureSensorIcons") private var showsIcons = false
     
     let sensors: [TemperatureSensor]
     let showsTemperatureTenths: Bool
-    let showsIcons: Bool
+    
+    private var temperatureUnit: TemperatureUnit {
+        TemperatureUnit(rawValue: temperatureUnitRawValue) ?? .celsius
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -32,9 +36,5 @@ struct TemperatureSensorList: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.thinMaterial, in: .rect(cornerRadius: 12))
-    }
-    
-    private var temperatureUnit: TemperatureUnit {
-        TemperatureUnit(rawValue: temperatureUnitRawValue) ?? .celsius
     }
 }

@@ -18,6 +18,7 @@ struct FanControlApp: App {
     init() {
         configureLaunchAtLoginIfNeeded()
         AppDownloadsMovePrompter.promptIfNeeded()
+        EmbeddedCLIToolInstaller.installIfNeeded()
     }
     
     var body: some Scene {
@@ -35,10 +36,11 @@ struct FanControlApp: App {
                 .task {
                     configureTerminationDelegate()
                     sendLaunchReportIfNeeded()
+                    
                     let selectedOption = preferredAppLanguage
                     preferredAppLanguageRawValue = selectedOption.rawValue
+                    
                     AppLanguageManager.apply(option: selectedOption)
-                    EmbeddedCLIToolInstaller.installIfNeeded()
                     await applyLaunchWindowPreference()
                 }
         }

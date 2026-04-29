@@ -18,17 +18,12 @@ struct FanControlsView: View {
                     FanDetailsCard(fan: fan)
                 }
                 
-                FanTemperatureCard(model: model, showAllSensors: false)
-                    .fanCardSurface()
-                
                 FanActionCard(model: model)
             }
             
-            if showSensors {
-                FanTemperatureCard(model: model, showAllSensors: false)
-                    .frame(width: 280)
-                    .fanCardSurface()
-            }
+            FanTemperatureCard(model: model, showAllSensors: showSensors)
+                .frame(maxWidth: showSensors ? 280 : .infinity, alignment: .topLeading)
+                .fanCardSurface()
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }

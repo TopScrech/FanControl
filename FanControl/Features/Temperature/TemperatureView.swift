@@ -3,7 +3,6 @@ import ScrechKit
 struct TemperatureView: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
-    @AppStorage("showsTemperatureSensorIcons") private var showsTemperatureSensorIcons = false
     
     let sensors: [TemperatureSensor]
     let isMacBook: Bool
@@ -22,13 +21,12 @@ struct TemperatureView: View {
 #endif
                 }
                 
-                AverageTemperatureCard(rows: averageRows, showsIcons: showsTemperatureSensorIcons)
+                AverageTemperatureCard(rows: averageRows)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 TemperatureSensorList(
                     sensors: otherSensors,
-                    showsTemperatureTenths: temperaturePrecision.showsTenths,
-                    showsIcons: showsTemperatureSensorIcons
+                    showsTemperatureTenths: temperaturePrecision.showsTenths
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
             }

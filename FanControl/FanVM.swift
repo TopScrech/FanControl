@@ -24,6 +24,8 @@ final class FanVM {
     private static let errorDisplayDuration: Duration = .seconds(errorDisplaySeconds)
     private static let updateCheckIntervalSeconds = 24.0 * 60 * 60
     private static let automaticUpdateCheckRetrySeconds = 60.0
+    private static let fanRefreshBackoffAfterEmptySeconds = 10.0
+    private static let fanRefreshBackoffAfterFailureSeconds = 5.0
     private static let licenseOfflineGracePeriodSeconds = 7.0 * 24 * 60 * 60
     private static let defaultCustomPresetMinimumTemperature = 40
     private static let defaultCustomPresetMaximumTemperature = 80
@@ -191,6 +193,7 @@ final class FanVM {
     private var errorDismissToken = 0
     private var errorDismissTask: Task<Void, Never>?
     private var errorExpiryDate: Date?
+    private var nextFanReadDate = Date.distantPast
     private let isRoot = geteuid() == 0
     
     init() {
@@ -491,15 +494,17 @@ final class FanVM {
         Self.logger.info("Refresh starting")
         
         var refreshError: Error?
-        
-        if let smc = activeService {
+
+        if shouldReadFansNow(), let smc = activeService {
             do {
                 let snapshots = try await smc.readFans()
                 Self.logger.info("Refresh readFans count=\(snapshots.count)")
                 fans = snapshots
+                resetFanReadBackoff()
                 
                 if fans.isEmpty {
                     selectedFanID = Self.allFansSelectionID
+                    deferFanReads(for: Self.fanRefreshBackoffAfterEmptySeconds)
                     
                 } else if fans.count == 1 {
                     selectedFanID = fans[0].id
@@ -509,10 +514,15 @@ final class FanVM {
                 }
             } catch {
                 refreshError = error
+                deferFanReads(for: Self.fanRefreshBackoffAfterFailureSeconds)
                 Self.logger.error("Refresh readFans failed: \(error)")
             }
         } else {
-            Self.logger.info("Refresh fan read skipped: no active SMC service")
+            if activeService == nil {
+                Self.logger.info("Refresh fan read skipped: no active SMC service")
+            } else {
+                Self.logger.info("Refresh fan read skipped: backing off until \(self.nextFanReadDate, privacy: .public)")
+            }
         }
         
         do {
@@ -1923,6 +1933,18 @@ System plist exists: %@
     private func clearError() {
         errorAlert = nil
         errorExpiryDate = nil
+    }
+
+    private func shouldReadFansNow(at now: Date = Date()) -> Bool {
+        now >= nextFanReadDate
+    }
+
+    private func deferFanReads(for seconds: TimeInterval, from now: Date = Date()) {
+        nextFanReadDate = max(nextFanReadDate, now.addingTimeInterval(seconds))
+    }
+
+    private func resetFanReadBackoff() {
+        nextFanReadDate = .distantPast
     }
     
     private func beginControlAttemptProgress(targetMode: FanControlMode) {
