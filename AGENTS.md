@@ -8,12 +8,6 @@
 - `FanControl/Assets.xcassets` stores app assets/icons
 - `FanControl.xcodeproj` is the Xcode project. There is no separate test target or `Tests/` directory in the repo
 
-## Build, Test, and Development Commands
-- Build (Debug): `xcodebuild -project FanControl.xcodeproj -scheme FanControl -configuration Debug -derivedDataPath ~/Library/Developer/Xcode/DerivedData/FanControl build`
-- Build (Release): `xcodebuild -project FanControl.xcodeproj -scheme FanControl -configuration Release -derivedDataPath ~/Library/Developer/Xcode/DerivedData/FanControl build`
-- Never use `-derivedDataPath ./build` (or any project-relative path) because it creates local DerivedData/build artifacts inside the repo
-- Publish all new GitHub releases as pre-releases first so they can be manually validated before general availability
-
 ## Coding Style & Naming Conventions
 - Swift standard style: 4-space indentation, braces on the same line, trailing commas allowed in multi-line literals
 - Naming: `UpperCamelCase` for types (structs/classes/enums), `lowerCamelCase` for methods and properties, enum cases in `lowerCamelCase`
