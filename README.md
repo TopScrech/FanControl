@@ -48,7 +48,7 @@ Other:
 Requires Xcode 26.4+ and access to the private [CoreSMC](https://github.com/TopScrech/CoreSMC?tab=readme-ov-file) library
 
 ## Dependencies
-4/5 libraries are developed and maintained by me, which helps minimize risk across every project where I use them
+4/5 libraries are developed and maintained by me, which helps minimize risk across all projects in which they are used
 
 - [CoreSMC](https://github.com/TopScrech/CoreSMC) - private library for sending read/set fan speed calls via SMC
 - [iSMC](https://github.com/dkorunic/iSMC) - Reading data from temperature sensors
