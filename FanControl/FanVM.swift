@@ -156,10 +156,10 @@ final class FanVM {
     
     var updateTargetVersionTag: String {
         if showsFakeUpdatePrompt {
-            return "v9.9.9-debug"
+            "v2.0-rc.1"
+        } else {
+            preparedUpdate?.release.tagName ?? String(localized: "Unknown")
         }
-        
-        return preparedUpdate?.release.tagName ?? String(localized: "Unknown")
     }
     
     var showsResetGitHubProxyURLButton: Bool {
@@ -675,27 +675,27 @@ final class FanVM {
         showsFakeUpdatePrompt = true
         updateChangelogEntries = [
             UpdateChangelogEntry(
-                tagName: "v9.9.9-debug",
+                tagName: "v2.0-rc.1",
                 isPrerelease: true,
                 notes: String(localized: "Some release notes")
             ),
             UpdateChangelogEntry(
-                tagName: "v9.9.8-rc.2",
+                tagName: "v2.0-beta.1",
                 isPrerelease: true,
                 notes: String(localized: "Some release notes")
             ),
             UpdateChangelogEntry(
-                tagName: "v9.9.8-beta.4",
-                isPrerelease: true,
-                notes: String(localized: "Some release notes")
-            ),
-            UpdateChangelogEntry(
-                tagName: "v9.9.7",
+                tagName: "v1.2",
                 isPrerelease: false,
                 notes: String(localized: "Some release notes")
             ),
             UpdateChangelogEntry(
-                tagName: "v9.9.6",
+                tagName: "v1.1",
+                isPrerelease: false,
+                notes: String(localized: "Some release notes")
+            ),
+            UpdateChangelogEntry(
+                tagName: "v1.0",
                 isPrerelease: false,
                 notes: String(localized: "Some release notes")
             )
