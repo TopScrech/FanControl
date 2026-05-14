@@ -7,7 +7,7 @@
       "location" : "https://github.com/TopScrech/AutoUpdate",
       "state" : {
         "branch" : "main",
-        "revision" : "9002d6ac279bf85ede1c3427d9309cc70ecdc857"
+        "revision" : "7e4a8e286304f10ffc771f3c8a23b78229299286"
       }
     },
     {
@@ -25,7 +25,7 @@
       "location" : "https://github.com/TopScrech/LaunchAtLogin",
       "state" : {
         "branch" : "main",
-        "revision" : "de46c95b812441c47eb2754c8bd10fc0ee2afa2e"
+        "revision" : "bfccfc4dfe80eec4b2c0fe0712d8bd954d1a2ce6"
       }
     },
     {
@@ -34,7 +34,7 @@
       "location" : "https://github.com/TopScrech/ScrechKit",
       "state" : {
         "branch" : "main",
-        "revision" : "fd773c46059dfaa41dbe3e754ba672f1273ea074"
+        "revision" : "a2f1a8b71c3b389cdf9917b14673d747d75ca051"
       }
     }
   ],
