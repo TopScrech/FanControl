@@ -743,7 +743,7 @@
 			repositoryURL = "https://github.com/TopScrech/CoreSMC";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
+				minimumVersion = 2.0.0;
 			};
 		};
 		F3E00C182F4EBFAC007EA814 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
