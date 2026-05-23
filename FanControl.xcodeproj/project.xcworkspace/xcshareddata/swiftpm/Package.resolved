@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/TopScrech/AutoUpdate",
       "state" : {
-        "branch" : "main",
-        "revision" : "9002d6ac279bf85ede1c3427d9309cc70ecdc857"
+        "revision" : "d7e9f2c1d8d8d0267dee5435c9f7a9a809bd99d3",
+        "version" : "1.2.1"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/TopScrech/CoreSMC",
       "state" : {
-        "branch" : "main",
-        "revision" : "ba75842f8ac6531b58afcba1b4b5ea93072dfdcf"
+        "revision" : "429cae6d0a06788297f4b7bbdd7c24904ec71bfb",
+        "version" : "2.0.2"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/TopScrech/LaunchAtLogin",
       "state" : {
-        "branch" : "main",
-        "revision" : "de46c95b812441c47eb2754c8bd10fc0ee2afa2e"
+        "revision" : "a04ec1c363be3627734f6dad757d82f5d4fa8fcc",
+        "version" : "1.1.0"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/TopScrech/ScrechKit",
       "state" : {
-        "branch" : "main",
-        "revision" : "fd773c46059dfaa41dbe3e754ba672f1273ea074"
+        "revision" : "b042653a85530e387eb5036a49983918d6511276",
+        "version" : "1.0.4"
       }
     }
   ],
