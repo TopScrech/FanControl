@@ -16,6 +16,7 @@ struct SettingsView: View {
             SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
             SettingsMenuBarSection()
             SettingsTemperatureSection()
+            SettingsPowerSection()
             
             SettingsUpdatesSection(model: model)
             
