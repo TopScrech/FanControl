@@ -12,6 +12,7 @@ final class FanVM {
     private static let selectedFanIDDefaultsKey = "selectedFanID"
     static let showsMenuBarFanSpeedDefaultsKey = "showsMenuBarFanSpeed"
     static let showsMenuBarAverageTemperaturesDefaultsKey = "showsMenuBarAverageTemperatures"
+    static let disablesFanControlOnSleepDefaultsKey = "disablesFanControlOnSleep"
     private static let allowPrereleaseUpdatesDefaultsKey = "allowPrereleaseUpdates"
     private static let useGitHubProxyDefaultsKey = "useGitHubProxy"
     private static let gitHubProxyURLDefaultsKey = "gitHubProxyURL"
@@ -597,7 +598,7 @@ final class FanVM {
         
         do {
             isInstallingPreparedUpdate = true
-            await resetFansForTermination()
+            await resetFansForAutomaticControl(reason: "Update install")
             let installedAppURL = try preparedUpdateInstaller.install(preparedUpdate)
             
             clearPreparedUpdate()
@@ -1083,10 +1084,14 @@ final class FanVM {
     
     func prepareForTermination() async {
         guard !isInstallingPreparedUpdate else { return }
-        await resetFansForTermination()
+        await resetFansForAutomaticControl(reason: "Termination")
     }
     
-    private func resetFansForTermination() async {
+    func prepareForSleep() async {
+        await resetFansForAutomaticControl(reason: "Sleep")
+    }
+    
+    private func resetFansForAutomaticControl(reason: String) async {
         let targetFans = fans
         
         guard !targetFans.isEmpty else { return }
@@ -1095,7 +1100,7 @@ final class FanVM {
         let helperStatus = await ensureHelperConnected()
         
         guard let smc = writeService else {
-            Self.logger.error("Termination auto reset skipped: no writable SMC client status=\(String(describing: helperStatus))")
+            Self.logger.error("\(reason) auto reset skipped: no writable SMC client status=\(String(describing: helperStatus))")
             return
         }
         
@@ -1110,14 +1115,14 @@ final class FanVM {
                 successfulSignals += 1
             } catch {
                 lastAttemptError = error
-                Self.logger.error("Termination auto reset failed fan=\(fanID) error=\(error)")
+                Self.logger.error("\(reason) auto reset failed fan=\(fanID) error=\(error)")
             }
         }
         
         holdingManualOverride = customPresetStore.hasEnabledPresets
         
         if successfulSignals == 0, let lastAttemptError {
-            Self.logger.error("Termination auto reset failed error=\(lastAttemptError)")
+            Self.logger.error("\(reason) auto reset failed error=\(lastAttemptError)")
         }
     }
     

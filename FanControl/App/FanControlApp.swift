@@ -139,6 +139,10 @@ struct FanControlApp: App {
         appTerminationDelegate.onTerminate = {
             await model.prepareForTermination()
         }
+        appTerminationDelegate.onSleep = {
+            guard UserDefaults.standard.bool(forKey: FanVM.disablesFanControlOnSleepDefaultsKey) else { return }
+            await model.prepareForSleep()
+        }
     }
     
     private func sendLaunchReportIfNeeded() {
