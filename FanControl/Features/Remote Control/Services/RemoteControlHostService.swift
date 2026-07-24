@@ -7,7 +7,7 @@ final class RemoteControlHostService {
     typealias CommandHandler = @MainActor (RemoteFanCommand) async throws -> Void
     typealias StatusHandler = @MainActor (String) -> Void
     
-    private static let refreshInterval: Duration = .seconds(3)
+    private static let refreshInterval: Duration = .seconds(1)
     private static let logger = Logger(subsystem: "FanControl", category: "RemoteControl")
     
     private let store = RemoteCloudStore()

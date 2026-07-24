@@ -9,6 +9,9 @@ struct FanControlRemoteApp: App {
             NavigationStack {
                 RemoteMacList(model: model)
             }
+            .task {
+                await model.observe()
+            }
         }
     }
 }

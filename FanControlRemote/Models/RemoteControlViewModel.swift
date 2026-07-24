@@ -7,7 +7,7 @@ final class RemoteControlViewModel {
     var isRefreshing = false
     var pendingCommand: RemoteFanCommand?
 
-    private static let refreshInterval: Duration = .seconds(3)
+    private static let refreshInterval: Duration = .seconds(1)
     private static let logger = Logger(subsystem: "FanControlRemote", category: "Discovery")
     private let store = RemoteCloudStore()
 

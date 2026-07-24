@@ -28,8 +28,5 @@ struct RemoteMacList: View {
         .refreshable {
             await model.refresh()
         }
-        .task {
-            await model.observe()
-        }
     }
 }
