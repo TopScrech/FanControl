@@ -195,6 +195,7 @@ final class FanVM {
     private var showsFakeUpdatePrompt = false
     private var automaticUpdateTask: Task<Void, Never>?
     private var debugDelayedUpdateCheckTask: Task<Void, Never>?
+    private var remoteManualRetryTask: Task<Void, Never>?
     private var timer: Timer?
     private var holdingManualOverride = false
     private var helperInstallInProgress = false
@@ -1157,6 +1158,7 @@ final class FanVM {
     private func handleRemoteCommand(_ command: RemoteFanCommand) async throws {
         guard isRemoteControlEnabled else { return }
 
+        let actionToken = startControlAction()
         let targetFans = command.fanID == RemoteFanCommand.allFansID
             ? fans
             : fans.filter { $0.id == command.fanID }
@@ -1177,15 +1179,9 @@ final class FanVM {
                 try await smc.setFanAuto(fanID: fan.id)
             }
         case .minimum, .maximum:
-            for attempt in 1...Self.manualRetryAttempts {
-                for fan in targetFans {
-                    let rpm = command.action == .minimum ? fan.minRPM : fan.maxRPM
-                    try await smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
-                }
-
-                if attempt < Self.manualRetryAttempts {
-                    try await Task.sleep(for: Self.manualRetryInterval)
-                }
+            for fan in targetFans {
+                let rpm = command.action == .minimum ? fan.minRPM : fan.maxRPM
+                try await smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
             }
         }
 
@@ -1193,7 +1189,50 @@ final class FanVM {
             ? customPresetStore.hasEnabledPresets
             : true
         await refresh()
+
+        if command.action != .automatic {
+            scheduleRemoteManualRetries(
+                action: command.action,
+                targetFans: targetFans,
+                smc: smc,
+                actionToken: actionToken
+            )
+        }
+
         Self.logger.info("Remote command applied action=\(command.action.rawValue) fans=\(String(describing: targetFanIDs))")
+    }
+
+    private func scheduleRemoteManualRetries(
+        action: RemoteFanAction,
+        targetFans: [Fan],
+        smc: SMCService,
+        actionToken: Int
+    ) {
+        remoteManualRetryTask = Task { [weak self] in
+            guard let self else { return }
+
+            for attempt in 2...Self.manualRetryAttempts {
+                do {
+                    try await Task.sleep(for: Self.manualRetryInterval)
+                } catch {
+                    return
+                }
+
+                guard isControlActionCurrent(actionToken) else { return }
+
+                for fan in targetFans {
+                    let rpm = action == .minimum ? fan.minRPM : fan.maxRPM
+
+                    do {
+                        try await smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
+                    } catch {
+                        Self.logger.error(
+                            "Remote manual retry failed fan=\(fan.id) attempt=\(attempt) error=\(error)"
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private func resetFansForAutomaticControl(reason: String) async {
@@ -1243,6 +1282,8 @@ final class FanVM {
     }
     
     private func startControlAction() -> Int {
+        remoteManualRetryTask?.cancel()
+        remoteManualRetryTask = nil
         controlActionToken += 1
         endControlAttemptProgress()
         return controlActionToken
