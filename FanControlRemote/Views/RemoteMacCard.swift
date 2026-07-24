@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct RemoteMacRow: View {
+struct RemoteMacCard: View {
     let mac: RemoteMacState
     
     var body: some View {

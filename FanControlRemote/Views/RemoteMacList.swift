@@ -16,7 +16,7 @@ struct RemoteMacList: View {
             } else {
                 List(model.macs) { mac in
                     NavigationLink(value: mac.id) {
-                        RemoteMacRow(mac: mac)
+                        RemoteMacCard(mac: mac)
                     }
                 }
             }
