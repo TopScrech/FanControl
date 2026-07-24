@@ -44,7 +44,7 @@ struct SettingsLicenseSection: View {
                     .secondary()
                     
                     Text("•")
-                        .foregroundStyle(.secondary)
+                        .secondary()
                     
                     Button("Restore") {
                         openURL(restoreURL)

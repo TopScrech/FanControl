@@ -1,4 +1,4 @@
-import SwiftUI
+import ScrechKit
 
 struct MenuBarTemperatureRenderedLabel: View {
     let cpuText: String
@@ -9,7 +9,7 @@ struct MenuBarTemperatureRenderedLabel: View {
             Text("CPU: \(cpuText)")
             Text("GPU: \(gpuText)")
         }
-        .font(.caption2)
+        .caption2()
         .monospacedDigit()
         .foregroundStyle(.black)
         .padding(.horizontal, 2)

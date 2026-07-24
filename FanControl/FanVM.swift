@@ -13,6 +13,7 @@ final class FanVM {
     static let showsMenuBarFanSpeedDefaultsKey = "showsMenuBarFanSpeed"
     static let showsMenuBarAverageTemperaturesDefaultsKey = "showsMenuBarAverageTemperatures"
     static let disablesFanControlOnSleepDefaultsKey = "disablesFanControlOnSleep"
+    private static let remoteControlEnabledDefaultsKey = "remoteControlEnabled"
     private static let allowPrereleaseUpdatesDefaultsKey = "allowPrereleaseUpdates"
     private static let useGitHubProxyDefaultsKey = "useGitHubProxy"
     private static let gitHubProxyURLDefaultsKey = "gitHubProxyURL"
@@ -46,6 +47,13 @@ final class FanVM {
     var settingsUpdateStatusAlert: UpdateStatusAlert?
     var menuBarUpdateStatusAlert: UpdateStatusAlert?
     var helperConnectionStatus = HelperConnectionStatus.unavailable
+    var remoteControlStatusText = String(localized: "Disabled")
+    var isRemoteControlEnabled = UserDefaults.standard.bool(forKey: FanVM.remoteControlEnabledDefaultsKey) {
+        didSet {
+            UserDefaults.standard.set(isRemoteControlEnabled, forKey: Self.remoteControlEnabledDefaultsKey)
+            configureRemoteControl()
+        }
+    }
     
     var selectedFanID = 0 {
         didSet {
@@ -171,6 +179,7 @@ final class FanVM {
     private let localSMC: LocalSMCService?
     private var remoteSMC: RemoteSMCService?
     private let temperatureSensorService = ISMCTemperatureSensorService()
+    private let remoteControlHost = RemoteControlHostService()
     
     private let appUpdater = AppUpdater(
         owner: FanVM.updateRepositoryOwner,
@@ -231,6 +240,7 @@ final class FanVM {
             await verifySavedLicenseOnLaunch()
             await refresh()
             await applyActiveCustomPresetsIfNeeded(refreshAfterApply: true)
+            configureRemoteControl()
         }
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -1091,6 +1101,101 @@ final class FanVM {
         await resetFansForAutomaticControl(reason: "Sleep")
     }
     
+    private func configureRemoteControl() {
+        guard isRemoteControlEnabled else {
+            remoteControlHost.stop()
+            remoteControlStatusText = String(localized: "Disabled")
+            return
+        }
+
+        remoteControlHost.start(
+            deviceID: RemoteMacIdentityProvider.identifier(),
+            name: RemoteMacIdentityProvider.name(),
+            fans: { [weak self] in
+                self?.remoteFanStates ?? []
+            },
+            handleCommand: { [weak self] command in
+                guard let self else { return }
+                try await self.handleRemoteCommand(command)
+            },
+            updateStatus: { [weak self] status in
+                self?.remoteControlStatusText = status
+            }
+        )
+    }
+
+    private var remoteFanStates: [RemoteFanState] {
+        fans.map {
+            RemoteFanState(
+                id: $0.id,
+                minRPM: $0.minRPM,
+                maxRPM: $0.maxRPM,
+                currentRPM: $0.currentRPM,
+                targetRPM: $0.targetRPM,
+                mode: $0.mode,
+                activeAction: remoteActiveAction(for: $0)
+            )
+        }
+    }
+
+    private func remoteActiveAction(for fan: Fan) -> RemoteFanAction? {
+        if (fan.mode == 0 || fan.mode == 3) && !holdingManualOverride {
+            return .automatic
+        }
+
+        if Self.rpmMatches(fan.targetRPM, fan.minRPM) {
+            return .minimum
+        }
+
+        if Self.rpmMatches(fan.targetRPM, fan.maxRPM) {
+            return .maximum
+        }
+
+        return nil
+    }
+
+    private func handleRemoteCommand(_ command: RemoteFanCommand) async throws {
+        guard isRemoteControlEnabled else { return }
+
+        let targetFans = command.fanID == RemoteFanCommand.allFansID
+            ? fans
+            : fans.filter { $0.id == command.fanID }
+        guard !targetFans.isEmpty else { throw RemoteControlHostError.fanUnavailable }
+
+        let helperStatus = await ensureHelperConnected()
+        guard let smc = writeService else {
+            Self.logger.error("Remote command rejected: helper status=\(String(describing: helperStatus))")
+            throw RemoteControlHostError.helperUnavailable
+        }
+
+        let targetFanIDs = targetFans.map(\.id)
+        customPresetStore.setEnabled(false, fanIDs: targetFanIDs)
+
+        switch command.action {
+        case .automatic:
+            for fan in targetFans {
+                try await smc.setFanAuto(fanID: fan.id)
+            }
+        case .minimum, .maximum:
+            for attempt in 1...Self.manualRetryAttempts {
+                for fan in targetFans {
+                    let rpm = command.action == .minimum ? fan.minRPM : fan.maxRPM
+                    try await smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
+                }
+
+                if attempt < Self.manualRetryAttempts {
+                    try await Task.sleep(for: Self.manualRetryInterval)
+                }
+            }
+        }
+
+        holdingManualOverride = command.action == .automatic
+            ? customPresetStore.hasEnabledPresets
+            : true
+        await refresh()
+        Self.logger.info("Remote command applied action=\(command.action.rawValue) fans=\(String(describing: targetFanIDs))")
+    }
+
     private func resetFansForAutomaticControl(reason: String) async {
         let targetFans = fans
         

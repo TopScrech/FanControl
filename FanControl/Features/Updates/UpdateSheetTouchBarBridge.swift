@@ -10,6 +10,7 @@ struct UpdateSheetTouchBarBridge: NSViewRepresentable {
         view.onCancel = onCancel
         view.onInstall = onInstall
         view.isUpdateDisabled = isUpdateDisabled
+        
         return view
     }
     

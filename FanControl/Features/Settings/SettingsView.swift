@@ -17,6 +17,7 @@ struct SettingsView: View {
             SettingsMenuBarSection()
             SettingsTemperatureSection()
             SettingsPowerSection()
+            SettingsRemoteControlSection(model: model)
             
             SettingsUpdatesSection(model: model)
             

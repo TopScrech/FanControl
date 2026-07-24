@@ -11,12 +11,15 @@
 		F3A812192F2189EB00D96952 /* ScrechKit in Frameworks */ = {isa = PBXBuildFile; productRef = F3A812182F2189EB00D96952 /* ScrechKit */; };
 		F3B0001A2F5A00010000000A /* FanControlHelper in Copy Helper */ = {isa = PBXBuildFile; fileRef = F3B0001A2F5A000100000001 /* FanControlHelper */; };
 		F3B0001A2F5A00010000000B /* FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist in Copy LaunchDaemons */ = {isa = PBXBuildFile; fileRef = F3B0001A2F5A000100000002 /* FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist */; };
+		F3C67B8930139AFD006CFD2E /* ScrechKit in Frameworks */ = {isa = PBXBuildFile; productRef = F3C67B8830139AFD006CFD2E /* ScrechKit */; };
 		F3D9A0012F70000100A0B001 /* CoreSMC in Frameworks */ = {isa = PBXBuildFile; productRef = F3D9A0042F70000100A0B001 /* CoreSMC */; };
 		F3D9A0022F70000100A0B001 /* CoreSMC in Frameworks */ = {isa = PBXBuildFile; productRef = F3D9A0042F70000100A0B001 /* CoreSMC */; };
 		F3E00C1A2F4EBFAC007EA814 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = F3E00C192F4EBFAC007EA814 /* LaunchAtLogin */; };
 		F3F100012F80000100C0D001 /* AutoUpdate in Frameworks */ = {isa = PBXBuildFile; productRef = F3F100032F80000100C0D001 /* AutoUpdate */; };
 		F40100012FA0000100C10001 /* fan in Copy CLI */ = {isa = PBXBuildFile; fileRef = F40100052FA0000100C10001 /* fan */; };
 		F40100022FA0000100C10001 /* CoreSMC in Frameworks */ = {isa = PBXBuildFile; productRef = F3D9A0042F70000100A0B001 /* CoreSMC */; };
+		F420000C2FC0000100D00001 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F319CCA42F58DE57006E44A3 /* Localizable.xcstrings */; };
+		F420000E2FC0000100D00001 /* FanControl/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F420000D2FC0000100D00001 /* FanControl/Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +78,8 @@
 		F3B0001A2F5A000100000001 /* FanControlHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FanControlHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B0001A2F5A000100000002 /* FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist; sourceTree = SOURCE_ROOT; };
 		F40100052FA0000100C10001 /* fan */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = fan; sourceTree = BUILT_PRODUCTS_DIR; };
+		F42000042FC0000100D00001 /* FanControl Remote.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FanControl Remote.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F420000D2FC0000100D00001 /* FanControl/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = FanControl/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -84,6 +89,13 @@
 				Info.plist,
 			);
 			target = F3A811FF2F2180AA00D96952 /* FanControl */;
+		};
+		F42000032FC0000100D00001 /* Exceptions for "FanControlRemote" folder in "FanControl Remote" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				README.md,
+			);
+			target = F42000082FC0000100D00001 /* FanControl Remote */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -111,6 +123,19 @@
 			path = CLI;
 			sourceTree = "<group>";
 		};
+		F42000012FC0000100D00001 /* RemoteShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = RemoteShared;
+			sourceTree = "<group>";
+		};
+		F42000022FC0000100D00001 /* FanControlRemote */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F42000032FC0000100D00001 /* Exceptions for "FanControlRemote" folder in "FanControl Remote" target */,
+			);
+			path = FanControlRemote;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +160,12 @@
 				F40100022FA0000100C10001 /* CoreSMC in Frameworks */,
 			);
 		};
+		F42000062FC0000100D00001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				F3C67B8930139AFD006CFD2E /* ScrechKit in Frameworks */,
+			);
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -148,9 +179,12 @@
 				F3B0001A2F5A000100000003 /* Shared */,
 				F3B0001A2F5A000100000004 /* FanControlHelper */,
 				F40100062FA0000100C10001 /* CLI */,
+				F42000012FC0000100D00001 /* RemoteShared */,
+				F42000022FC0000100D00001 /* FanControlRemote */,
 				F3609FBD2F4BB50200D5A1E1 /* LICENSE.txt */,
 				F3A812012F2180AA00D96952 /* Products */,
 				F3A814452F21AA9E00D96952 /* Recovered References */,
+				F3C67B8730139AFD006CFD2E /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -160,6 +194,7 @@
 				F40100052FA0000100C10001 /* fan */,
 				F3A812002F2180AA00D96952 /* FanControl.app */,
 				F3B0001A2F5A000100000001 /* FanControlHelper */,
+				F42000042FC0000100D00001 /* FanControl Remote.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -168,8 +203,16 @@
 			isa = PBXGroup;
 			children = (
 				F3B0001A2F5A000100000002 /* FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist */,
+				F420000D2FC0000100D00001 /* FanControl/Assets.xcassets */,
 			);
 			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		F3C67B8730139AFD006CFD2E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -196,6 +239,7 @@
 			fileSystemSynchronizedGroups = (
 				F3A812022F2180AA00D96952 /* FanControl */,
 				F3B0001A2F5A000100000003 /* Shared */,
+				F42000012FC0000100D00001 /* RemoteShared */,
 			);
 			name = FanControl;
 			packageProductDependencies = (
@@ -250,6 +294,28 @@
 			productReference = F40100052FA0000100C10001 /* fan */;
 			productType = "com.apple.product-type.tool";
 		};
+		F42000082FC0000100D00001 /* FanControl Remote */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F420000B2FC0000100D00001 /* Build configuration list for PBXNativeTarget "FanControl Remote" */;
+			buildPhases = (
+				F42000052FC0000100D00001 /* Sources */,
+				F42000062FC0000100D00001 /* Frameworks */,
+				F42000072FC0000100D00001 /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				F42000012FC0000100D00001 /* RemoteShared */,
+				F42000022FC0000100D00001 /* FanControlRemote */,
+			);
+			name = "FanControl Remote";
+			packageProductDependencies = (
+				F3C67B8830139AFD006CFD2E /* ScrechKit */,
+			);
+			productName = "FanControl Remote";
+			productReference = F42000042FC0000100D00001 /* FanControl Remote.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -263,12 +329,25 @@
 				TargetAttributes = {
 					F3A811FF2F2180AA00D96952 = {
 						CreatedOnToolsVersion = 26.2;
+						SystemCapabilities = {
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 					F3B0001A2F5A000100000005 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 					F401000A2FA0000100C10001 = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					F42000082FC0000100D00001 = {
+						CreatedOnToolsVersion = 27.0;
+						SystemCapabilities = {
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -304,6 +383,7 @@
 			projectRoot = "";
 			targets = (
 				F3A811FF2F2180AA00D96952 /* FanControl */,
+				F42000082FC0000100D00001 /* FanControl Remote */,
 				F401000A2FA0000100C10001 /* fan */,
 				F3B0001A2F5A000100000005 /* FanControlHelper */,
 			);
@@ -315,6 +395,13 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				F319CCA52F58DE67006E44A3 /* Localizable.xcstrings in Resources */,
+			);
+		};
+		F42000072FC0000100D00001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				F420000C2FC0000100D00001 /* Localizable.xcstrings in Resources */,
+				F420000E2FC0000100D00001 /* FanControl/Assets.xcassets in Resources */,
 			);
 		};
 /* End PBXResourcesBuildPhase section */
@@ -368,6 +455,11 @@
 			);
 		};
 		F40100082FA0000100C10001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		F42000052FC0000100D00001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
 			);
@@ -447,7 +539,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.5.21;
+				MARKETING_VERSION = 1.6;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -514,7 +606,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.5.21;
+				MARKETING_VERSION = 1.6;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
@@ -692,6 +784,76 @@
 			};
 			name = Release;
 		};
+		F42000092FC0000100D00001 /* Debug configuration for PBXNativeTarget "FanControl Remote" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FanControlRemote/FanControlRemote.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8FQUA2F388;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FanControl;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.topscrech.FanControl.remote;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F420000A2FC0000100D00001 /* Release configuration for PBXNativeTarget "FanControl Remote" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FanControlRemote/FanControlRemote.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8FQUA2F388;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FanControl;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.topscrech.FanControl.remote;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -724,6 +886,14 @@
 			buildConfigurations = (
 				F401000B2FA0000100C10001 /* Debug configuration for PBXNativeTarget "fan" */,
 				F401000C2FA0000100C10001 /* Release configuration for PBXNativeTarget "fan" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		F420000B2FC0000100D00001 /* Build configuration list for PBXNativeTarget "FanControl Remote" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F42000092FC0000100D00001 /* Debug configuration for PBXNativeTarget "FanControl Remote" */,
+				F420000A2FC0000100D00001 /* Release configuration for PBXNativeTarget "FanControl Remote" */,
 			);
 			defaultConfigurationName = Release;
 		};
@@ -766,6 +936,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		F3A812182F2189EB00D96952 /* ScrechKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F3A812172F2189EB00D96952 /* XCRemoteSwiftPackageReference "ScrechKit" */;
+			productName = ScrechKit;
+		};
+		F3C67B8830139AFD006CFD2E /* ScrechKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F3A812172F2189EB00D96952 /* XCRemoteSwiftPackageReference "ScrechKit" */;
 			productName = ScrechKit;

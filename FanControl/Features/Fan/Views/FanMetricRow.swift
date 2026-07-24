@@ -17,7 +17,7 @@ struct FanMetricRow: View {
         HStack(spacing: 12) {
             if let systemImage {
                 Image(systemName: systemImage)
-                    .foregroundStyle(.secondary)
+                    .secondary()
                     .frame(width: 22)
             }
             
