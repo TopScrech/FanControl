@@ -14,6 +14,7 @@ struct RemoteFanControlView: View {
                 Spacer()
                 
                 Text(fan.currentRPM, format: .number.precision(.fractionLength(0)))
+                    .monospacedDigit()
                 
                 Text("RPM")
                     .secondary()
