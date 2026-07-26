@@ -90,13 +90,6 @@
 			);
 			target = F3A811FF2F2180AA00D96952 /* FanControl */;
 		};
-		F42000032FC0000100D00001 /* Exceptions for "FanControlRemote" folder in "FanControl Remote" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				README.md,
-			);
-			target = F42000082FC0000100D00001 /* FanControl Remote */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -130,9 +123,6 @@
 		};
 		F42000022FC0000100D00001 /* FanControlRemote */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				F42000032FC0000100D00001 /* Exceptions for "FanControlRemote" folder in "FanControl Remote" target */,
-			);
 			path = FanControlRemote;
 			sourceTree = "<group>";
 		};
