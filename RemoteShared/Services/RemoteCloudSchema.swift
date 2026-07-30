@@ -1,5 +1,3 @@
-import Foundation
-
 enum RemoteCloudSchema {
     static let containerIdentifier = "iCloud.dev.topscrech.FanControl"
     static let macRecordType = "RemoteMac"

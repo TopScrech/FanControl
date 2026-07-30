@@ -1,5 +1,3 @@
-import Foundation
-
 struct RemoteFanState: Codable, Hashable, Identifiable, Sendable {
     let id: Int
     let minRPM: Double

@@ -1,7 +1,11 @@
 import ScrechKit
 
 struct SettingsLanguageSection: View {
-    @Binding var preferredAppLanguageRawValue: String
+    @Binding private var preferredAppLanguageRawValue: String
+    
+    init(_ preferredAppLanguageRawValue: Binding<String>) {
+        _preferredAppLanguageRawValue = preferredAppLanguageRawValue
+    }
     
     var body: some View {
         Section("Language") {

@@ -1,5 +1,4 @@
 import ScrechKit
-import CoreSMC
 
 struct SettingsView: View {
     @AppStorage("keepsWindowOnTop") private var keepsWindowOnTop = false
@@ -13,7 +12,7 @@ struct SettingsView: View {
             ShareWebsiteButton()
             SettingsLicenseSection(model: model)
             SettingsLaunchSection()
-            SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
+            SettingsLanguageSection($preferredAppLanguageRawValue)
             SettingsMenuBarSection()
             SettingsTemperatureSection()
             SettingsPowerSection()
@@ -53,18 +52,6 @@ struct SettingsView: View {
             }
         } message: {
             Text($0.message)
-        }
-    }
-    
-    private func cancelUpdate() {
-        Task {
-            await model.dismissUpdatePrompt()
-        }
-    }
-    
-    private func installPreparedUpdate() {
-        Task {
-            await model.installPreparedUpdate()
         }
     }
 }
