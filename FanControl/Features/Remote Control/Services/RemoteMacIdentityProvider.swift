@@ -13,6 +13,6 @@ enum RemoteMacIdentityProvider {
     }
     
     nonisolated static func name() -> String {
-        ProcessInfo.processInfo.hostName
+        Host.current().localizedName ?? ProcessInfo.processInfo.hostName
     }
 }
