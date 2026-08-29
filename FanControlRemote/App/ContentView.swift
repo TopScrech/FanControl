@@ -73,10 +73,12 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .safeAreaInset(edge: .bottom) {
-            Button("Done", systemImage: "checkmark") {
+            Button {
                 hasEnabledRemoteControl = true
+            } label: {
+                Label("Done", systemImage: "checkmark")
+                    .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity)
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .padding()

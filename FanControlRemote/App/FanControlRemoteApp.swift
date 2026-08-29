@@ -7,16 +7,21 @@ struct FanControlRemoteApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if hasEnabledRemoteControl {
-                NavigationStack {
-                    RemoteMacList(model: model)
+            ZStack {
+                if hasEnabledRemoteControl {
+                    NavigationStack {
+                        RemoteMacList(model: model)
+                    }
+                    .task {
+                        await model.observe()
+                    }
+                    .transition(.opacity)
+                } else {
+                    ContentView()
+                        .transition(.opacity)
                 }
-                .task {
-                    await model.observe()
-                }
-            } else {
-                ContentView()
             }
+            .animation(.smooth, value: hasEnabledRemoteControl)
         }
     }
 }

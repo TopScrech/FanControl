@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct RemoteMacList: View {
+    @AppStorage("hasEnabledRemoteControl") private var hasEnabledRemoteControl = false
+
     @Bindable var model: RemoteControlViewModel
     
     var body: some View {
@@ -24,6 +26,14 @@ struct RemoteMacList: View {
         .navigationTitle("FanControl")
         .navigationDestination(for: String.self) {
             RemoteMacDetailView(macID: $0, model: model)
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Show Setup", systemImage: "questionmark.circle") {
+                    hasEnabledRemoteControl = false
+                }
+                .labelStyle(.iconOnly)
+            }
         }
         .refreshable {
             await model.refresh()
