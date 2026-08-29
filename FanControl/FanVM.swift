@@ -48,6 +48,7 @@ final class FanVM {
     var menuBarUpdateStatusAlert: UpdateStatusAlert?
     var helperConnectionStatus = HelperConnectionStatus.unavailable
     var remoteControlStatusText = String(localized: "Disabled")
+    
     var isRemoteControlEnabled = UserDefaults.standard.bool(forKey: FanVM.remoteControlEnabledDefaultsKey) {
         didSet {
             UserDefaults.standard.set(isRemoteControlEnabled, forKey: Self.remoteControlEnabledDefaultsKey)
@@ -480,7 +481,7 @@ final class FanVM {
         guard let authorityLine = description
             .split(separator: "\n")
             .first(where: { $0.hasPrefix("Authority=") })
-        else {
+                else {
             return nil
         }
         
@@ -506,7 +507,7 @@ final class FanVM {
         Self.logger.info("Refresh starting")
         
         var refreshError: Error?
-
+        
         if shouldReadFansNow(), let smc = activeService {
             do {
                 let snapshots = try await smc.readFans()
@@ -1108,7 +1109,7 @@ final class FanVM {
             remoteControlStatusText = String(localized: "Disabled")
             return
         }
-
+        
         remoteControlHost.start(
             deviceID: RemoteMacIdentityProvider.identifier(),
             name: RemoteMacIdentityProvider.name(),
@@ -1124,7 +1125,7 @@ final class FanVM {
             }
         )
     }
-
+    
     private var remoteFanStates: [RemoteFanState] {
         fans.map {
             RemoteFanState(
@@ -1138,41 +1139,41 @@ final class FanVM {
             )
         }
     }
-
+    
     private func remoteActiveAction(for fan: Fan) -> RemoteFanAction? {
         if (fan.mode == 0 || fan.mode == 3) && !holdingManualOverride {
             return .automatic
         }
-
+        
         if Self.rpmMatches(fan.targetRPM, fan.minRPM) {
             return .minimum
         }
-
+        
         if Self.rpmMatches(fan.targetRPM, fan.maxRPM) {
             return .maximum
         }
-
+        
         return nil
     }
-
+    
     private func handleRemoteCommand(_ command: RemoteFanCommand) async throws {
         guard isRemoteControlEnabled else { return }
-
+        
         let actionToken = startControlAction()
         let targetFans = command.fanID == RemoteFanCommand.allFansID
-            ? fans
-            : fans.filter { $0.id == command.fanID }
+        ? fans
+        : fans.filter { $0.id == command.fanID }
         guard !targetFans.isEmpty else { throw RemoteControlHostError.fanUnavailable }
-
+        
         let helperStatus = await ensureHelperConnected()
         guard let smc = writeService else {
             Self.logger.error("Remote command rejected: helper status=\(String(describing: helperStatus))")
             throw RemoteControlHostError.helperUnavailable
         }
-
+        
         let targetFanIDs = targetFans.map(\.id)
         customPresetStore.setEnabled(false, fanIDs: targetFanIDs)
-
+        
         switch command.action {
         case .automatic:
             for fan in targetFans {
@@ -1184,12 +1185,12 @@ final class FanVM {
                 try await smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
             }
         }
-
+        
         holdingManualOverride = command.action == .automatic
-            ? customPresetStore.hasEnabledPresets
-            : true
+        ? customPresetStore.hasEnabledPresets
+        : true
         await refresh()
-
+        
         if command.action != .automatic {
             scheduleRemoteManualRetries(
                 action: command.action,
@@ -1198,10 +1199,10 @@ final class FanVM {
                 actionToken: actionToken
             )
         }
-
+        
         Self.logger.info("Remote command applied action=\(command.action.rawValue) fans=\(String(describing: targetFanIDs))")
     }
-
+    
     private func scheduleRemoteManualRetries(
         action: RemoteFanAction,
         targetFans: [Fan],
@@ -1210,19 +1211,19 @@ final class FanVM {
     ) {
         remoteManualRetryTask = Task { [weak self] in
             guard let self else { return }
-
+            
             for attempt in 2...Self.manualRetryAttempts {
                 do {
                     try await Task.sleep(for: Self.manualRetryInterval)
                 } catch {
                     return
                 }
-
+                
                 guard isControlActionCurrent(actionToken) else { return }
-
+                
                 for fan in targetFans {
                     let rpm = action == .minimum ? fan.minRPM : fan.maxRPM
-
+                    
                     do {
                         try await smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
                     } catch {
@@ -1234,7 +1235,7 @@ final class FanVM {
             }
         }
     }
-
+    
     private func resetFansForAutomaticControl(reason: String) async {
         let targetFans = fans
         
@@ -1616,7 +1617,7 @@ final class FanVM {
             let lastAutomaticUpdateCheckDate = UserDefaults.standard.object(
                 forKey: Self.lastAutomaticUpdateCheckDateDefaultsKey
             ) as? Date
-        else {
+                else {
             return true
         }
         
@@ -1628,7 +1629,7 @@ final class FanVM {
             let lastAutomaticUpdateCheckDate = UserDefaults.standard.object(
                 forKey: Self.lastAutomaticUpdateCheckDateDefaultsKey
             ) as? Date
-        else {
+                else {
             return 0
         }
         
@@ -1675,7 +1676,7 @@ final class FanVM {
         guard
             let currentVersion = currentAppSemanticVersion(),
             let targetVersion = targetRelease.semanticVersion
-        else {
+                else {
             return [changelogEntry(for: targetRelease)]
         }
         
@@ -1746,7 +1747,7 @@ final class FanVM {
             let host = components.host,
             !scheme.isEmpty,
             !host.isEmpty
-        else {
+                else {
             return nil
         }
         
@@ -2085,15 +2086,15 @@ System plist exists: %@
         errorAlert = nil
         errorExpiryDate = nil
     }
-
+    
     private func shouldReadFansNow(at now: Date = Date()) -> Bool {
         now >= nextFanReadDate
     }
-
+    
     private func deferFanReads(for seconds: TimeInterval, from now: Date = Date()) {
         nextFanReadDate = max(nextFanReadDate, now.addingTimeInterval(seconds))
     }
-
+    
     private func resetFanReadBackoff() {
         nextFanReadDate = .distantPast
     }
