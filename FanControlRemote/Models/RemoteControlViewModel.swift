@@ -10,8 +10,24 @@ final class RemoteControlViewModel {
     private static let refreshInterval: Duration = .seconds(1)
     private static let logger = Logger(subsystem: "FanControlRemote", category: "Discovery")
     private let store = RemoteCloudStore()
+    private let isDemo: Bool
+
+    init() {
+        isDemo = false
+    }
+
+    private init(demoMac: RemoteMacState) {
+        isDemo = true
+        macs = [demoMac]
+    }
+
+    static func demo() -> RemoteControlViewModel {
+        RemoteControlViewModel(demoMac: .demoMacBookPro)
+    }
 
     func observe() async {
+        guard !isDemo else { return }
+
         while !Task.isCancelled {
             await refresh()
 
@@ -24,6 +40,8 @@ final class RemoteControlViewModel {
     }
 
     func refresh() async {
+        guard !isDemo else { return }
+
         isRefreshing = true
         defer { isRefreshing = false }
 
@@ -41,6 +59,11 @@ final class RemoteControlViewModel {
 
     func send(action: RemoteFanAction, fanID: Int, to mac: RemoteMacState) async {
         guard pendingCommand == nil else { return }
+
+        if isDemo {
+            await sendDemo(action: action, fanID: fanID, to: mac)
+            return
+        }
 
         do {
             let command = try await store.sendCommand(deviceID: mac.id, fanID: fanID, action: action)
@@ -99,6 +122,64 @@ final class RemoteControlViewModel {
     
     private func clearPendingCommand() {
         withAnimation(.easeInOut(duration: 0.2)) {
+            pendingCommand = nil
+        }
+    }
+
+    private func sendDemo(action: RemoteFanAction, fanID: Int, to mac: RemoteMacState) async {
+        let command = RemoteFanCommand(
+            id: UUID().uuidString,
+            deviceID: mac.id,
+            fanID: fanID,
+            action: action,
+            createdAt: .now,
+            status: .pending,
+            errorMessage: nil
+        )
+
+        withAnimation(.easeInOut(duration: 0.2)) {
+            pendingCommand = command
+        }
+
+        do {
+            try await Task.sleep(for: .milliseconds(350))
+        } catch {
+            clearPendingCommand()
+            return
+        }
+
+        let updatedFans = mac.fans.map {
+            guard fanID == RemoteFanCommand.allFansID || $0.id == fanID else { return $0 }
+
+            let rpm = switch action {
+            case .automatic:
+                $0.minRPM + (($0.maxRPM - $0.minRPM) * 0.2)
+            case .minimum:
+                $0.minRPM
+            case .maximum:
+                $0.maxRPM
+            }
+
+            return RemoteFanState(
+                id: $0.id,
+                minRPM: $0.minRPM,
+                maxRPM: $0.maxRPM,
+                currentRPM: rpm,
+                targetRPM: rpm,
+                mode: action == .automatic ? 0 : 1,
+                activeAction: action
+            )
+        }
+
+        let updatedMac = RemoteMacState(
+            id: mac.id,
+            name: mac.name,
+            updatedAt: .now,
+            fans: updatedFans
+        )
+
+        withAnimation(.easeInOut(duration: 0.2)) {
+            macs = macs.map { $0.id == mac.id ? updatedMac : $0 }
             pendingCommand = nil
         }
     }

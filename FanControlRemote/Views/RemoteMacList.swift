@@ -27,12 +27,27 @@ struct RemoteMacList: View {
         .navigationDestination(for: String.self) {
             RemoteMacDetailView(macID: $0, model: model)
         }
+        .navigationDestination(for: RemoteNavigationDestination.self) {
+            switch $0 {
+            case .settings:
+                RemoteSettingsView()
+            case .demo:
+                DemoMacListView()
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Show Setup", systemImage: "questionmark.circle") {
                     hasEnabledRemoteControl = false
                 }
                 .labelStyle(.iconOnly)
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(value: RemoteNavigationDestination.settings) {
+                    Label("Settings", systemImage: "gearshape")
+                        .labelStyle(.iconOnly)
+                }
             }
         }
         .refreshable {
