@@ -62,6 +62,14 @@ struct ContentView: View {
                         ) {
                             EmptyView()
                         }
+
+                        SetupStepView(
+                            number: 3,
+                            title: "Enable Background Activity",
+                            detail: "Adjust fan speed and allow background activity when requested by the system. Missed the alert? Enable FanControl in System Settings → General → Login Items → Allow in Background"
+                        ) {
+                            EmptyView()
+                        }
                     }
                     .padding(.top)
 
@@ -76,7 +84,9 @@ struct ContentView: View {
             Button {
                 hasEnabledRemoteControl = true
             } label: {
-                Label("Done", systemImage: "checkmark")
+                Text("Done")
+                    .font(.title3)
+                    .bold()
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
