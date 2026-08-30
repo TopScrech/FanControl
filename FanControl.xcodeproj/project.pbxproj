@@ -74,6 +74,7 @@
 		F3609F9B2F4BAD0300D5A1E1 /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 		F3609FBC2F4BB4F000D5A1E1 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		F3609FBD2F4BB50200D5A1E1 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
+		F3657EAF3044DC2400E015C5 /* FanControl-Remote-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "FanControl-Remote-Info.plist"; sourceTree = "<group>"; };
 		F3A812002F2180AA00D96952 /* FanControl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FanControl.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B0001A2F5A000100000001 /* FanControlHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FanControlHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B0001A2F5A000100000002 /* FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist; sourceTree = SOURCE_ROOT; };
@@ -162,6 +163,7 @@
 		F3A811F72F2180AA00D96952 = {
 			isa = PBXGroup;
 			children = (
+				F3657EAF3044DC2400E015C5 /* FanControl-Remote-Info.plist */,
 				F3609FBC2F4BB4F000D5A1E1 /* README.md */,
 				F3609F9B2F4BAD0300D5A1E1 /* AGENTS.md */,
 				F319CCA42F58DE57006E44A3 /* Localizable.xcstrings */,
@@ -784,7 +786,9 @@
 				DEVELOPMENT_TEAM = 8FQUA2F388;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "FanControl-Remote-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = FanControl;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -821,7 +825,9 @@
 				DEVELOPMENT_TEAM = 8FQUA2F388;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "FanControl-Remote-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = FanControl;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
