@@ -4,7 +4,7 @@ import SwiftUI
 struct FanControlRemoteApp: App {
     @AppStorage("hasEnabledRemoteControl") private var hasEnabledRemoteControl = false
     @State private var model = RemoteControlViewModel()
-
+    
     var body: some Scene {
         WindowGroup {
             ZStack {
@@ -17,8 +17,10 @@ struct FanControlRemoteApp: App {
                     }
                     .transition(.opacity)
                 } else {
-                    ContentView()
-                        .transition(.opacity)
+                    NavigationStack {
+                        ContentView()
+                    }
+                    .transition(.opacity)
                 }
             }
             .animation(.smooth, value: hasEnabledRemoteControl)
