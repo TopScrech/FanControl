@@ -4,7 +4,7 @@ struct ContentView: View {
     @AppStorage("hasEnabledRemoteControl") private var hasEnabledRemoteControl = false
     @State private var didCopyLink = false
     
-    private let websiteURL = URL(string: "https://fancontrol.dev")
+    private let websiteURL = URL(string: "https://fancontrol.dev?source=fancontrol-ios")
     
     var body: some View {
         ScrollView {
