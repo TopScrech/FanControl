@@ -112,7 +112,7 @@ final class FanVM {
         }
     }
     
-    var licenseStatusText = String(localized: "No saved license")
+    var licenseStatusText = String(localized: "Not activated")
     let deviceName: String
     let isMacBook: Bool
     
@@ -731,20 +731,24 @@ final class FanVM {
         }
     }
     
-    func verifyLicenseNow() async {
+    func verifyLicenseNow() async -> LicenseVerificationAlert? {
         let email = self.licenseEmail.trimmingCharacters(in: .whitespacesAndNewlines)
         let licenseKey = self.licenseKey.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !email.isEmpty, !licenseKey.isEmpty else {
             licenseStatusText = String(localized: "Email and license key are required")
             isLicenseActive = false
-            return
+            return LicenseVerificationAlert(
+                title: String(localized: "License verification failed"),
+                message: licenseStatusText
+            )
         }
         
-        await verifyLicense(
+        return await verifyLicense(
             email: email,
             licenseKey: licenseKey,
-            shouldSaveCredentials: true
+            shouldSaveCredentials: true,
+            presentsServiceErrors: false
         )
     }
     
@@ -767,7 +771,7 @@ final class FanVM {
             licenseEmail = ""
             licenseKey = ""
             isLicenseActive = false
-            licenseStatusText = String(localized: "No saved license")
+            licenseStatusText = String(localized: "Not activated")
         } catch {
             presentError(error.localizedDescription)
         }
@@ -1583,7 +1587,8 @@ final class FanVM {
         await verifyLicense(
             email: savedCredentials.email,
             licenseKey: savedCredentials.licenseKey,
-            shouldSaveCredentials: false
+            shouldSaveCredentials: false,
+            presentsServiceErrors: true
         )
     }
     
@@ -1780,9 +1785,10 @@ final class FanVM {
     private func verifyLicense(
         email: String,
         licenseKey: String,
-        shouldSaveCredentials: Bool
-    ) async {
-        guard !isCheckingLicense else { return }
+        shouldSaveCredentials: Bool,
+        presentsServiceErrors: Bool
+    ) async -> LicenseVerificationAlert? {
+        guard !isCheckingLicense else { return nil }
         
         isCheckingLicense = true
         defer { isCheckingLicense = false }
@@ -1817,20 +1823,38 @@ final class FanVM {
                     licenseKey: licenseKey
                 )
             }
+
+            return LicenseVerificationAlert(
+                title: result.valid
+                    ? String(localized: "License verified")
+                    : String(localized: "License verification failed"),
+                message: licenseStatusText
+            )
         } catch {
             if applyOfflineGracePeriodIfAvailable() {
-                return
+                return LicenseVerificationAlert(
+                    title: String(localized: "License verification failed"),
+                    message: error.localizedDescription
+                )
             }
-            
+
             isLicenseActive = false
             licenseStatusText = expiredLicenseGracePeriodStatusText() ?? String(localized: "License check failed")
-            presentError(error.localizedDescription)
+
+            if presentsServiceErrors {
+                presentError(error.localizedDescription)
+            }
+
+            return LicenseVerificationAlert(
+                title: String(localized: "License verification failed"),
+                message: error.localizedDescription
+            )
         }
     }
     
     private func loadStoredLicenseState() {
         guard let savedCredentials = licenseCredentialStore.loadCredentials() else {
-            licenseStatusText = String(localized: "No saved license")
+            licenseStatusText = String(localized: "Not activated")
             isLicenseActive = false
             return
         }

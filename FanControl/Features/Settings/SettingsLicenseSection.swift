@@ -1,6 +1,8 @@
 import ScrechKit
 
 struct SettingsLicenseSection: View {
+    private static let licenseKeyLength = 33
+
     @Environment(\.openURL) private var openURL
     
     private enum Field: Hashable {
@@ -10,6 +12,8 @@ struct SettingsLicenseSection: View {
     @Bindable var model: FanVM
     
     @State private var isResetConfirmationPresented = false
+    @State private var isVerificationAlertPresented = false
+    @State private var verificationAlert: LicenseVerificationAlert?
     @FocusState private var focusedField: Field?
     
     private let buyURL = URL(string: "https://fancontrol.dev")!
@@ -22,6 +26,10 @@ struct SettingsLicenseSection: View {
             
             SecureField("License key", text: $model.licenseKey)
                 .focused($focusedField, equals: .licenseKey)
+                .onChange(of: model.licenseKey) { _, licenseKey in
+                    guard licenseKey.count == Self.licenseKeyLength else { return }
+                    verifyLicense()
+                }
                 .onSubmit(verifyLicense)
             
             LabeledContent("Status", value: model.licenseStatusText)
@@ -63,6 +71,17 @@ struct SettingsLicenseSection: View {
         } message: {
             Text("This removes the saved email and license key from this Mac and unregisters this device")
         }
+        .alert(
+            verificationAlert?.title ?? "",
+            isPresented: $isVerificationAlertPresented,
+            presenting: verificationAlert
+        ) { _ in
+            Button("OK", role: .cancel) {
+                verificationAlert = nil
+            }
+        } message: {
+            Text($0.message)
+        }
         .task {
             focusedField = nil
         }
@@ -70,7 +89,9 @@ struct SettingsLicenseSection: View {
     
     private func verifyLicense() {
         Task {
-            await model.verifyLicenseNow()
+            guard let alert = await model.verifyLicenseNow() else { return }
+            verificationAlert = alert
+            isVerificationAlertPresented = true
         }
     }
     
