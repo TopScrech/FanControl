@@ -6,7 +6,7 @@ struct SettingsLicenseSection: View {
     @Environment(\.openURL) private var openURL
     
     private enum Field: Hashable {
-        case email, licenseKey
+        case initial, email, licenseKey
     }
     
     @Bindable var model: FanVM
@@ -82,9 +82,14 @@ struct SettingsLicenseSection: View {
         } message: {
             Text($0.message)
         }
-        .task {
-            focusedField = nil
+        .background {
+            Color.clear
+                .focusable()
+                .focused($focusedField, equals: .initial)
+                .focusEffectDisabled()
+                .accessibilityHidden(true)
         }
+        .defaultFocus($focusedField, .initial)
     }
     
     private func verifyLicense() {
