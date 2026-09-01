@@ -11,14 +11,12 @@ struct SettingsView: View {
         Form {
             ShareWebsiteButton()
             SettingsLicenseSection(model: model)
+            SettingsRemoteControlSection(model: model)
+            SettingsUpdatesSection(model: model)
             SettingsLaunchSection()
             SettingsLanguageSection($preferredAppLanguageRawValue)
             SettingsMenuBarSection()
             SettingsTemperatureSection()
-            SettingsPowerSection()
-            SettingsRemoteControlSection(model: model)
-            
-            SettingsUpdatesSection(model: model)
             
             if model.isDebugSectionVisible {
                 SettingsDebugSection(model: model)
