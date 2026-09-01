@@ -316,7 +316,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2640;
+				LastUpgradeCheck = 2700;
 				ORGANIZATIONNAME = FanControl;
 				TargetAttributes = {
 					F3A811FF2F2180AA00D96952 = {
@@ -813,7 +813,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 1;
+				XROS_DEPLOYMENT_TARGET = 2;
 			};
 			name = Debug;
 		};
@@ -854,7 +854,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 1;
+				XROS_DEPLOYMENT_TARGET = 2;
 			};
 			name = Release;
 		};
