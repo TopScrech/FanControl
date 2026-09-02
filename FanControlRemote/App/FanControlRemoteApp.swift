@@ -3,7 +3,7 @@ import SwiftUI
 @main
 struct FanControlRemoteApp: App {
     @AppStorage("hasEnabledRemoteControl") private var hasEnabledRemoteControl = false
-    @State private var model = RemoteControlViewModel()
+    @State private var model = RemoteControlVM()
     
     var body: some Scene {
         WindowGroup {
