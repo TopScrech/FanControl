@@ -10,9 +10,9 @@ struct SettingsView: View {
     var body: some View {
         Form {
             ShareWebsiteButton()
-            SettingsLicenseSection(model: model)
             SettingsRemoteControlSection(model: model)
             SettingsUpdatesSection(model: model)
+            SettingsLicenseSection(model: model)
             SettingsLaunchSection()
             SettingsLanguageSection($preferredAppLanguageRawValue)
             SettingsMenuBarSection()

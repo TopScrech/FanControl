@@ -5,7 +5,7 @@ struct SettingsRemoteControlSection: View {
     
     var body: some View {
         Section {
-            Toggle("Allow control from iPhone", isOn: $model.isRemoteControlEnabled)
+            Toggle("Remote control", isOn: $model.isRemoteControlEnabled)
         } header: {
             HStack {
                 Text("Remote control")
