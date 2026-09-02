@@ -18,7 +18,7 @@ struct FanControlRemoteApp: App {
                     .transition(.opacity)
                 } else {
                     NavigationStack {
-                        ContentView()
+                        OnboardingView()
                     }
                     .transition(.opacity)
                 }

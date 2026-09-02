@@ -1,6 +1,6 @@
 import ScrechKit
 
-struct ContentView: View {
+struct OnboardingView: View {
     @AppStorage("hasEnabledRemoteControl") private var hasEnabledRemoteControl = false
     @State private var didCopyLink = false
     
@@ -57,7 +57,6 @@ struct ContentView: View {
                     }
                 }
                 .padding(.top)
-                
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
