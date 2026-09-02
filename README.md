@@ -12,7 +12,10 @@ Control fan speed with ease on any Apple Silicon Mac
 
 ## Supported platforms
 - macOS 14+
-- iOS 18+ for the FanControl Remote target
+
+**FanControl Remote**
+- iOS 18+
+- visionOS 2+
 
 ## Remote control
 
