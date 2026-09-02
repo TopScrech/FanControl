@@ -3,7 +3,7 @@ import SwiftUI
 struct RemoteFanActionButtons: View {
     let fanID: Int
     let mac: RemoteMacState
-    @Bindable var model: RemoteControlVM
+    @Bindable var model: RemoteControlViewModel
     
     var body: some View {
         HStack {

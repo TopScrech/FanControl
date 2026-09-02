@@ -2,7 +2,7 @@ import SwiftUI
 
 struct RemoteMacDetailView: View {
     let macID: String
-    @Bindable var model: RemoteControlVM
+    @Bindable var model: RemoteControlViewModel
 
     var body: some View {
         Group {

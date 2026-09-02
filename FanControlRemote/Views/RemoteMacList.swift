@@ -3,7 +3,7 @@ import SwiftUI
 struct RemoteMacList: View {
     @AppStorage("hasEnabledRemoteControl") private var hasEnabledRemoteControl = false
 
-    @Bindable var model: RemoteControlVM
+    @Bindable var model: RemoteControlViewModel
     
     var body: some View {
         Group {
@@ -29,8 +29,10 @@ struct RemoteMacList: View {
         }
         .navigationDestination(for: RemoteNavigationDestination.self) {
             switch $0 {
-            case .settings: RemoteSettingsView()
-            case .demo: DemoMacListView()
+            case .settings:
+                RemoteSettingsView()
+            case .demo:
+                DemoMacListView()
             }
         }
         .toolbar {

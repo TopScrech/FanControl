@@ -2,7 +2,7 @@ import OSLog
 import SwiftUI
 
 @Observable
-final class RemoteControlVM {
+final class RemoteControlViewModel {
     var macs: [RemoteMacState] = []
     var isRefreshing = false
     var pendingCommand: RemoteFanCommand?
@@ -21,8 +21,8 @@ final class RemoteControlVM {
         macs = [demoMac]
     }
 
-    static func demo() -> RemoteControlVM {
-        RemoteControlVM(demoMac: .demoMacBookPro)
+    static func demo() -> RemoteControlViewModel {
+        RemoteControlViewModel(demoMac: .demoMacBookPro)
     }
 
     func observe() async {

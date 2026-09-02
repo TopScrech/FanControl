@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DemoMacListView: View {
-    @State private var model = RemoteControlVM.demo()
+    @State private var model = RemoteControlViewModel.demo()
 
     var body: some View {
         List(model.macs) { mac in

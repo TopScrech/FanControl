@@ -2,7 +2,7 @@ import ScrechKit
 
 struct RemoteAllFansControlView: View {
     let mac: RemoteMacState
-    @Bindable var model: RemoteControlVM
+    @Bindable var model: RemoteControlViewModel
 
     var body: some View {
         VStack(alignment: .leading) {
