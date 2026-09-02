@@ -68,7 +68,3 @@ Requires Xcode 26.4+ and access to the private [CoreSMC](https://github.com/TopS
 - [AutoUpdate](https://github.com/TopScrech/AutoUpdate)
 - [ScrechKit](https://github.com/TopScrech/TopScrech) - SwiftUI tweaks
 - [LaunchAtLogin](https://github.com/TopScrech/LaunchAtLogin)
-
-## Related links
-- [Front-end](https://fancontrol.dev)
-- [Front-end project](https://github.com/TopScrech/FanControl-dev)
