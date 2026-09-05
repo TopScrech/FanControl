@@ -12,5 +12,13 @@
 	</array>
 	<key>com.apple.developer.ubiquity-kvstore-identifier</key>
 	<string>$(TeamIdentifierPrefix)dev.topscrech.FanControl</string>
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+	<array>
+		<string>dev.topscrech.FanControl.component.helper</string>
+	</array>
 </dict>
 </plist>

@@ -1,3 +1,4 @@
+#if !SANDBOXED_APP
 import Foundation
 import ServiceManagement
 import OSLog
@@ -77,3 +78,5 @@ struct SMCHelperInstaller {
         return String(authorityLine.dropFirst("Authority=".count))
     }
 }
+
+#endif

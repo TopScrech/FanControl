@@ -4,7 +4,7 @@ struct FanPresetMenu: View {
     @Bindable var model: FanVM
     
     @State private var showsPresetMenu = false
-    @State private var showsLicenseAlert = false
+    // License alert disabled
     
     var body: some View {
         Group {
@@ -27,11 +27,7 @@ struct FanPresetMenu: View {
         .monospacedDigit()
         .frame(maxWidth: .infinity)
         .disabled(model.controlPresetRPMs.isEmpty && model.temperatureSensors.isEmpty)
-        .help(
-            model.canUsePresetControl
-            ? String(localized: "Preset control")
-            : String(localized: "Preset control requires an active license")
-        )
+        .help("Preset control")
         .popover(isPresented: $showsPresetMenu, arrowEdge: .bottom) {
             VStack(alignment: .leading, spacing: 12) {
                 FanCustomPresetEditor(model: model) {
@@ -52,22 +48,13 @@ struct FanPresetMenu: View {
             .padding()
             .frame(width: 320)
         }
-        .alert(String(localized: "License required"), isPresented: $showsLicenseAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Activate your license in Settings to use presets")
-        }
     }
-    
+
     private func showPresetMenuOrLicenseAlert() {
-        if model.canUsePresetControl {
-            showsPresetMenu.toggle()
-            return
-        }
-        
-        showsLicenseAlert = true
+        // License purchasing gate disabled
+        showsPresetMenu.toggle()
     }
-    
+
     private var buttonTitle: String {
         if model.activeControlMode == .custom, let customPresetPercentageText = model.selectedCustomPresetPercentageText {
             String(localized: "Preset \(customPresetPercentageText)")

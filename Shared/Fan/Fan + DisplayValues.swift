@@ -1,5 +1,7 @@
 import Foundation
+#if !SANDBOXED_APP
 import CoreSMC
+#endif
 
 extension Fan {
     var userFacingID: Int {

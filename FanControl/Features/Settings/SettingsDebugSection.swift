@@ -19,18 +19,6 @@ struct SettingsDebugSection: View {
             
             LabeledContent(String("Helper status"), value: model.helperConnectionStatusText)
             
-            Button(action: model.presentFakeUpdatePrompt) {
-                LabeledContent {
-                    Image(systemName: "arrow.trianglehead.clockwise")
-                } label: {
-                    Text(String("Show fake update alert"))
-                }
-            }
-            
-            Button(String("Check for updates in 2 seconds"), systemImage: "clock.badge.exclamationmark") {
-                model.scheduleDebugUpdateCheck()
-            }
-            
             Button(action: copyDebugText) {
                 LabeledContent {
                     Image(systemName: "document.on.document")

@@ -11,9 +11,9 @@ struct MenuBarContentViewHeader: View {
                 Text("FanControl")
                     .title3(.semibold)
                 
-                if !model.isLicenseActive {
-                    LicenseInactiveBadge()
-                }
+//                 if !model.isLicenseActive {
+//                     LicenseInactiveBadge()
+//                 }
             }
             
             Spacer(minLength: 0)

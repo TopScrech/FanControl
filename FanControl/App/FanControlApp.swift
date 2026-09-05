@@ -1,10 +1,7 @@
 import SwiftUI
-import LaunchAtLogin
 
 @main
 struct FanControlApp: App {
-    private static let didConfigureLaunchAtLoginDefaultsKey = "didConfigureLaunchAtLoginOnFirstLaunch"
-    private static let appLaunchReportSender = AppLaunchReportSender()
     
     @NSApplicationDelegateAdaptor(AppTerminationDelegate.self) private var appTerminationDelegate
     @State private var model = FanVM()
@@ -16,9 +13,9 @@ struct FanControlApp: App {
     @State private var didApplyLaunchWindowPreference = false
     
     init() {
-        configureLaunchAtLoginIfNeeded()
-        AppDownloadsMovePrompter.promptIfNeeded()
-        EmbeddedCLIToolInstaller.installIfNeeded()
+        // Launch at login is opt-in through Settings
+        // Component installation is handled by its external installer
+        // No external executables are installed by the sandboxed app
     }
     
     var body: some Scene {
@@ -35,7 +32,7 @@ struct FanControlApp: App {
                 .frame(minHeight: 460, idealHeight: 460, maxHeight: 600)
                 .task {
                     configureTerminationDelegate()
-                    sendLaunchReportIfNeeded()
+                    // Hardware access is provided by the external component
                     
                     let selectedOption = preferredAppLanguage
                     preferredAppLanguageRawValue = selectedOption.rawValue
@@ -48,8 +45,7 @@ struct FanControlApp: App {
         .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(after: .appSettings) {
-                Button("Check for updates", action: checkForUpdates)
-                    .disabled(model.isCheckingForUpdates)
+                // Direct-distribution updates are disabled in the sandboxed app
                 
                 Button("Show Debug Section", action: model.revealDebugSection)
                     .keyboardShortcut("d", modifiers: [.command])
@@ -89,7 +85,7 @@ struct FanControlApp: App {
             .environment(\.locale, appLocale)
             .task {
                 configureTerminationDelegate()
-                sendLaunchReportIfNeeded()
+                // Hardware access is provided by the external component
             }
     }
     
@@ -113,27 +109,9 @@ struct FanControlApp: App {
         window?.orderOut(nil)
     }
     
-    private func checkForUpdates() {
-        Task {
-            await model.checkForUpdatesNow(presenter: .mainWindow)
-        }
-    }
+
     
-    private func configureLaunchAtLoginIfNeeded() {
-        let defaults = UserDefaults.standard
-        guard !defaults.bool(forKey: Self.didConfigureLaunchAtLoginDefaultsKey) else { return }
-        
-        let existingDefaults = Bundle.main.bundleIdentifier
-            .flatMap { defaults.persistentDomain(forName: $0) } ?? [:]
-        
-        guard existingDefaults.isEmpty else {
-            defaults.set(true, forKey: Self.didConfigureLaunchAtLoginDefaultsKey)
-            return
-        }
-        
-        LaunchAtLogin.isEnabled = true
-        defaults.set(true, forKey: Self.didConfigureLaunchAtLoginDefaultsKey)
-    }
+
     
     private func configureTerminationDelegate() {
         appTerminationDelegate.onTerminate = {
@@ -145,7 +123,5 @@ struct FanControlApp: App {
         }
     }
     
-    private func sendLaunchReportIfNeeded() {
-        Self.appLaunchReportSender.sendIfNeeded()
-    }
+
 }

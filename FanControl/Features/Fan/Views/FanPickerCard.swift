@@ -1,5 +1,7 @@
 import ScrechKit
+#if !SANDBOXED_APP
 import CoreSMC
+#endif
 
 struct FanPickerCard: View {
     @Bindable var model: FanVM

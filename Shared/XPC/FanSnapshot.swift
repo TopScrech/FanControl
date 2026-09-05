@@ -1,8 +1,11 @@
 import Foundation
+#if !SANDBOXED_APP
 import CoreSMC
+#endif
 
-final class FanSnapshot: NSObject, NSSecureCoding {
-    static var supportsSecureCoding = true
+@objc(FanSnapshot)
+nonisolated final class FanSnapshot: NSObject, NSSecureCoding, @unchecked Sendable {
+    static let supportsSecureCoding = true
     
     let id: Int
     let minRPM: Double

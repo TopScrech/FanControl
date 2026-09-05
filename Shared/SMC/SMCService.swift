@@ -1,4 +1,6 @@
+#if !SANDBOXED_APP
 import CoreSMC
+#endif
 
 protocol SMCService {
     func readFans() async throws -> [Fan]

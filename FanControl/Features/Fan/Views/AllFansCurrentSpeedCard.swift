@@ -1,5 +1,7 @@
 import ScrechKit
+#if !SANDBOXED_APP
 import CoreSMC
+#endif
 
 struct AllFansCurrentSpeedCard: View {
     let fans: [Fan]

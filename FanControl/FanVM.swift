@@ -1,6 +1,7 @@
 import SwiftUI
+#if !SANDBOXED_APP
 import CoreSMC
-import ServiceManagement
+#endif
 import AutoUpdate
 import OSLog
 
@@ -28,7 +29,7 @@ final class FanVM {
     private static let automaticUpdateCheckRetrySeconds = 60.0
     private static let fanRefreshBackoffAfterEmptySeconds = 10.0
     private static let fanRefreshBackoffAfterFailureSeconds = 5.0
-    private static let licenseOfflineGracePeriodSeconds = 7.0 * 24 * 60 * 60
+    // private static let licenseOfflineGracePeriodSeconds = 7.0 * 24 * 60 * 60
     private static let defaultCustomPresetMinimumTemperature = 40
     private static let defaultCustomPresetMaximumTemperature = 80
     static let defaultGitHubProxyURLString = "https://gh-proxy.com"
@@ -47,6 +48,11 @@ final class FanVM {
     var settingsUpdateStatusAlert: UpdateStatusAlert?
     var menuBarUpdateStatusAlert: UpdateStatusAlert?
     var helperConnectionStatus = HelperConnectionStatus.unavailable
+    let componentInstaller = ComponentInstaller()
+    var componentVersion: String?
+    var componentStatusMessage = "Install FanControl Component to enable fan control and temperature readings"
+    private var nextComponentRetry = Date.distantPast
+    private var isRefreshing = false
     var remoteControlStatusText = String(localized: "Disabled")
     
     var isRemoteControlEnabled = UserDefaults.standard.bool(forKey: FanVM.remoteControlEnabledDefaultsKey) {
@@ -68,7 +74,7 @@ final class FanVM {
             let allowsPrereleaseUpdates = allowsPrereleaseUpdates
             
             Task {
-                await appUpdater.setAllowPrereleases(allowsPrereleaseUpdates)
+                await appUpdater?.setAllowPrereleases(allowsPrereleaseUpdates)
             }
         }
     }
@@ -79,7 +85,7 @@ final class FanVM {
             let resolvedGitHubProxyURL = gitHubProxyURL
             
             Task {
-                await appUpdater.setGitHubProxyURL(resolvedGitHubProxyURL)
+                await appUpdater?.setGitHubProxyURL(resolvedGitHubProxyURL)
             }
         }
     }
@@ -90,29 +96,29 @@ final class FanVM {
             let resolvedGitHubProxyURL = gitHubProxyURL
             
             Task {
-                await appUpdater.setGitHubProxyURL(resolvedGitHubProxyURL)
+                await appUpdater?.setGitHubProxyURL(resolvedGitHubProxyURL)
             }
         }
     }
     
     var errorAlert: ErrorAlert?
-    var licenseEmail = ""
-    var licenseKey = ""
-    var isCheckingLicense = false
-    
-    var isLicenseActive = false {
-        didSet {
-            guard isLicenseActive != oldValue else { return }
-            
-            if !isLicenseActive {
-                Task {
-                    await disableCustomPresetsForInactiveLicense()
-                }
-            }
-        }
-    }
-    
-    var licenseStatusText = String(localized: "Not activated")
+    // var licenseEmail = ""
+    // var licenseKey = ""
+    // var isCheckingLicense = false
+
+    // var isLicenseActive = false {
+    //     didSet {
+    //         guard isLicenseActive != oldValue else { return }
+    //
+    //         if !isLicenseActive {
+    //             Task {
+    //                 await disableCustomPresetsForInactiveLicense()
+    //             }
+    //         }
+    //     }
+    // }
+    //
+    // var licenseStatusText = String(localized: "Not activated")
     let deviceName: String
     let isMacBook: Bool
     
@@ -177,20 +183,15 @@ final class FanVM {
     }
     
     private static let logger = Logger(subsystem: "FanControl", category: "FanVM")
-    private let localSMC: LocalSMCService?
     private var remoteSMC: RemoteSMCService?
-    private let temperatureSensorService = ISMCTemperatureSensorService()
     private let remoteControlHost = RemoteControlHostService()
     
-    private let appUpdater = AppUpdater(
-        owner: FanVM.updateRepositoryOwner,
-        repository: FanVM.updateRepositoryName,
-        gitHubProxyURL: FanVM.storedGitHubProxyURL()
-    )
-    
+    // No direct-download updater is created in the sandboxed distribution
+    private let appUpdater: AppUpdater? = nil
+
     private let preparedUpdateInstaller = PreparedUpdateInstaller()
-    private let licenseVerificationService = LicenseVerificationService()
-    private let licenseCredentialStore = LicenseCredentialStore()
+    // private let licenseVerificationService = LicenseVerificationService()
+    // private let licenseCredentialStore = LicenseCredentialStore()
     private var preparedUpdate: PreparedUpdate?
     private var isInstallingPreparedUpdate = false
     private var showsFakeUpdatePrompt = false
@@ -199,47 +200,28 @@ final class FanVM {
     private var remoteManualRetryTask: Task<Void, Never>?
     private var timer: Timer?
     private var holdingManualOverride = false
-    private var helperInstallInProgress = false
+    private var connectionTask: Task<(RemoteSMCService, String), Error>?
     private var customPresetStore = FanCustomPresetStore()
     private var controlActionToken = 0
     private var errorDismissToken = 0
     private var errorDismissTask: Task<Void, Never>?
     private var errorExpiryDate: Date?
     private var nextFanReadDate = Date.distantPast
-    private let isRoot = geteuid() == 0
     
     init() {
         let detectedDeviceName = MacDeviceDescriptionProvider.current()
         deviceName = detectedDeviceName
         isMacBook = detectedDeviceName.localizedCaseInsensitiveContains("MacBook")
         Self.logger.info("Initializing FanVM")
-        Self.logHelperBundleDiagnostics()
+        // The privileged payload belongs to the separately installed component
         selectedFanID = UserDefaults.standard.integer(forKey: Self.selectedFanIDDefaultsKey)
-        var localError: String?
-        
-        do {
-            localSMC = try LocalSMCService()
-            Self.logger.info("Local SMC client ready")
-        } catch {
-            localSMC = nil
-            localError = error.localizedDescription
-            Self.logger.error("Local SMC client init failed: \(error)")
-        }
-        
-        if localSMC == nil {
-            if let localError {
-                presentError(localError)
-            }
-        }
-        
-        loadStoredLicenseState()
-        
+        // License loading and purchasing disabled for this distribution
+
         connectHelperIfAvailable()
         
         Task {
-            await configureAppUpdater()
-            await startAutomaticUpdateChecks()
-            await verifySavedLicenseOnLaunch()
+            // Direct-distribution updates are disabled in the sandboxed app
+    //         await verifySavedLicenseOnLaunch()
             await refresh()
             await applyActiveCustomPresetsIfNeeded(refreshAfterApply: true)
             configureRemoteControl()
@@ -285,7 +267,8 @@ final class FanVM {
     }
     
     var canUsePresetControl: Bool {
-        isLicenseActive
+        // License gate disabled
+        true
     }
     
     var allFansID: Int {
@@ -419,26 +402,6 @@ final class FanVM {
         } + temperatureSensors
     }
     
-    private static func logHelperBundleDiagnostics() {
-        let bundleURL = Bundle.main.bundleURL
-        
-        let launchdURL = bundleURL.appendingPathComponent(
-            "Contents/Library/LaunchDaemons/\(FanControlXPCConstants.launchdPlistName)"
-        )
-        
-        let helperURL = bundleURL.appendingPathComponent(
-            "Contents/Library/PrivilegedHelperTools/FanControlHelper"
-        )
-        
-        let fm = FileManager.default
-        
-        Self.logger.info("App bundle path: \(bundleURL.path)")
-        Self.logger.info("Launchd plist path: \(launchdURL.path)")
-        Self.logger.info("Launchd plist exists: \(fm.fileExists(atPath: launchdURL.path))")
-        Self.logger.info("Helper tool path: \(helperURL.path)")
-        Self.logger.info("Helper tool exists: \(fm.fileExists(atPath: helperURL.path))")
-    }
-    
     nonisolated private static func updateCodeSigningValidation() -> AppUpdater.CodeSigningValidation {
         guard let authority = currentCodeSigningAuthority() else {
             return .required
@@ -490,6 +453,7 @@ final class FanVM {
     
     
     func tick() async {
+        guard !componentInstaller.isInstalling else { return }
         if holdingManualOverride, let smc = writeService {
             do {
                 try await smc.keepAliveManualOverride()
@@ -504,6 +468,15 @@ final class FanVM {
     }
     
     func refresh() async {
+        guard !isRefreshing, !componentInstaller.isInstalling else { return }
+        let installationGeneration = componentInstaller.generation
+        isRefreshing = true
+        defer { isRefreshing = false }
+        if remoteSMC == nil, Date() >= nextComponentRetry {
+            nextComponentRetry = Date().addingTimeInterval(10)
+            _ = await ensureHelperConnected()
+        }
+        guard let remoteSMC else { return }
         Self.logger.info("Refresh starting")
         
         var refreshError: Error?
@@ -511,6 +484,7 @@ final class FanVM {
         if shouldReadFansNow(), let smc = activeService {
             do {
                 let snapshots = try await smc.readFans()
+                guard installationGeneration == componentInstaller.generation else { return }
                 Self.logger.info("Refresh readFans count=\(snapshots.count)")
                 fans = snapshots
                 resetFanReadBackoff()
@@ -526,6 +500,11 @@ final class FanVM {
                     selectedFanID = fans[0].id
                 }
             } catch {
+                guard installationGeneration == componentInstaller.generation, self.remoteSMC === remoteSMC else { return }
+                self.remoteSMC = nil
+                componentVersion = nil
+                helperConnectionStatus = .unavailable
+                componentStatusMessage = error.localizedDescription
                 refreshError = error
                 deferFanReads(for: Self.fanRefreshBackoffAfterFailureSeconds)
                 Self.logger.error("Refresh readFans failed: \(error)")
@@ -539,10 +518,13 @@ final class FanVM {
         }
         
         do {
-            let sensors = try await temperatureSensorService.readTemperatureSensors()
+            let output = try await remoteSMC.readTemperatureOutput()
+            guard installationGeneration == componentInstaller.generation else { return }
+            let sensors = try ISMCTemperatureSensorParser.parse(output)
             Self.logger.info("Refresh readTemperatureSensors count=\(sensors.count)")
             temperatureSensors = sensors
         } catch {
+            guard installationGeneration == componentInstaller.generation else { return }
             if refreshError == nil {
                 refreshError = error
             }
@@ -557,78 +539,11 @@ final class FanVM {
     }
     
     func checkForUpdatesNow(presenter: UpdateStatusAlertPresenter) async {
-        guard !isCheckingForUpdates else { return }
-        isCheckingForUpdates = true
-        
-        updateStatusText = String(localized: "Checking for updates")
-        defer { isCheckingForUpdates = false }
-        
-        do {
-            switch try await appUpdater.prepareUpdateIfAvailable() {
-            case .upToDate:
-                clearPreparedUpdate()
-                updateStatusText = String(localized: "The latest version is already installed")
-                
-                presentUpdateStatusAlert(
-                    title: String(localized: "You’re up to date"),
-                    message: String(localized: "The latest version is already installed"),
-                    presenter: presenter
-                )
-                
-                Self.logger.info("Update check: already on latest version")
-                
-            case .prepared(let preparedUpdate):
-                await presentPreparedUpdate(preparedUpdate)
-                Self.logger.info("Update prepared tag=\(preparedUpdate.release.tagName)")
-            }
-        } catch {
-            updateStatusText = String(localized: "Update failed")
-            Self.logger.error("Update check failed: \(error)")
-            
-            let template = String(localized: "Update failed: %@")
-            presentError(String(format: template, locale: .current, error.localizedDescription))
-        }
+        // Direct-distribution updates are disabled in the sandboxed app
     }
     
     func installPreparedUpdate() async {
-        guard !isCheckingForUpdates else { return }
-        
-        if showsFakeUpdatePrompt {
-            showsFakeUpdatePrompt = false
-            updateChangelogEntries = []
-            isUpdatePromptPresented = false
-            return
-        }
-        
-        guard let preparedUpdate else { return }
-        
-        isCheckingForUpdates = true
-        let installingTemplate = String(localized: "Installing %@")
-        updateStatusText = String(format: installingTemplate, locale: .current, preparedUpdate.release.tagName)
-        isUpdatePromptPresented = false
-        defer { isCheckingForUpdates = false }
-        
-        do {
-            isInstallingPreparedUpdate = true
-            await resetFansForAutomaticControl(reason: "Update install")
-            let installedAppURL = try preparedUpdateInstaller.install(preparedUpdate)
-            
-            clearPreparedUpdate()
-            try relaunchInstalledApp(at: installedAppURL)
-            
-            Self.logger.info("Update install succeeded tag=\(preparedUpdate.release.tagName)")
-            Darwin.exit(EXIT_SUCCESS)
-        } catch {
-            isInstallingPreparedUpdate = false
-            await appUpdater.discardPreparedUpdate(preparedUpdate)
-            
-            clearPreparedUpdate()
-            updateStatusText = String(localized: "Update failed")
-            Self.logger.error("Update install failed: \(error)")
-            
-            let template = String(localized: "Update failed: %@")
-            presentError(String(format: template, locale: .current, error.localizedDescription))
-        }
+        // Direct-distribution updates are disabled in the sandboxed app
     }
     
     func dismissUpdatePrompt() async {
@@ -641,7 +556,7 @@ final class FanVM {
         }
         
         guard let preparedUpdate else { return }
-        await appUpdater.discardPreparedUpdate(preparedUpdate)
+        await appUpdater?.discardPreparedUpdate(preparedUpdate)
         clearPreparedUpdate()
         updateStatusText = String(localized: "Update postponed")
     }
@@ -685,103 +600,64 @@ final class FanVM {
     }
     
     func presentFakeUpdatePrompt() {
-        showsFakeUpdatePrompt = true
-        updateChangelogEntries = [
-            UpdateChangelogEntry(
-                tagName: "v2.0-rc.1",
-                isPrerelease: true,
-                notes: String(localized: "Some release notes")
-            ),
-            UpdateChangelogEntry(
-                tagName: "v2.0-beta.1",
-                isPrerelease: true,
-                notes: String(localized: "Some release notes")
-            ),
-            UpdateChangelogEntry(
-                tagName: "v1.2",
-                isPrerelease: false,
-                notes: String(localized: "Some release notes")
-            ),
-            UpdateChangelogEntry(
-                tagName: "v1.1",
-                isPrerelease: false,
-                notes: String(localized: "Some release notes")
-            ),
-            UpdateChangelogEntry(
-                tagName: "v1.0",
-                isPrerelease: false,
-                notes: String(localized: "Some release notes")
-            )
-        ]
-        
-        isUpdatePromptPresented = true
+        // Direct-distribution updates are disabled in the sandboxed app
     }
     
     func scheduleDebugUpdateCheck() {
-        debugDelayedUpdateCheckTask?.cancel()
-        
-        debugDelayedUpdateCheckTask = Task { [weak self] in
-            do {
-                try await Task.sleep(for: .seconds(2))
-            } catch {
-                return
-            }
-            
-            await self?.checkForUpdatesAutomatically()
-        }
+        // Direct-distribution updates are disabled in the sandboxed app
     }
-    
-    func verifyLicenseNow() async -> LicenseVerificationAlert? {
-        let email = self.licenseEmail.trimmingCharacters(in: .whitespacesAndNewlines)
-        let licenseKey = self.licenseKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        guard !email.isEmpty, !licenseKey.isEmpty else {
-            licenseStatusText = String(localized: "Email and license key are required")
-            isLicenseActive = false
-            return LicenseVerificationAlert(
-                title: String(localized: "License verification failed"),
-                message: licenseStatusText
-            )
-        }
-        
-        return await verifyLicense(
-            email: email,
-            licenseKey: licenseKey,
-            shouldSaveCredentials: true,
-            presentsServiceErrors: false
-        )
-    }
-    
-    func clearSavedLicense() async {
-        do {
-            if let savedCredentials = licenseCredentialStore.loadCredentials() {
-                guard let deviceIdentifier = MacDeviceIdentityProvider.deviceIdentifier() else {
-                    presentError("Could not identify this Mac for license reset")
-                    return
-                }
-                
-                _ = try await licenseVerificationService.removeDevice(
-                    email: savedCredentials.email,
-                    licenseKey: savedCredentials.licenseKey,
-                    deviceIdentifier: deviceIdentifier
-                )
-            }
-            
-            try licenseCredentialStore.clearCredentials()
-            licenseEmail = ""
-            licenseKey = ""
-            isLicenseActive = false
-            licenseStatusText = String(localized: "Not activated")
-        } catch {
-            presentError(error.localizedDescription)
-        }
-    }
+
+    // func verifyLicenseNow() async -> LicenseVerificationAlert? {
+    //     let email = self.licenseEmail.trimmingCharacters(in: .whitespacesAndNewlines)
+    //     let licenseKey = self.licenseKey.trimmingCharacters(in: .whitespacesAndNewlines)
+    //
+    //     guard !email.isEmpty, !licenseKey.isEmpty else {
+    //         licenseStatusText = String(localized: "Email and license key are required")
+    //         isLicenseActive = false
+    //         return LicenseVerificationAlert(
+    //             title: String(localized: "License verification failed"),
+    //             message: licenseStatusText
+    //         )
+    //     }
+    //
+    //     return await verifyLicense(
+    //         email: email,
+    //         licenseKey: licenseKey,
+    //         shouldSaveCredentials: true,
+    //         presentsServiceErrors: false
+    //     )
+    // }
+
+    // func clearSavedLicense() async {
+    //     do {
+    //         if let savedCredentials = licenseCredentialStore.loadCredentials() {
+    //             guard let deviceIdentifier = MacDeviceIdentityProvider.deviceIdentifier() else {
+    //                 presentError("Could not identify this Mac for license reset")
+    //                 return
+    //             }
+    //
+    //             _ = try await licenseVerificationService.removeDevice(
+    //                 email: savedCredentials.email,
+    //                 licenseKey: savedCredentials.licenseKey,
+    //                 deviceIdentifier: deviceIdentifier
+    //             )
+    //         }
+    //
+    //         try licenseCredentialStore.clearCredentials()
+    //         licenseEmail = ""
+    //         licenseKey = ""
+    //         isLicenseActive = false
+    //         licenseStatusText = String(localized: "Not activated")
+    //     } catch {
+    //         presentError(error.localizedDescription)
+    //     }
+    // }
     
     func setManualRPM(_ rpm: Double, targetMode: FanControlMode = .preset) async {
-        if targetMode == .preset, !isLicenseActive {
-            presentError(String(localized: "Preset control requires an active license"))
-            return
-        }
+    //     if targetMode == .preset, !isLicenseActive {
+    //         presentError(String(localized: "Preset control requires an active license"))
+    //         return
+    //     }
         
         await applyManualRPM(
             requestSummary: "Manual request rpm=\(rpm)",
@@ -793,10 +669,10 @@ final class FanVM {
     }
     
     func setCustomPreset(_ draft: FanCustomPresetDraft) async {
-        guard isLicenseActive else {
-            presentError(String(localized: "Preset control requires an active license"))
-            return
-        }
+    //     guard isLicenseActive else {
+    //         presentError(String(localized: "Preset control requires an active license"))
+    //         return
+    //     }
         
         let targetFans = selectedFansForControl
         
@@ -1283,7 +1159,7 @@ final class FanVM {
     }
     
     private var activeService: SMCService? {
-        localSMC ?? remoteSMC
+        remoteSMC
     }
     
     private func startControlAction() -> Int {
@@ -1335,7 +1211,7 @@ final class FanVM {
             return remoteSMC
         }
         
-        return isRoot ? localSMC : nil
+        return nil
     }
     
     private func activeControlMode(
@@ -1400,7 +1276,7 @@ final class FanVM {
     }
     
     private func applyActiveCustomPresetsIfNeeded(refreshAfterApply: Bool = false) async {
-        guard isLicenseActive else { return }
+    //     guard isLicenseActive else { return }
         
         let activeFans: [(Fan, FanCustomPreset)] = fans.compactMap { fan in
             guard let preset = customPresetStore.preset(for: fan.id), preset.isEnabled else { return nil }
@@ -1469,108 +1345,65 @@ final class FanVM {
         }
     }
     
-    private func disableCustomPresetsForInactiveLicense() async {
-        let activeFanIDs = customPresetStore.activeFanIDs
-        
-        guard !activeFanIDs.isEmpty else { return }
-        
-        customPresetStore.setEnabled(false, fanIDs: activeFanIDs)
-        holdingManualOverride = customPresetStore.hasEnabledPresets
-        
-        let helperStatus = await ensureHelperConnected()
-        
-        guard let smc = writeService else {
-            setWriteUnavailableError(status: helperStatus)
-            return
-        }
-        
-        var successfulSignals = 0
-        var lastAttemptError: Error?
-        
-        for fanID in activeFanIDs {
-            do {
-                try await smc.setFanAuto(fanID: fanID)
-                successfulSignals += 1
-            } catch {
-                lastAttemptError = error
-                
-                Self.logger.error(
-                    "Failed to disable custom preset after license deactivation fan=\(fanID) error=\(error)"
-                )
-            }
-        }
-        
-        holdingManualOverride = customPresetStore.hasEnabledPresets
-        
-        if successfulSignals > 0 {
-            await refresh()
-            return
-        }
-        
-        if let lastAttemptError {
-            presentError(lastAttemptError.localizedDescription)
-        }
-    }
+    // private func disableCustomPresetsForInactiveLicense() async {
+    //     let activeFanIDs = customPresetStore.activeFanIDs
+    //
+    //     guard !activeFanIDs.isEmpty else { return }
+    //
+    //     customPresetStore.setEnabled(false, fanIDs: activeFanIDs)
+    //     holdingManualOverride = customPresetStore.hasEnabledPresets
+    //
+    //     let helperStatus = await ensureHelperConnected()
+    //
+    //     guard let smc = writeService else {
+    //         setWriteUnavailableError(status: helperStatus)
+    //         return
+    //     }
+    //
+    //     var successfulSignals = 0
+    //     var lastAttemptError: Error?
+    //
+    //     for fanID in activeFanIDs {
+    //         do {
+    //             try await smc.setFanAuto(fanID: fanID)
+    //             successfulSignals += 1
+    //         } catch {
+    //             lastAttemptError = error
+    //
+    //             Self.logger.error(
+    //                 "Failed to disable custom preset after license deactivation fan=\(fanID) error=\(error)"
+    //             )
+    //         }
+    //     }
+    //
+    //     holdingManualOverride = customPresetStore.hasEnabledPresets
+    //
+    //     if successfulSignals > 0 {
+    //         await refresh()
+    //         return
+    //     }
+    //
+    //     if let lastAttemptError {
+    //         presentError(lastAttemptError.localizedDescription)
+    //     }
+    // }
     
     private func connectHelperIfAvailable() {
-        let service = SMAppService.daemon(plistName: FanControlXPCConstants.launchdPlistName)
-        
-        if service.status == .enabled {
-            remoteSMC = makeRemoteSMCService()
-            Self.logger.info("SMC helper connected")
-        } else {
-            Self.logger.info("SMC helper status: \(String(describing: service.status))")
-        }
-        
-        updateHelperConnectionStatus(serviceStatus: service.status)
+        Task { _ = await ensureHelperConnected() }
     }
-    
+
     private func makeRemoteSMCService() -> RemoteSMCService {
-        RemoteSMCService { [weak self] in
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.remoteSMC = nil
-                self.updateHelperConnectionStatus()
-                Self.logger.info("SMC helper client cleared after disconnect")
-            }
-        }
+        RemoteSMCService()
     }
-    
+
     private func startAutomaticUpdateChecks() async {
-        automaticUpdateTask?.cancel()
-        
-        automaticUpdateTask = Task { [weak self] in
-            guard let self else { return }
-            
-            while !Task.isCancelled {
-                let secondsUntilNextCheck = self.secondsUntilNextAutomaticUpdateCheck()
-                
-                if secondsUntilNextCheck > 0 {
-                    do {
-                        try await Task.sleep(for: .seconds(secondsUntilNextCheck))
-                    } catch {
-                        return
-                    }
-                }
-                
-                let didRunCheck = await self.checkForUpdatesOnLaunch()
-                guard !didRunCheck else { continue }
-                
-                do {
-                    try await Task.sleep(for: .seconds(Self.automaticUpdateCheckRetrySeconds))
-                } catch {
-                    return
-                }
-            }
-        }
-        
-        Self.logger.info("Automatic update checks started")
+        // Direct-distribution updates are disabled in the sandboxed app
     }
     
     private func configureAppUpdater() async {
-        await appUpdater.setAllowPrereleases(allowsPrereleaseUpdates)
-        await appUpdater.setGitHubProxyURL(gitHubProxyURL)
-        await appUpdater.setCodeSigningValidation(Self.updateCodeSigningValidation())
+        await appUpdater?.setAllowPrereleases(allowsPrereleaseUpdates)
+        await appUpdater?.setGitHubProxyURL(gitHubProxyURL)
+        await appUpdater?.setCodeSigningValidation(Self.updateCodeSigningValidation())
     }
     
     private func checkForUpdatesOnLaunch() async -> Bool {
@@ -1580,41 +1413,20 @@ final class FanVM {
         return true
     }
     
-    private func verifySavedLicenseOnLaunch() async {
-        guard let savedCredentials = licenseCredentialStore.loadCredentials() else { return }
-        licenseEmail = savedCredentials.email
-        licenseKey = savedCredentials.licenseKey
-        await verifyLicense(
-            email: savedCredentials.email,
-            licenseKey: savedCredentials.licenseKey,
-            shouldSaveCredentials: false,
-            presentsServiceErrors: true
-        )
-    }
+    // private func verifySavedLicenseOnLaunch() async {
+    //     guard let savedCredentials = licenseCredentialStore.loadCredentials() else { return }
+    //     licenseEmail = savedCredentials.email
+    //     licenseKey = savedCredentials.licenseKey
+    //     await verifyLicense(
+    //         email: savedCredentials.email,
+    //         licenseKey: savedCredentials.licenseKey,
+    //         shouldSaveCredentials: false,
+    //         presentsServiceErrors: true
+    //     )
+    // }
     
     private func checkForUpdatesAutomatically() async {
-        guard !isCheckingForUpdates else { return }
-        
-        let checkDate = Date()
-        isCheckingForUpdates = true
-        defer {
-            isCheckingForUpdates = false
-            UserDefaults.standard.set(checkDate, forKey: Self.lastAutomaticUpdateCheckDateDefaultsKey)
-        }
-        
-        do {
-            switch try await appUpdater.prepareUpdateIfAvailable() {
-            case .upToDate:
-                if !showsFakeUpdatePrompt {
-                    clearPreparedUpdate()
-                }
-                
-            case .prepared(let preparedUpdate):
-                await presentPreparedUpdate(preparedUpdate)
-            }
-        } catch {
-            Self.logger.error("Automatic update check failed: \(error)")
-        }
+        // Direct-distribution updates are disabled in the sandboxed app
     }
     
     private var shouldCheckForUpdatesAutomatically: Bool {
@@ -1666,7 +1478,7 @@ final class FanVM {
     
     private func setPreparedUpdate(_ preparedUpdate: PreparedUpdate) async {
         if let existingPreparedUpdate = self.preparedUpdate {
-            await appUpdater.discardPreparedUpdate(existingPreparedUpdate)
+            await appUpdater?.discardPreparedUpdate(existingPreparedUpdate)
         }
         
         self.preparedUpdate = preparedUpdate
@@ -1782,352 +1594,254 @@ final class FanVM {
         return notes
     }
     
-    private func verifyLicense(
-        email: String,
-        licenseKey: String,
-        shouldSaveCredentials: Bool,
-        presentsServiceErrors: Bool
-    ) async -> LicenseVerificationAlert? {
-        guard !isCheckingLicense else { return nil }
-        
-        isCheckingLicense = true
-        defer { isCheckingLicense = false }
-        
-        let deviceIdentifier = MacDeviceIdentityProvider.deviceIdentifier()
-        let osVersion = MacDeviceIdentityProvider.osVersion()
-        
+    // private func verifyLicense(
+    //     email: String,
+    //     licenseKey: String,
+    //     shouldSaveCredentials: Bool,
+    //     presentsServiceErrors: Bool
+    // ) async -> LicenseVerificationAlert? {
+    //     guard !isCheckingLicense else { return nil }
+    //
+    //     isCheckingLicense = true
+    //     defer { isCheckingLicense = false }
+    //
+    //     let deviceIdentifier = MacDeviceIdentityProvider.deviceIdentifier()
+    //     let osVersion = MacDeviceIdentityProvider.osVersion()
+    //
+    //     do {
+    //         let verifiedAt = Date()
+    //
+    //         let result = try await licenseVerificationService.verify(
+    //             email: email,
+    //             licenseKey: licenseKey,
+    //             deviceName: deviceName,
+    //             deviceIdentifier: deviceIdentifier,
+    //             os: osVersion
+    //         )
+    //
+    //         licenseCredentialStore.saveLastCheck(reason: result.reason, date: verifiedAt)
+    //         licenseStatusText = Self.licenseStatusText(reason: result.reason, date: verifiedAt)
+    //         isLicenseActive = result.valid
+    //
+    //         if result.reason == .active {
+    //             licenseCredentialStore.saveLastActiveValidationDate(verifiedAt)
+    //         } else {
+    //             licenseCredentialStore.clearLastActiveValidationDate()
+    //         }
+    //
+    //         if shouldSaveCredentials, result.valid {
+    //             try licenseCredentialStore.saveCredentials(
+    //                 email: email,
+    //                 licenseKey: licenseKey
+    //             )
+    //         }
+    //
+    //         return LicenseVerificationAlert(
+    //             title: result.valid
+    //                 ? String(localized: "License verified")
+    //                 : String(localized: "License verification failed"),
+    //             message: licenseStatusText
+    //         )
+    //     } catch {
+    //         if applyOfflineGracePeriodIfAvailable() {
+    //             return LicenseVerificationAlert(
+    //                 title: String(localized: "License verification failed"),
+    //                 message: error.localizedDescription
+    //             )
+    //         }
+    //
+    //         isLicenseActive = false
+    //         licenseStatusText = expiredLicenseGracePeriodStatusText() ?? String(localized: "License check failed")
+    //
+    //         if presentsServiceErrors {
+    //             presentError(error.localizedDescription)
+    //         }
+    //
+    //         return LicenseVerificationAlert(
+    //             title: String(localized: "License verification failed"),
+    //             message: error.localizedDescription
+    //         )
+    //     }
+    // }
+
+    // private func loadStoredLicenseState() {
+    //     guard let savedCredentials = licenseCredentialStore.loadCredentials() else {
+    //         licenseStatusText = String(localized: "Not activated")
+    //         isLicenseActive = false
+    //         return
+    //     }
+    //
+    //     licenseEmail = savedCredentials.email
+    //     licenseKey = savedCredentials.licenseKey
+    //     licenseStatusText = String(localized: "Saved license will be checked on launch")
+    //
+    //     if let reason = licenseCredentialStore.loadLastCheckReason(),
+    //        let date = licenseCredentialStore.loadLastCheckDate() {
+    //         licenseStatusText = Self.licenseStatusText(reason: reason, date: date)
+    //         isLicenseActive = reason == .active
+    //     }
+    //
+    //     if isLicenseActive {
+    //         if !applyOfflineGracePeriodIfAvailable() {
+    //             isLicenseActive = false
+    //             licenseStatusText = expiredLicenseGracePeriodStatusText() ?? String(localized: "License check required")
+    //         }
+    //     }
+    // }
+
+    // private static func licenseStatusText(reason: LicenseVerificationReason, date: Date) -> String {
+    //     let checkedAtText = date.formatted(date: .abbreviated, time: .shortened)
+    //     return "\(reason.localizedStatusText) (\(checkedAtText))"
+    // }
+
+    // private func applyOfflineGracePeriodIfAvailable() -> Bool {
+    //     guard let lastActiveValidationDate = licenseCredentialStore.loadLastActiveValidationDate() else {
+    //         return false
+    //     }
+    //
+    //     let gracePeriodDeadline = lastActiveValidationDate.addingTimeInterval(Self.licenseOfflineGracePeriodSeconds)
+    //     let now = Date()
+    //
+    //     guard now <= gracePeriodDeadline else {
+    //         return false
+    //     }
+    //
+    //     isLicenseActive = true
+    //
+    //     licenseStatusText = Self.offlineGracePeriodStatusText(
+    //         lastActiveValidationDate: lastActiveValidationDate,
+    //         gracePeriodDeadline: gracePeriodDeadline
+    //     )
+    //
+    //     return true
+    // }
+
+    // private func expiredLicenseGracePeriodStatusText() -> String? {
+    //     guard let lastActiveValidationDate = licenseCredentialStore.loadLastActiveValidationDate() else {
+    //         return nil
+    //     }
+    //
+    //     let gracePeriodDeadline = lastActiveValidationDate.addingTimeInterval(Self.licenseOfflineGracePeriodSeconds)
+    //     guard Date() > gracePeriodDeadline else { return nil }
+    //
+    //     return Self.offlineGracePeriodExpiredStatusText(gracePeriodDeadline: gracePeriodDeadline)
+    // }
+
+    // private static func offlineGracePeriodStatusText(
+    //     lastActiveValidationDate: Date,
+    //     gracePeriodDeadline: Date
+    // ) -> String {
+    //     let lastVerifiedText = lastActiveValidationDate.formatted(date: .abbreviated, time: .shortened)
+    //     let deadlineText = gracePeriodDeadline.formatted(date: .abbreviated, time: .shortened)
+    //
+    //     return String(
+    //         localized: "License active offline until \(deadlineText) (last verified \(lastVerifiedText))"
+    //     )
+    // }
+
+    // private static func offlineGracePeriodExpiredStatusText(gracePeriodDeadline: Date) -> String {
+    //     let deadlineText = gracePeriodDeadline.formatted(date: .abbreviated, time: .shortened)
+    //
+    //     return String(
+    //         localized: "License deactivated after no verification for 7 days (deadline \(deadlineText))"
+    //     )
+    // }
+
+    private func ensureHelperConnected() async -> ComponentServiceState {
+        if remoteSMC != nil { return .enabled }
+        if connectionTask == nil {
+            connectionTask = Task {
+                let candidate = makeRemoteSMCService()
+                return (candidate, try await candidate.componentVersion())
+            }
+        }
+        guard let connectionTask else { return .notRegistered }
+        defer { self.connectionTask = nil }
         do {
-            let verifiedAt = Date()
-            
-            let result = try await licenseVerificationService.verify(
-                email: email,
-                licenseKey: licenseKey,
-                deviceName: deviceName,
-                deviceIdentifier: deviceIdentifier,
-                os: osVersion
-            )
-            
-            licenseCredentialStore.saveLastCheck(reason: result.reason, date: verifiedAt)
-            licenseStatusText = Self.licenseStatusText(reason: result.reason, date: verifiedAt)
-            isLicenseActive = result.valid
-            
-            if result.reason == .active {
-                licenseCredentialStore.saveLastActiveValidationDate(verifiedAt)
-            } else {
-                licenseCredentialStore.clearLastActiveValidationDate()
-            }
-            
-            if shouldSaveCredentials, result.valid {
-                try licenseCredentialStore.saveCredentials(
-                    email: email,
-                    licenseKey: licenseKey
-                )
-            }
-
-            return LicenseVerificationAlert(
-                title: result.valid
-                    ? String(localized: "License verified")
-                    : String(localized: "License verification failed"),
-                message: licenseStatusText
-            )
-        } catch {
-            if applyOfflineGracePeriodIfAvailable() {
-                return LicenseVerificationAlert(
-                    title: String(localized: "License verification failed"),
-                    message: error.localizedDescription
-                )
-            }
-
-            isLicenseActive = false
-            licenseStatusText = expiredLicenseGracePeriodStatusText() ?? String(localized: "License check failed")
-
-            if presentsServiceErrors {
-                presentError(error.localizedDescription)
-            }
-
-            return LicenseVerificationAlert(
-                title: String(localized: "License verification failed"),
-                message: error.localizedDescription
-            )
-        }
-    }
-    
-    private func loadStoredLicenseState() {
-        guard let savedCredentials = licenseCredentialStore.loadCredentials() else {
-            licenseStatusText = String(localized: "Not activated")
-            isLicenseActive = false
-            return
-        }
-        
-        licenseEmail = savedCredentials.email
-        licenseKey = savedCredentials.licenseKey
-        licenseStatusText = String(localized: "Saved license will be checked on launch")
-        
-        if let reason = licenseCredentialStore.loadLastCheckReason(),
-           let date = licenseCredentialStore.loadLastCheckDate() {
-            licenseStatusText = Self.licenseStatusText(reason: reason, date: date)
-            isLicenseActive = reason == .active
-        }
-        
-        if isLicenseActive {
-            if !applyOfflineGracePeriodIfAvailable() {
-                isLicenseActive = false
-                licenseStatusText = expiredLicenseGracePeriodStatusText() ?? String(localized: "License check required")
-            }
-        }
-    }
-    
-    private static func licenseStatusText(reason: LicenseVerificationReason, date: Date) -> String {
-        let checkedAtText = date.formatted(date: .abbreviated, time: .shortened)
-        return "\(reason.localizedStatusText) (\(checkedAtText))"
-    }
-    
-    private func applyOfflineGracePeriodIfAvailable() -> Bool {
-        guard let lastActiveValidationDate = licenseCredentialStore.loadLastActiveValidationDate() else {
-            return false
-        }
-        
-        let gracePeriodDeadline = lastActiveValidationDate.addingTimeInterval(Self.licenseOfflineGracePeriodSeconds)
-        let now = Date()
-        
-        guard now <= gracePeriodDeadline else {
-            return false
-        }
-        
-        isLicenseActive = true
-        
-        licenseStatusText = Self.offlineGracePeriodStatusText(
-            lastActiveValidationDate: lastActiveValidationDate,
-            gracePeriodDeadline: gracePeriodDeadline
-        )
-        
-        return true
-    }
-    
-    private func expiredLicenseGracePeriodStatusText() -> String? {
-        guard let lastActiveValidationDate = licenseCredentialStore.loadLastActiveValidationDate() else {
-            return nil
-        }
-        
-        let gracePeriodDeadline = lastActiveValidationDate.addingTimeInterval(Self.licenseOfflineGracePeriodSeconds)
-        guard Date() > gracePeriodDeadline else { return nil }
-        
-        return Self.offlineGracePeriodExpiredStatusText(gracePeriodDeadline: gracePeriodDeadline)
-    }
-    
-    private static func offlineGracePeriodStatusText(
-        lastActiveValidationDate: Date,
-        gracePeriodDeadline: Date
-    ) -> String {
-        let lastVerifiedText = lastActiveValidationDate.formatted(date: .abbreviated, time: .shortened)
-        let deadlineText = gracePeriodDeadline.formatted(date: .abbreviated, time: .shortened)
-        
-        return String(
-            localized: "License active offline until \(deadlineText) (last verified \(lastVerifiedText))"
-        )
-    }
-    
-    private static func offlineGracePeriodExpiredStatusText(gracePeriodDeadline: Date) -> String {
-        let deadlineText = gracePeriodDeadline.formatted(date: .abbreviated, time: .shortened)
-        
-        return String(
-            localized: "License deactivated after no verification for 7 days (deadline \(deadlineText))"
-        )
-    }
-    
-    private func ensureHelperConnected() async -> SMAppService.Status {
-        if remoteSMC != nil {
-            updateHelperConnectionStatus(serviceStatus: .enabled)
-            return .enabled
-        }
-        
-        let service = SMAppService.daemon(plistName: FanControlXPCConstants.launchdPlistName)
-        
-        guard !helperInstallInProgress else {
-            updateHelperConnectionStatus(serviceStatus: service.status)
-            return service.status
-        }
-        
-        helperInstallInProgress = true
-        defer { helperInstallInProgress = false }
-        
-        switch service.status {
-        case .requiresApproval:
-            updateHelperConnectionStatus(serviceStatus: service.status)
-            return service.status
-            
-        case .enabled, .notFound, .notRegistered:
-            break
-            
-        @unknown default:
-            updateHelperConnectionStatus(serviceStatus: service.status)
-            return service.status
-        }
-        
-        do {
-            let status = try SMCHelperInstaller.registerIfNeeded()
-            Self.logger.info("SMC helper register status: \(String(describing: status))")
-            
-            if status == .enabled {
-                remoteSMC = makeRemoteSMCService()
-            }
-            
-            updateHelperConnectionStatus(serviceStatus: status)
-            
-            return status
-        } catch {
-            presentError(error.localizedDescription)
-            Self.logger.error("SMC helper register failed: \(error)")
-            
-            updateHelperConnectionStatus(serviceStatus: service.status)
-            return service.status
-        }
-    }
-    
-    private func updateHelperConnectionStatus(serviceStatus: SMAppService.Status? = nil) {
-        if isRoot, localSMC != nil {
-            helperConnectionStatus = .runningAsRoot
-            return
-        }
-        
-        if remoteSMC != nil {
+            let (candidate, version) = try await connectionTask.value
+            componentVersion = version
+            remoteSMC = candidate
             helperConnectionStatus = .connected
-            return
-        }
-        
-        switch serviceStatus ?? SMAppService.daemon(plistName: FanControlXPCConstants.launchdPlistName).status {
-        case .enabled:
-            helperConnectionStatus = .enabled
-            
-        case .requiresApproval:
-            helperConnectionStatus = .requiresApproval
-            
-        case .notFound:
-            helperConnectionStatus = .notFound
-            
-        case .notRegistered:
-            helperConnectionStatus = .notRegistered
-            
-        @unknown default:
+            componentStatusMessage = "Component connected"
+            return .enabled
+        } catch {
+            componentVersion = nil
             helperConnectionStatus = .unavailable
+            componentStatusMessage = "Install or update FanControl Component, then check the connection — \(error.localizedDescription)"
+            return .notRegistered
         }
     }
-    
-    private func setWriteUnavailableError(status: SMAppService.Status) {
-        if isRoot {
+
+    func reconnectComponent() async {
+        if let remoteSMC, let version = try? await remoteSMC.componentVersion() {
+            componentVersion = version
+            componentStatusMessage = "Component connected"
+            await refresh()
             return
         }
-        
-        let message: String
-        
-        switch status {
-        case .requiresApproval:
-            message = String(localized: "Helper needs approval in System Settings > General > Login Items > Allow in Background")
-            
-        case .notFound:
-            let bundlePath = Bundle.main.bundleURL.path
-            
-            let helperPath = Bundle.main.bundleURL
-                .appendingPathComponent("Contents/Library/PrivilegedHelperTools/FanControlHelper")
-                .path
-            
-            let plistPath = Bundle.main.bundleURL
-                .appendingPathComponent(
-                    "Contents/Library/LaunchDaemons/\(FanControlXPCConstants.launchdPlistName)"
-                )
-                .path
-            
-            let systemHelperPath = "/Library/PrivilegedHelperTools/FanControlHelper"
-            let systemPlistPath = "/Library/LaunchDaemons/\(FanControlXPCConstants.launchdPlistName)"
-            let fm = FileManager.default
-            let helperExists = fm.fileExists(atPath: helperPath)
-            let plistExists = fm.fileExists(atPath: plistPath)
-            let systemHelperExists = fm.fileExists(atPath: systemHelperPath)
-            let systemPlistExists = fm.fileExists(atPath: systemPlistPath)
-            
-            let template = String(
-                localized: """
-Helper not found in app bundle
-Bundle: %@
-Helper exists: %@
-Plist exists: %@
-System helper exists: %@
-System plist exists: %@
-"""
-            )
-            
-            message = String(
-                format: template,
-                locale: .current,
-                bundlePath,
-                String(describing: helperExists),
-                String(describing: plistExists),
-                String(describing: systemHelperExists),
-                String(describing: systemPlistExists)
-            )
-            
-        case .notRegistered:
-            message = String(localized: "Helper not registered. Run from /Applications and try again")
-            
-        case .enabled:
-            message = String(localized: "Helper connected but no writable SMC client is available")
-            
-        @unknown default:
-            message = String(localized: "Helper status unknown. Try again after approving or reinstalling")
-        }
-        
-        presentError(message)
+        remoteSMC = nil
+        nextComponentRetry = .distantPast
+        _ = await ensureHelperConnected()
+        await refresh()
     }
-    
+
+    private func updateHelperConnectionStatus(serviceStatus: ComponentServiceState? = nil) {
+        helperConnectionStatus = remoteSMC == nil ? .unavailable : .connected
+    }
+
+    private func setWriteUnavailableError(status: ComponentServiceState) {
+        presentError(componentStatusMessage)
+    }
+
     private func presentError(_ message: String) {
         let now = Date()
-        
+
         if message == errorAlert?.message, let errorExpiryDate, now < errorExpiryDate {
             return
         }
-        
+
         errorDismissToken += 1
         let dismissToken = errorDismissToken
-        
+
         errorDismissTask?.cancel()
-        
+
         errorExpiryDate = now.addingTimeInterval(Self.errorDisplaySeconds)
         errorAlert = ErrorAlert(message: message)
-        
+
         errorDismissTask = Task { @MainActor [weak self] in
             do {
                 try await Task.sleep(for: Self.errorDisplayDuration)
             } catch {
                 return
             }
-            
+
             guard let self, self.errorDismissToken == dismissToken else { return }
             self.clearError()
         }
     }
-    
+
     private func clearError() {
         errorAlert = nil
         errorExpiryDate = nil
     }
-    
+
     private func shouldReadFansNow(at now: Date = Date()) -> Bool {
         now >= nextFanReadDate
     }
-    
+
     private func deferFanReads(for seconds: TimeInterval, from now: Date = Date()) {
         nextFanReadDate = max(nextFanReadDate, now.addingTimeInterval(seconds))
     }
-    
+
     private func resetFanReadBackoff() {
         nextFanReadDate = .distantPast
     }
-    
+
     private func beginControlAttemptProgress(targetMode: FanControlMode) {
         isSendingControlAttempts = true
         controlAttemptTargetMode = targetMode
     }
-    
+
     private func endControlAttemptProgress() {
         isSendingControlAttempts = false
         controlAttemptTargetMode = nil

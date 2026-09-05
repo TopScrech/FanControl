@@ -1,4 +1,6 @@
+#if !SANDBOXED_APP
 import CoreSMC
+#endif
 
 extension Fan {
     nonisolated init(snapshot: FanSnapshot) {

@@ -10,9 +10,12 @@ struct SettingsView: View {
     var body: some View {
         Form {
             ShareWebsiteButton()
+            ComponentSettingsSection()
+                .environment(model)
+                        .environment(model.componentInstaller)
             SettingsRemoteControlSection(model: model)
-            SettingsUpdatesSection(model: model)
-            SettingsLicenseSection(model: model)
+            // Direct-distribution updates are disabled in the sandboxed app
+            // SettingsLicenseSection(model: model) — license purchasing disabled
             SettingsLaunchSection()
             SettingsLanguageSection($preferredAppLanguageRawValue)
             SettingsMenuBarSection()

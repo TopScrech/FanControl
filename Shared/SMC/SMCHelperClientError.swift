@@ -1,6 +1,6 @@
 import Foundation
 
-enum SMCHelperClientError: LocalizedError {
+nonisolated enum SMCHelperClientError: LocalizedError {
     case invalidProxy, remoteError(String)
     
     var errorDescription: String? {
