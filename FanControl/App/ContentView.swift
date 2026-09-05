@@ -11,8 +11,13 @@ struct ContentView: View {
             ContentViewHeader(model: model)
             
             ScrollView {
-                FanControlsView(model: model)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                if model.componentVersion == nil {
+                    ComponentSettingsSection()
+                        .environment(model)
+                } else {
+                    FanControlsView(model: model)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }

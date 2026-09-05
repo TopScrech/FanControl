@@ -1,5 +1,7 @@
 import Foundation
+#if !APP_STORE
 import CoreSMC
+#endif
 
 struct FanCustomPresetStore {
     private static let defaultsKey = "customPresets"

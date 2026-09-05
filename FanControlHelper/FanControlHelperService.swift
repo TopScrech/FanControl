@@ -1,84 +1,58 @@
-import CoreSMC
-import OSLog
+import Foundation
 
-final class FanControlHelperService: NSObject, FanControlXPCProtocol {
-    private static let logger = Logger(subsystem: "FanControl", category: "SMCHelper")
-    private let smc: SMCFanController?
-    private let initError: String?
-    
-    override init() {
-        do {
-            smc = try SMCFanController()
-            initError = nil
-            Self.logger.info("SMC client ready")
-        } catch {
-            smc = nil
-            initError = error.localizedDescription
-            Self.logger.error("SMC client init failed: \(error)")
-        }
-        
-        super.init()
+final class FanControlHelperService: NSObject, FanControlXPCProtocol, Sendable {
+    let owner = UUID()
+    private let engine: FanControlEngine
+    private let temperatures: ComponentTemperatureReader
+
+    init(engine: FanControlEngine, temperatures: ComponentTemperatureReader) {
+        self.engine = engine
+        self.temperatures = temperatures
     }
-    
-    func readFans(withReply reply: @escaping ([FanSnapshot]?, String?) -> Void) {
-        guard let smc else {
-            reply(nil, initError ?? "SMC unavailable")
-            return
-        }
-        
-        do {
-            let fans = try smc.readFans()
-            reply(fans.map(FanSnapshot.init(fan:)), nil)
-        } catch {
-            Self.logger.error("readFans failed: \(error)")
-            reply(nil, error.localizedDescription)
+
+    func componentInfo(withReply reply: @escaping @Sendable (Int, String) -> Void) {
+        reply(ComponentConfiguration.protocolVersion, ComponentConfiguration.version)
+    }
+
+    func readTemperatures(withReply reply: @escaping @Sendable (String?, String?) -> Void) {
+        Task {
+            do { reply(try await temperatures.read(), nil) }
+            catch { reply(nil, error.localizedDescription) }
         }
     }
-    
-    func setManualRPM(fanID: Int, rpm: Double, withReply reply: @escaping (String?) -> Void) {
-        guard let smc else {
-            reply(initError ?? "SMC unavailable")
-            return
-        }
-        
-        do {
-            Self.logger.info("setManualRPM fan=\(fanID) rpm=\(rpm)")
-            try smc.setFanManualRPM(fanID: fanID, rpm: rpm)
-            reply(nil)
-        } catch {
-            Self.logger.error("setManualRPM failed fan=\(fanID) error=\(error)")
-            reply(error.localizedDescription)
+
+    func readFans(withReply reply: @escaping @Sendable ([FanSnapshot]?, String?) -> Void) {
+        Task { @MainActor in
+            do { reply(try engine.readFans().map(FanSnapshot.init(fan:)), nil) }
+            catch { reply(nil, error.localizedDescription) }
         }
     }
-    
-    func setAuto(fanID: Int, withReply reply: @escaping (String?) -> Void) {
-        guard let smc else {
-            reply(initError ?? "SMC unavailable")
-            return
-        }
-        
-        do {
-            Self.logger.info("setAuto fan=\(fanID)")
-            try smc.setFanAuto(fanID: fanID)
-            reply(nil)
-        } catch {
-            Self.logger.error("setAuto failed fan=\(fanID) error=\(error)")
-            reply(error.localizedDescription)
+
+    func setManualRPM(fanID: Int, rpm: Double, withReply reply: @escaping @Sendable (String?) -> Void) {
+        Task { @MainActor in
+            do { try engine.setManualRPM(owner: owner, fanID: fanID, rpm: rpm); reply(nil) }
+            catch { reply(error.localizedDescription) }
         }
     }
-    
-    func keepAliveManualOverride(withReply reply: @escaping (String?) -> Void) {
-        guard let smc else {
-            reply(initError ?? "SMC unavailable")
-            return
+
+    func setAuto(fanID: Int, withReply reply: @escaping @Sendable (String?) -> Void) {
+        Task { @MainActor in
+            do { try engine.setAuto(owner: owner, fanID: fanID); reply(nil) }
+            catch { reply(error.localizedDescription) }
         }
-        
-        do {
-            try smc.keepAliveManualOverride()
-            reply(nil)
-        } catch {
-            Self.logger.error("keepAlive failed: \(error)")
-            reply(error.localizedDescription)
+    }
+
+    func keepAliveManualOverride(withReply reply: @escaping @Sendable (String?) -> Void) {
+        Task { @MainActor in
+            do { try engine.keepAlive(owner: owner); reply(nil) }
+            catch { reply(error.localizedDescription) }
+        }
+    }
+
+    func prepareForUpdate(withReply reply: @escaping @Sendable (String?) -> Void) {
+        Task { @MainActor in
+            do { try engine.prepareForUpdate(); reply(nil) }
+            catch { reply(error.localizedDescription) }
         }
     }
 }

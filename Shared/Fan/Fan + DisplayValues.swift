@@ -1,5 +1,7 @@
 import Foundation
+#if !APP_STORE
 import CoreSMC
+#endif
 
 extension Fan {
     var userFacingID: Int {

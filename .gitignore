@@ -3,3 +3,6 @@
 *.xcodeproj/xcuserdata/
 *.xcworkspace/xcuserdata/
 .DS_Store
+
+# Temporary resource used only by the Developer ID test release script
+FanControl/Resources/FanControl-Component.zip

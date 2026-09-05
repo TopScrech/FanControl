@@ -1,5 +1,7 @@
 import ScrechKit
+#if !APP_STORE
 import CoreSMC
+#endif
 
 struct FanDetailsCard: View {
     let fan: Fan

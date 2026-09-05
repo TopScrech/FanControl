@@ -1,4 +1,6 @@
+#if !APP_STORE
 import CoreSMC
+#endif
 
 extension Fan {
     nonisolated init(snapshot: FanSnapshot) {

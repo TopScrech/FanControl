@@ -9,8 +9,13 @@ struct MenuBarContentView: View {
             MenuBarContentViewHeader(model: model)
             
             ScrollView {
-                FanControlsView(model: model, showSensors: true)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                if model.componentVersion == nil {
+                    ComponentSettingsSection()
+                        .environment(model)
+                } else {
+                    FanControlsView(model: model, showSensors: true)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }

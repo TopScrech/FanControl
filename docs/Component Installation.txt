@@ -1,0 +1,13 @@
+FanControl components
+
+In FanControl, choose Install in the Install FanControl components alert
+The test app includes the signed, notarized component archive and needs no download
+
+The installer copies itself into your user Library/Application Support/dev.topscrech.FanControl.component folder and registers its background service
+If macOS opens System Settings, allow FanControl Component under Login Items & Extensions
+The installer finishes automatically and FanControl connects without restarting
+
+You can also open FanControl Component.app directly to run the same installer
+Keep the installed component in Application Support while using FanControl
+
+New component versions stop the previous service and restore automatic fan control before replacing its files

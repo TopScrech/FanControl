@@ -11,10 +11,11 @@ struct ContentViewHeader: View {
             Text("FanControl")
                 .title3(.semibold)
             
-            if !model.isLicenseActive {
-                LicenseInactiveBadge()
-            }
-            
+// License purchasing disabled for this distribution
+//             if !model.isLicenseActive {
+//                 LicenseInactiveBadge()
+//             }
+//
             Spacer(minLength: 0)
             
             if showsShowWindowButton {

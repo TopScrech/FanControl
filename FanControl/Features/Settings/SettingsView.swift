@@ -9,10 +9,11 @@ struct SettingsView: View {
     
     var body: some View {
         Form {
-            ShareWebsiteButton()
+            ComponentSettingsSection()
+                .environment(model)
             SettingsRemoteControlSection(model: model)
-            SettingsUpdatesSection(model: model)
-            SettingsLicenseSection(model: model)
+            // App updates are delivered by the Mac App Store
+            // SettingsLicenseSection(model: model) — license purchasing disabled
             SettingsLaunchSection()
             SettingsLanguageSection($preferredAppLanguageRawValue)
             SettingsMenuBarSection()

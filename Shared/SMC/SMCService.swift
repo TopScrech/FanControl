@@ -1,4 +1,6 @@
+#if !APP_STORE
 import CoreSMC
+#endif
 
 protocol SMCService {
     func readFans() async throws -> [Fan]

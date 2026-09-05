@@ -1,143 +1,110 @@
 import Foundation
+#if !APP_STORE
 import CoreSMC
-import OSLog
+#endif
 
-final class RemoteSMCService: SMCService {
-    private static let logger = Logger(subsystem: "FanControl", category: "SMCHelperClient")
+// The connection is configured once; XPC manages concurrent sends and invalidation
+nonisolated final class RemoteSMCService: SMCService, @unchecked Sendable {
     private let connection: NSXPCConnection
-    private let onDisconnect: @Sendable () -> Void
-    
+
     init(onDisconnect: @escaping @Sendable () -> Void = {}) {
-        self.onDisconnect = onDisconnect
         connection = NSXPCConnection(
             machServiceName: FanControlXPCConstants.machServiceName,
             options: .privileged
         )
-        
+        connection.setCodeSigningRequirement(ComponentConfiguration.helperRequirement)
         connection.remoteObjectInterface = FanControlXPCInterface.make()
-        
-        connection.interruptionHandler = {
-            Self.logger.error("SMC helper connection interrupted")
-            onDisconnect()
-        }
-        
-        connection.invalidationHandler = {
-            Self.logger.info("SMC helper connection invalidated")
-            onDisconnect()
-        }
-        
+        connection.interruptionHandler = onDisconnect
+        connection.invalidationHandler = onDisconnect
         connection.resume()
     }
-    
-    deinit {
-        connection.invalidate()
-    }
-    
-    func readFans() async throws -> [Fan] {
-        try await withProxy { proxy, finish in
-            let lock = NSLock()
-            var finished = false
-            
-            func finishOnce(_ result: Result<[Fan], Error>) {
-                lock.lock()
-                defer { lock.unlock() }
-                
-                guard !finished else { return }
-                finished = true
-                finish(result)
-            }
-            
-            Self.logger.info("Remote readFans request")
-            
-            DispatchQueue.global().asyncAfter(deadline: .now() + 2) {
-                finishOnce(.failure(SMCHelperClientError.remoteError("SMC helper readFans timeout")))
-            }
-            
-            proxy.readFans { snapshots, error in
-                if let error {
-                    finishOnce(.failure(SMCHelperClientError.remoteError(error)))
+
+    deinit { connection.invalidate() }
+
+    func componentVersion() async throws -> String {
+        try await request { proxy, reply in
+            proxy.componentInfo { version, description in
+                guard version == ComponentConfiguration.protocolVersion else {
+                    reply.finish(.failure(SMCHelperClientError.remoteError("Update FanControl and its component to compatible versions")))
                     return
                 }
-                
-                let fans = (snapshots ?? []).map(Fan.init(snapshot:))
-                Self.logger.info("Remote readFans count=\(fans.count)")
-                finishOnce(.success(fans))
+                reply.finish(.success(description))
             }
         }
     }
-    
+
+    func readTemperatureOutput() async throws -> String {
+        try await request { proxy, reply in
+            proxy.readTemperatures { output, error in
+                if let error { reply.finish(.failure(SMCHelperClientError.remoteError(error))) }
+                else if let output { reply.finish(.success(output)) }
+                else { reply.finish(.failure(SMCHelperClientError.remoteError("Component returned no temperatures"))) }
+            }
+        }
+    }
+
+    func prepareForUpdate() async throws {
+        try await requestVoid { $0.prepareForUpdate(withReply: $1) }
+    }
+
+    func readFans() async throws -> [Fan] {
+        try await request { proxy, reply in
+            proxy.readFans { snapshots, error in
+                if let error { reply.finish(.failure(SMCHelperClientError.remoteError(error))) }
+                else if let snapshots { reply.finish(.success(snapshots.map(Fan.init(snapshot:)))) }
+                else { reply.finish(.failure(SMCHelperClientError.remoteError("Component returned no fans"))) }
+            }
+        }
+    }
+
     func setFanManualRPM(fanID: Int, rpm: Double) async throws {
-        try await withProxyVoid { proxy, finish in
-            proxy.setManualRPM(fanID: fanID, rpm: rpm) { error in
-                if let error {
-                    finish(.failure(SMCHelperClientError.remoteError(error)))
-                } else {
-                    finish(.success(()))
-                }
-            }
-        }
+        try await requestVoid { $0.setManualRPM(fanID: fanID, rpm: rpm, withReply: $1) }
     }
-    
+
     func setFanAuto(fanID: Int) async throws {
-        try await withProxyVoid { proxy, finish in
-            proxy.setAuto(fanID: fanID) { error in
-                if let error {
-                    finish(.failure(SMCHelperClientError.remoteError(error)))
-                } else {
-                    finish(.success(()))
-                }
-            }
-        }
+        try await requestVoid { $0.setAuto(fanID: fanID, withReply: $1) }
     }
-    
+
     func keepAliveManualOverride() async throws {
-        try await withProxyVoid { proxy, finish in
-            proxy.keepAliveManualOverride { error in
-                if let error {
-                    finish(.failure(SMCHelperClientError.remoteError(error)))
-                } else {
-                    finish(.success(()))
-                }
+        try await requestVoid { $0.keepAliveManualOverride(withReply: $1) }
+    }
+
+    private func requestVoid(_ work: @Sendable (FanControlXPCProtocol, @escaping @Sendable (String?) -> Void) -> Void) async throws {
+        let _: Void = try await request { proxy, reply in
+            work(proxy) { error in
+                if let error { reply.finish(.failure(SMCHelperClientError.remoteError(error))) }
+                else { reply.finish(.success(())) }
             }
         }
     }
-    
-    private func withProxy<T>(
-        _ work: @escaping (FanControlXPCProtocol, @escaping (Result<T, Error>) -> Void) -> Void
-    ) async throws -> T {
-        try await withCheckedThrowingContinuation { continuation in
-            var finished = false
-            
-            func finish(_ result: Result<T, Error>) {
-                guard !finished else { return }
-                finished = true
-                continuation.resume(with: result)
-            }
-            
-            func finishOnMain(_ result: Result<T, Error>) {
-                Task { @MainActor in
-                    finish(result)
-                }
-            }
-            
-            let proxy = connection.remoteObjectProxyWithErrorHandler { error in
-                Self.logger.error("SMC helper XPC error: \(error)")
-                self.onDisconnect()
-                finishOnMain(.failure(error))
-            } as? FanControlXPCProtocol
-            
-            guard let proxy else {
-                finish(.failure(SMCHelperClientError.invalidProxy))
-                return
-            }
-            
-            work(proxy, finishOnMain)
+
+    private func request<Value: Sendable>(_ work: @Sendable (FanControlXPCProtocol, XPCReply<Value>) -> Void) async throws -> Value {
+        let reply = XPCReply<Value>()
+        let deadline = Task {
+            do {
+                try await Task.sleep(for: .seconds(5))
+                reply.finish(.failure(SMCHelperClientError.remoteError("FanControl Component did not respond")))
+            } catch {}
         }
-    }
-    
-    private func withProxyVoid(
-        _ work: @escaping (FanControlXPCProtocol, @escaping (Result<Void, Error>) -> Void) -> Void
-    ) async throws {
-        _ = try await withProxy(work)
+        defer { deadline.cancel() }
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                reply.install(continuation)
+                guard !Task.isCancelled else {
+                    reply.finish(.failure(CancellationError()))
+                    return
+                }
+                let proxy = connection.remoteObjectProxyWithErrorHandler {
+                    reply.finish(.failure($0))
+                } as? FanControlXPCProtocol
+                guard let proxy else {
+                    reply.finish(.failure(SMCHelperClientError.invalidProxy))
+                    return
+                }
+                work(proxy, reply)
+            }
+        } onCancel: {
+            reply.finish(.failure(CancellationError()))
+        }
     }
 }

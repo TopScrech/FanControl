@@ -1,4 +1,7 @@
+#if !APP_STORE
+#if !APP_STORE
 import CoreSMC
+#endif
 
 final class LocalSMCService: SMCService {
     private let smc: SMCFanController
@@ -23,3 +26,5 @@ final class LocalSMCService: SMCService {
         try smc.keepAliveManualOverride()
     }
 }
+
+#endif

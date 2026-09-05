@@ -1,14 +1,23 @@
-import OSLog
+import Foundation
 
 final class FanControlHelperDelegate: NSObject, NSXPCListenerDelegate {
-    private static let logger = Logger(subsystem: "FanControl", category: "SMCHelper")
-    private let service = FanControlHelperService()
-    
-    nonisolated func listener(_ listener: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
-        newConnection.exportedInterface = FanControlXPCInterface.make()
-        newConnection.exportedObject = service
-        newConnection.resume()
-        Self.logger.info("Accepted helper connection")
+    private let engine: FanControlEngine
+    private let temperatures = ComponentTemperatureReader()
+
+    init(engine: FanControlEngine) { self.engine = engine }
+
+    func listener(_ listener: NSXPCListener, shouldAcceptNewConnection connection: NSXPCConnection) -> Bool {
+        connection.setCodeSigningRequirement(ComponentConfiguration.clientRequirement)
+        let service = FanControlHelperService(engine: engine, temperatures: temperatures)
+        let owner = service.owner
+        let engine = engine
+        connection.exportedInterface = FanControlXPCInterface.make()
+        connection.exportedObject = service
+        connection.invalidationHandler = {
+            Task { @MainActor in engine.restore(owner: owner) }
+        }
+        connection.interruptionHandler = connection.invalidationHandler
+        connection.resume()
         return true
     }
 }

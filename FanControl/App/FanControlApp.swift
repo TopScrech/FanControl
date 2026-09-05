@@ -16,9 +16,9 @@ struct FanControlApp: App {
     @State private var didApplyLaunchWindowPreference = false
     
     init() {
-        configureLaunchAtLoginIfNeeded()
-        AppDownloadsMovePrompter.promptIfNeeded()
-        EmbeddedCLIToolInstaller.installIfNeeded()
+        // Launch at login is opt-in through Settings
+        // App Store manages app installation
+        // No external executables are installed by the sandboxed app
     }
     
     var body: some Scene {
@@ -35,7 +35,7 @@ struct FanControlApp: App {
                 .frame(minHeight: 460, idealHeight: 460, maxHeight: 600)
                 .task {
                     configureTerminationDelegate()
-                    sendLaunchReportIfNeeded()
+                    // Hardware access is provided by the external component
                     
                     let selectedOption = preferredAppLanguage
                     preferredAppLanguageRawValue = selectedOption.rawValue
@@ -48,8 +48,7 @@ struct FanControlApp: App {
         .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(after: .appSettings) {
-                Button("Check for updates", action: checkForUpdates)
-                    .disabled(model.isCheckingForUpdates)
+                // App updates are delivered by the Mac App Store
                 
                 Button("Show Debug Section", action: model.revealDebugSection)
                     .keyboardShortcut("d", modifiers: [.command])
@@ -89,7 +88,7 @@ struct FanControlApp: App {
             .environment(\.locale, appLocale)
             .task {
                 configureTerminationDelegate()
-                sendLaunchReportIfNeeded()
+                // Hardware access is provided by the external component
             }
     }
     
