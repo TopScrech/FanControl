@@ -2,7 +2,7 @@ import Foundation
 
 nonisolated enum ComponentConfiguration {
     static let protocolVersion = 1
-    static let version = "1.10"
+    static let version = "1.11"
     static let bundleIdentifier = "dev.topscrech.FanControl.component"
     static let teamIdentifier = "8FQUA2F388"
     static let clientRequirement = "anchor apple generic and certificate leaf[subject.OU] = \"8FQUA2F388\" and (identifier \"dev.topscrech.FanControl\" or identifier \"dev.topscrech.FanControl.component\" or identifier \"dev.topscrech.FanControl.fan\")"

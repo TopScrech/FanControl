@@ -24,12 +24,17 @@ final class ComponentServiceRegistration: ComponentRegistrationDriver {
     func openApprovalSettings() { SMAppService.openSystemSettingsLoginItems() }
 
     func prepareReplacement() async throws {
-        let client = RemoteSMCService()
         // Probe a registered or responsive daemon, and fail closed for enabled services
-        let responsive = (try? await client.componentVersion()) != nil
+        let responsive = (try? await RemoteSMCService().componentVersion()) != nil
         try await ComponentRegistration.prepareReplacement(
             state: responsive ? .enabled : state,
-            restore: { try await client.prepareForUpdate() },
+            restore: {
+                try await ComponentRestoration.confirm {
+                    // A failed probe may invalidate its connection permanently
+                    // Every restoration attempt gets a new authenticated connection
+                    try await RemoteSMCService().prepareForUpdate()
+                }
+            },
             unregister: { try await self.service.unregister() }
         )
     }

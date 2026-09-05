@@ -21,7 +21,7 @@ Existing presets, fan layouts, remote CloudKit features and language settings re
 | Root daemon | `dev.topscrech.FanControl.helper` | Validated hardware commands and temperature reads |
 
 Team: `8FQUA2F388`
-Component version: 1.10, build 0, protocol 1
+Component version: 1.11, build 0, protocol 1
 Mach service and launchd Label: `dev.topscrech.FanControl.component.helper`
 Plist filename: `dev.topscrech.FanControl.helper.plist`
 The filename intentionally differs from the label, and the service is distinct from the old direct-distribution daemon
@@ -94,3 +94,5 @@ No release is published, pushed or submitted to App Review by these scripts
 
 See `Sandbox-Validation.md` for checks actually performed and remaining external validation
 A notarization ticket or passing unit tests alone does not prove a clean-Mac installation or real hardware behavior
+
+Component 1.11 adds bounded recovery for interrupted restoration connections — see `XPC-Restoration-Recovery.md`
