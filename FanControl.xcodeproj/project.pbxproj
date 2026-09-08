@@ -10,7 +10,6 @@
 		F319CCA52F58DE67006E44A3 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F319CCA42F58DE57006E44A3 /* Localizable.xcstrings */; };
 		F3A812192F2189EB00D96952 /* ScrechKit in Frameworks */ = {isa = PBXBuildFile; productRef = F3A812182F2189EB00D96952 /* ScrechKit */; };
 		F3B0001A2F5A00010000000A /* FanControlHelper in Copy Helper */ = {isa = PBXBuildFile; fileRef = F3B0001A2F5A000100000001 /* FanControlHelper */; };
-		F3B0001A2F5A00010000000B /* FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist in Copy LaunchDaemons */ = {isa = PBXBuildFile; fileRef = F3B0001A2F5A000100000002 /* FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist */; };
 		F3C67B8930139AFD006CFD2E /* ScrechKit in Frameworks */ = {isa = PBXBuildFile; productRef = F3C67B8830139AFD006CFD2E /* ScrechKit */; };
 		F3D9A0012F70000100A0B001 /* CoreSMC in Frameworks */ = {isa = PBXBuildFile; productRef = F3D9A0042F70000100A0B001 /* CoreSMC */; };
 		F3D9A0022F70000100A0B001 /* CoreSMC in Frameworks */ = {isa = PBXBuildFile; productRef = F3D9A0042F70000100A0B001 /* CoreSMC */; };
@@ -19,7 +18,6 @@
 		F40100012FA0000100C10001 /* fan in Copy CLI */ = {isa = PBXBuildFile; fileRef = F40100052FA0000100C10001 /* fan */; };
 		F40100022FA0000100C10001 /* CoreSMC in Frameworks */ = {isa = PBXBuildFile; productRef = F3D9A0042F70000100A0B001 /* CoreSMC */; };
 		F420000C2FC0000100D00001 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F319CCA42F58DE57006E44A3 /* Localizable.xcstrings */; };
-		F420000E2FC0000100D00001 /* FanControl/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F420000D2FC0000100D00001 /* FanControl/Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,7 +52,6 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/Library/LaunchDaemons";
 			dstSubfolder = Product;
 			files = (
-				F3B0001A2F5A00010000000B /* FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist in Copy LaunchDaemons */,
 			);
 			name = "Copy LaunchDaemons";
 		};
@@ -76,10 +73,8 @@
 		F3609FBD2F4BB50200D5A1E1 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		F3A812002F2180AA00D96952 /* FanControl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FanControl.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B0001A2F5A000100000001 /* FanControlHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FanControlHelper; sourceTree = BUILT_PRODUCTS_DIR; };
-		F3B0001A2F5A000100000002 /* FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist; sourceTree = SOURCE_ROOT; };
 		F40100052FA0000100C10001 /* fan */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = fan; sourceTree = BUILT_PRODUCTS_DIR; };
 		F42000042FC0000100D00001 /* FanControl Remote.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FanControl Remote.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F420000D2FC0000100D00001 /* FanControl/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = FanControl/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -183,7 +178,6 @@
 				F42000022FC0000100D00001 /* FanControlRemote */,
 				F3609FBD2F4BB50200D5A1E1 /* LICENSE.txt */,
 				F3A812012F2180AA00D96952 /* Products */,
-				F3A814452F21AA9E00D96952 /* Recovered References */,
 				F3C67B8730139AFD006CFD2E /* Frameworks */,
 			);
 			sourceTree = "<group>";
@@ -197,15 +191,6 @@
 				F42000042FC0000100D00001 /* FanControl Remote.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		F3A814452F21AA9E00D96952 /* Recovered References */ = {
-			isa = PBXGroup;
-			children = (
-				F3B0001A2F5A000100000002 /* FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist */,
-				F420000D2FC0000100D00001 /* FanControl/Assets.xcassets */,
-			);
-			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		F3C67B8730139AFD006CFD2E /* Frameworks */ = {
@@ -401,7 +386,6 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				F420000C2FC0000100D00001 /* Localizable.xcstrings in Resources */,
-				F420000E2FC0000100D00001 /* FanControl/Assets.xcassets in Resources */,
 			);
 		};
 /* End PBXResourcesBuildPhase section */
