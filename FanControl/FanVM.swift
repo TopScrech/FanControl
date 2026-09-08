@@ -1584,6 +1584,7 @@ final class FanVM {
         guard let savedCredentials = licenseCredentialStore.loadCredentials() else { return }
         licenseEmail = savedCredentials.email
         licenseKey = savedCredentials.licenseKey
+        
         _ = await verifyLicense(
             email: savedCredentials.email,
             licenseKey: savedCredentials.licenseKey,
