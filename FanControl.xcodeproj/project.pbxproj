@@ -10,6 +10,7 @@
 		F319CCA52F58DE67006E44A3 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F319CCA42F58DE57006E44A3 /* Localizable.xcstrings */; };
 		F3A812192F2189EB00D96952 /* ScrechKit in Frameworks */ = {isa = PBXBuildFile; productRef = F3A812182F2189EB00D96952 /* ScrechKit */; };
 		F3B0001A2F5A00010000000A /* FanControlHelper in Copy Helper */ = {isa = PBXBuildFile; fileRef = F3B0001A2F5A000100000001 /* FanControlHelper */; };
+		F3B0001A2F5A00010000000B /* dev.topscrech.FanControl.helper.plist in Copy LaunchDaemons */ = {isa = PBXBuildFile; fileRef = F3B0001A2F5A000100000002 /* dev.topscrech.FanControl.helper.plist */; };
 		F3C67B8930139AFD006CFD2E /* ScrechKit in Frameworks */ = {isa = PBXBuildFile; productRef = F3C67B8830139AFD006CFD2E /* ScrechKit */; };
 		F3D9A0012F70000100A0B001 /* CoreSMC in Frameworks */ = {isa = PBXBuildFile; productRef = F3D9A0042F70000100A0B001 /* CoreSMC */; };
 		F3D9A0022F70000100A0B001 /* CoreSMC in Frameworks */ = {isa = PBXBuildFile; productRef = F3D9A0042F70000100A0B001 /* CoreSMC */; };
@@ -52,6 +53,7 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/Library/LaunchDaemons";
 			dstSubfolder = Product;
 			files = (
+				F3B0001A2F5A00010000000B /* dev.topscrech.FanControl.helper.plist in Copy LaunchDaemons */,
 			);
 			name = "Copy LaunchDaemons";
 		};
@@ -73,6 +75,7 @@
 		F3609FBD2F4BB50200D5A1E1 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		F3A812002F2180AA00D96952 /* FanControl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FanControl.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B0001A2F5A000100000001 /* FanControlHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FanControlHelper; sourceTree = BUILT_PRODUCTS_DIR; };
+		F3B0001A2F5A000100000002 /* dev.topscrech.FanControl.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = FanControl/LaunchDaemons/dev.topscrech.FanControl.helper.plist; sourceTree = SOURCE_ROOT; };
 		F40100052FA0000100C10001 /* fan */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = fan; sourceTree = BUILT_PRODUCTS_DIR; };
 		F42000042FC0000100D00001 /* FanControl Remote.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FanControl Remote.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -82,6 +85,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				LaunchDaemons/dev.topscrech.FanControl.helper.plist,
 			);
 			target = F3A811FF2F2180AA00D96952 /* FanControl */;
 		};
@@ -171,6 +175,7 @@
 				F3609F9B2F4BAD0300D5A1E1 /* AGENTS.md */,
 				F319CCA42F58DE57006E44A3 /* Localizable.xcstrings */,
 				F3A812022F2180AA00D96952 /* FanControl */,
+				F3B0001A2F5A000100000002 /* dev.topscrech.FanControl.helper.plist */,
 				F3B0001A2F5A000100000003 /* Shared */,
 				F3B0001A2F5A000100000004 /* FanControlHelper */,
 				F40100062FA0000100C10001 /* CLI */,
