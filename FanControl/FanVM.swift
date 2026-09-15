@@ -17,7 +17,6 @@ final class FanVM {
     private static let allowPrereleaseUpdatesDefaultsKey = "allowPrereleaseUpdates"
     private static let useGitHubProxyDefaultsKey = "useGitHubProxy"
     private static let gitHubProxyURLDefaultsKey = "gitHubProxyURL"
-    private static let lastAutomaticUpdateCheckDateDefaultsKey = "lastAutomaticUpdateCheckDate"
     private static let manualRetryAttempts = 15
     private static let manualRetryInterval: Duration = .seconds(1)
     private static let presetStepRPM = 500
@@ -194,6 +193,7 @@ final class FanVM {
     private var preparedUpdate: PreparedUpdate?
     private var isInstallingPreparedUpdate = false
     private var showsFakeUpdatePrompt = false
+    private var lastAutomaticUpdateCheckDate: Date?
     private var automaticUpdateTask: Task<Void, Never>?
     private var debugDelayedUpdateCheckTask: Task<Void, Never>?
     private var remoteManualRetryTask: Task<Void, Never>?
@@ -1553,7 +1553,7 @@ final class FanVM {
                     }
                 }
                 
-                let didRunCheck = await self.checkForUpdatesOnLaunch()
+                let didRunCheck = await self.checkForUpdatesIfDue()
                 guard !didRunCheck else { continue }
                 
                 do {
@@ -1573,7 +1573,7 @@ final class FanVM {
         await appUpdater.setCodeSigningValidation(Self.updateCodeSigningValidation())
     }
     
-    private func checkForUpdatesOnLaunch() async -> Bool {
+    private func checkForUpdatesIfDue() async -> Bool {
         guard shouldCheckForUpdatesAutomatically else { return false }
         guard !isCheckingForUpdates else { return false }
         await checkForUpdatesAutomatically()
@@ -1600,7 +1600,7 @@ final class FanVM {
         isCheckingForUpdates = true
         defer {
             isCheckingForUpdates = false
-            UserDefaults.standard.set(checkDate, forKey: Self.lastAutomaticUpdateCheckDateDefaultsKey)
+            lastAutomaticUpdateCheckDate = checkDate
         }
         
         do {
@@ -1619,11 +1619,7 @@ final class FanVM {
     }
     
     private var shouldCheckForUpdatesAutomatically: Bool {
-        guard
-            let lastAutomaticUpdateCheckDate = UserDefaults.standard.object(
-                forKey: Self.lastAutomaticUpdateCheckDateDefaultsKey
-            ) as? Date
-                else {
+        guard let lastAutomaticUpdateCheckDate else {
             return true
         }
         
@@ -1631,11 +1627,7 @@ final class FanVM {
     }
     
     private func secondsUntilNextAutomaticUpdateCheck() -> TimeInterval {
-        guard
-            let lastAutomaticUpdateCheckDate = UserDefaults.standard.object(
-                forKey: Self.lastAutomaticUpdateCheckDateDefaultsKey
-            ) as? Date
-                else {
+        guard let lastAutomaticUpdateCheckDate else {
             return 0
         }
         
