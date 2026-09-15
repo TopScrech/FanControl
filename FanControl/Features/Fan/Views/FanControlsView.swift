@@ -7,6 +7,8 @@ struct FanControlsView: View {
     
     var body: some View {
         VStack(spacing: 12) {
+            FanPromotionsView()
+
             if model.fans.isEmpty {
                 FanEmptyState()
             } else {

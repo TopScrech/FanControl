@@ -1,5 +1,3 @@
-import Foundation
-
 enum FanShellCompletion {
     nonisolated static let executableName = "fan"
     nonisolated static let zshFilename = "_fan"

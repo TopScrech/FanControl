@@ -54,11 +54,13 @@ final class UpdateSheetTouchBarView: NSView, NSTouchBarDelegate {
         let touchBar = NSTouchBar()
         touchBar.customizationIdentifier = Self.customizationIdentifier
         touchBar.delegate = self
+        
         touchBar.defaultItemIdentifiers = [
             .flexibleSpace,
             Self.cancelItemIdentifier,
             Self.installItemIdentifier,
         ]
+        
         touchBar.principalItemIdentifier = Self.installItemIdentifier
         return touchBar
     }

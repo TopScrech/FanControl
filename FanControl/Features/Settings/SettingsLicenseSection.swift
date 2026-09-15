@@ -1,15 +1,19 @@
 import ScrechKit
 
 struct SettingsLicenseSection: View {
+    private static let licenseKeyLength = 33
+
     @Environment(\.openURL) private var openURL
     
     private enum Field: Hashable {
-        case email, licenseKey
+        case initial, email, licenseKey
     }
     
     @Bindable var model: FanVM
     
     @State private var isResetConfirmationPresented = false
+    @State private var isVerificationAlertPresented = false
+    @State private var verificationAlert: LicenseVerificationAlert?
     @FocusState private var focusedField: Field?
     
     private let buyURL = URL(string: "https://fancontrol.dev")!
@@ -22,6 +26,10 @@ struct SettingsLicenseSection: View {
             
             SecureField("License key", text: $model.licenseKey)
                 .focused($focusedField, equals: .licenseKey)
+                .onChange(of: model.licenseKey) { _, licenseKey in
+                    guard licenseKey.count == Self.licenseKeyLength else { return }
+                    verifyLicense()
+                }
                 .onSubmit(verifyLicense)
             
             LabeledContent("Status", value: model.licenseStatusText)
@@ -44,7 +52,7 @@ struct SettingsLicenseSection: View {
                     .secondary()
                     
                     Text("•")
-                        .foregroundStyle(.secondary)
+                        .secondary()
                     
                     Button("Restore") {
                         openURL(restoreURL)
@@ -63,14 +71,32 @@ struct SettingsLicenseSection: View {
         } message: {
             Text("This removes the saved email and license key from this Mac and unregisters this device")
         }
-        .task {
-            focusedField = nil
+        .alert(
+            verificationAlert?.title ?? "",
+            isPresented: $isVerificationAlertPresented,
+            presenting: verificationAlert
+        ) { _ in
+            Button("OK", role: .cancel) {
+                verificationAlert = nil
+            }
+        } message: {
+            Text($0.message)
         }
+        .background {
+            Color.clear
+                .focusable()
+                .focused($focusedField, equals: .initial)
+                .focusEffectDisabled()
+                .accessibilityHidden(true)
+        }
+        .defaultFocus($focusedField, .initial)
     }
     
     private func verifyLicense() {
         Task {
-            await model.verifyLicenseNow()
+            guard let alert = await model.verifyLicenseNow() else { return }
+            verificationAlert = alert
+            isVerificationAlertPresented = true
         }
     }
     

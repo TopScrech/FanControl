@@ -1,5 +1,4 @@
 import ScrechKit
-import CoreSMC
 
 struct SettingsView: View {
     @AppStorage("keepsWindowOnTop") private var keepsWindowOnTop = false
@@ -11,14 +10,13 @@ struct SettingsView: View {
     var body: some View {
         Form {
             ShareWebsiteButton()
+            SettingsRemoteControlSection(model: model)
+            SettingsUpdatesSection(model: model)
             SettingsLicenseSection(model: model)
             SettingsLaunchSection()
-            SettingsLanguageSection(preferredAppLanguageRawValue: $preferredAppLanguageRawValue)
+            SettingsLanguageSection($preferredAppLanguageRawValue)
             SettingsMenuBarSection()
             SettingsTemperatureSection()
-            SettingsPowerSection()
-            
-            SettingsUpdatesSection(model: model)
             
             if model.isDebugSectionVisible {
                 SettingsDebugSection(model: model)
@@ -52,18 +50,6 @@ struct SettingsView: View {
             }
         } message: {
             Text($0.message)
-        }
-    }
-    
-    private func cancelUpdate() {
-        Task {
-            await model.dismissUpdatePrompt()
-        }
-    }
-    
-    private func installPreparedUpdate() {
-        Task {
-            await model.installPreparedUpdate()
         }
     }
 }

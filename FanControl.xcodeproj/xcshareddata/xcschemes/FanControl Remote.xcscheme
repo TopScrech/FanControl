@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "2640"
+   LastUpgradeVersion = "2700"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F3A811FF2F2180AA00D96952"
-               BuildableName = "FanControl.app"
-               BlueprintName = "FanControl"
+               BlueprintIdentifier = "F42000082FC0000100D00001"
+               BuildableName = "FanControl Remote.app"
+               BlueprintName = "FanControl Remote"
                ReferencedContainer = "container:FanControl.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -31,9 +31,9 @@
       shouldAutocreateTestPlan = "YES">
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Release"
-      selectedDebuggerIdentifier = ""
-      selectedLauncherIdentifier = "Xcode.IDEFoundation.Launcher.PosixSpawn"
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
@@ -44,9 +44,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "F3A811FF2F2180AA00D96952"
-            BuildableName = "FanControl.app"
-            BlueprintName = "FanControl"
+            BlueprintIdentifier = "F42000082FC0000100D00001"
+            BuildableName = "FanControl Remote.app"
+            BlueprintName = "FanControl Remote"
             ReferencedContainer = "container:FanControl.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -61,9 +61,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "F3A811FF2F2180AA00D96952"
-            BuildableName = "FanControl.app"
-            BlueprintName = "FanControl"
+            BlueprintIdentifier = "F42000082FC0000100D00001"
+            BuildableName = "FanControl Remote.app"
+            BlueprintName = "FanControl Remote"
             ReferencedContainer = "container:FanControl.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

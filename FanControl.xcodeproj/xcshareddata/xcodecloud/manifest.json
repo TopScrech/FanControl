@@ -1,0 +1,9 @@
+{
+  "id" : "1f89d701-4aa2-4de2-ad45-33fc0f07dd7d",
+  "targets" : [
+    {
+      "id" : "7f83b984-917b-4d53-8e6b-931802c7fe00",
+      "name" : "FanControl Remote"
+    }
+  ]
+}
