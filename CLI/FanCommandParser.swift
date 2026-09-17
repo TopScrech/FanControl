@@ -53,7 +53,7 @@ Other:
             }
             
             return .report
-
+            
         case "list", "-l":
             guard arguments.count == 1 else {
                 throw FanCLIError.usage("List does not accept extra arguments")
