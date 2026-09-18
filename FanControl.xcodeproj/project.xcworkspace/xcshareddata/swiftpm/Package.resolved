@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/TopScrech/AutoUpdate",
       "state" : {
-        "revision" : "d7e9f2c1d8d8d0267dee5435c9f7a9a809bd99d3",
-        "version" : "1.2.1"
+        "revision" : "f04ab453a5f515857958384ea512125ba6f21d9d",
+        "version" : "1.2.2"
       }
     },
     {
