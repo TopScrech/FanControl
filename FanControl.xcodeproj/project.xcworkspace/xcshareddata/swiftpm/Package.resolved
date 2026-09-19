@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/TopScrech/CoreSMC",
       "state" : {
-        "revision" : "429cae6d0a06788297f4b7bbdd7c24904ec71bfb",
-        "version" : "2.0.2"
+        "revision" : "6422f788899c10d5826e5ccc546176795499303d",
+        "version" : "2.0.3"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/TopScrech/ScrechKit",
       "state" : {
-        "revision" : "40f089e897c48986d101a5630c1597241b40c6c5",
-        "version" : "1.0.9"
+        "revision" : "bc5f6b5c251ae16c5d29a50a642ac95a9fe8d0e7",
+        "version" : "1.0.10"
       }
     }
   ],
