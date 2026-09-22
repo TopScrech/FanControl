@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/TopScrech/LaunchAtLogin",
       "state" : {
-        "revision" : "9f11ba55ee0b5aba74e47287fcb44aaa7cb316b6",
-        "version" : "1.0.1"
+        "revision" : "f902aeb6cfa478f7cba038de32e9326b7d983d66",
+        "version" : "1.0.2"
       }
     },
     {
