@@ -33,7 +33,7 @@
       "kind": "remote",
       "repository": "https://github.com/TopScrech/ScrechKit",
       "version": {
-        "up-to-next-major-version": "1.0.0",
+        "up-to-next-major-version": "1.0.12",
       },
     }, {
       "kind": "remote",
