@@ -94,8 +94,7 @@
           "exclusions": [
             "FanControl-Remote.plist",
           ],
-        },
-        {
+        }, {
           "target": "visionOS",
           "exclusions": [
             "FanControl-Remote.plist",

@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+      "filename" : "glassy-fan-1024.png",
       "idiom" : "vision",
       "scale" : "2x"
     }
