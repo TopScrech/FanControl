@@ -449,6 +449,6 @@
     "SWIFT_OPTIMIZATION_LEVEL[config=Debug]": "-Onone",
     "SWIFT_VERSION": "6.0",
   },
-  "last-upgrade": "27.0",
+  "last-upgrade": "27.1",
   "last-swift-update": "26.2",
 }
