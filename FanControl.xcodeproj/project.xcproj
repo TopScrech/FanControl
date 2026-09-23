@@ -73,6 +73,11 @@
             "Info.plist",
             "LaunchDaemons/dev.topscrech.FanControl.helper.plist",
           ],
+        }, {
+          "target": "iOS",
+          "inclusions": [
+            "Assets.xcassets",
+          ],
         },
       ],
     },
