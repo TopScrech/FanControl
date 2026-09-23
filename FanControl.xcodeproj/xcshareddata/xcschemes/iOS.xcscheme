@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "F42000082FC0000100D00001"
-               BuildableName = "FanControl Remote.app"
-               BlueprintName = "FanControl Remote"
+               BuildableName = "iOS.app"
+               BlueprintName = "iOS"
                ReferencedContainer = "container:FanControl.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,8 +45,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F42000082FC0000100D00001"
-            BuildableName = "FanControl Remote.app"
-            BlueprintName = "FanControl Remote"
+            BuildableName = "iOS.app"
+            BlueprintName = "iOS"
             ReferencedContainer = "container:FanControl.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,8 +62,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F42000082FC0000100D00001"
-            BuildableName = "FanControl Remote.app"
-            BlueprintName = "FanControl Remote"
+            BuildableName = "iOS.app"
+            BlueprintName = "iOS"
             ReferencedContainer = "container:FanControl.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
