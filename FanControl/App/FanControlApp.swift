@@ -1,4 +1,4 @@
-import SwiftUI
+import ScrechKit
 import LaunchAtLogin
 
 @main
@@ -48,8 +48,10 @@ struct FanControlApp: App {
         .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(after: .appSettings) {
-                Button("Check for updates", action: checkForUpdates)
-                    .disabled(model.isCheckingForUpdates)
+                AsyncButton("Check for updates") {
+                    await model.checkForUpdatesNow(presenter: .mainWindow)
+                }
+                .disabled(model.isCheckingForUpdates)
                 
                 Button("Show Debug Section", action: model.revealDebugSection)
                     .keyboardShortcut("d", modifiers: [.command])
@@ -111,12 +113,6 @@ struct FanControlApp: App {
         let app = NSApplication.shared
         let window = app.keyWindow ?? app.mainWindow ?? app.windows.first { $0.isVisible }
         window?.orderOut(nil)
-    }
-    
-    private func checkForUpdates() {
-        Task {
-            await model.checkForUpdatesNow(presenter: .mainWindow)
-        }
     }
     
     private func configureLaunchAtLoginIfNeeded() {

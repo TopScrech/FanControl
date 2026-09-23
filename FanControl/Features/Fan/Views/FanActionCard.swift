@@ -3,6 +3,10 @@ import ScrechKit
 struct FanActionCard: View {
     @Bindable var model: FanVM
     
+    private var canSetManual: Bool {
+        model.controlMinRPM != nil && model.controlMaxRPM != nil
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
@@ -19,7 +23,7 @@ struct FanActionCard: View {
             
             HStack(spacing: 10) {
                 if model.activeControlMode == .min {
-                    Button(action: setMin) {
+                    AsyncButton(action: model.setControlMin) {
                         Label("Min", systemImage: "arrow.down")
                             .frame(maxWidth: .infinity)
                     }
@@ -27,7 +31,7 @@ struct FanActionCard: View {
                     .disabled(!canSetManual)
                     .keyboardShortcut("1")
                 } else {
-                    Button(action: setMin) {
+                    AsyncButton(action: model.setControlMin) {
                         Label("Min", systemImage: "arrow.down")
                             .frame(maxWidth: .infinity)
                     }
@@ -37,7 +41,7 @@ struct FanActionCard: View {
                 }
                 
                 if model.activeControlMode == .max {
-                    Button(action: setMax) {
+                    AsyncButton(action: model.setControlMax) {
                         Label("Max", systemImage: "arrow.up")
                             .frame(maxWidth: .infinity)
                     }
@@ -45,7 +49,7 @@ struct FanActionCard: View {
                     .disabled(!canSetManual)
                     .keyboardShortcut("2")
                 } else {
-                    Button(action: setMax) {
+                    AsyncButton(action: model.setControlMax) {
                         Label("Max", systemImage: "arrow.up")
                             .frame(maxWidth: .infinity)
                     }
@@ -57,14 +61,14 @@ struct FanActionCard: View {
             
             HStack(spacing: 10) {
                 if model.activeControlMode == .auto {
-                    Button(action: setAuto) {
+                    AsyncButton(action: model.setAuto) {
                         Label("Auto", systemImage: "fan")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut("3")
                 } else {
-                    Button(action: setAuto) {
+                    AsyncButton(action: model.setAuto) {
                         Label("Auto", systemImage: "fan")
                             .frame(maxWidth: .infinity)
                     }
@@ -81,27 +85,5 @@ struct FanActionCard: View {
         .animation(.easeInOut(duration: 0.2), value: model.showsControlAttemptProgress)
         .frame(maxHeight: .infinity, alignment: .top)
         .fanCardSurface()
-    }
-    
-    private var canSetManual: Bool {
-        model.controlMinRPM != nil && model.controlMaxRPM != nil
-    }
-    
-    private func setAuto() {
-        Task {
-            await model.setAuto()
-        }
-    }
-    
-    private func setMin() {
-        Task {
-            await model.setControlMin()
-        }
-    }
-    
-    private func setMax() {
-        Task {
-            await model.setControlMax()
-        }
     }
 }

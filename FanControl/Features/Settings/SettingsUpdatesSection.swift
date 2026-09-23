@@ -20,7 +20,9 @@ struct SettingsUpdatesSection: View {
                 
                 Spacer()
                 
-                Button(action: checkForUpdates) {
+                AsyncButton {
+                    await model.checkForUpdatesNow(presenter: .settings)
+                } label: {
                     HStack {
                         Text("Check for updates")
                         Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
@@ -35,12 +37,6 @@ struct SettingsUpdatesSection: View {
                     .secondary()
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
-        }
-    }
-    
-    private func checkForUpdates() {
-        Task {
-            await model.checkForUpdatesNow(presenter: .settings)
         }
     }
 }

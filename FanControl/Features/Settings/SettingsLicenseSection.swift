@@ -66,7 +66,7 @@ struct SettingsLicenseSection: View {
             isPresented: $isResetConfirmationPresented,
             titleVisibility: .visible
         ) {
-            Button("Reset", role: .destructive, action: resetLicense)
+            AsyncButton("Reset", role: .destructive, action: model.clearSavedLicense)
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This removes the saved email and license key from this Mac and unregisters this device")
@@ -97,12 +97,6 @@ struct SettingsLicenseSection: View {
             guard let alert = await model.verifyLicenseNow() else { return }
             verificationAlert = alert
             isVerificationAlertPresented = true
-        }
-    }
-    
-    private func resetLicense() {
-        Task {
-            await model.clearSavedLicense()
         }
     }
 }
