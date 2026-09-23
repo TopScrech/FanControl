@@ -14,8 +14,8 @@ Control fan speed with ease on any Apple Silicon Mac
 - macOS 14+
 
 **FanControl Remote**
-- iOS 18+
-- visionOS 2+
+- iOS 17+
+- visionOS 1+
 
 ## Remote control
 
