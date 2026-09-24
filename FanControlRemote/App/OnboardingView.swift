@@ -58,7 +58,7 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
         }
-        .navigationTitle("Set up Remote Fan Control")
+        .navigationTitle("Set up Fan Control Remote")
         .safeAreaInset(edge: .bottom) {
             Button {
                 hasEnabledRemoteControl = true
