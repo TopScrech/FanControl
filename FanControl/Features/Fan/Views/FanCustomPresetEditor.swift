@@ -19,9 +19,22 @@ struct FanCustomPresetEditor: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Custom preset")
-                .headline()
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Custom preset")
+                    .headline()
+                
+                Spacer(minLength: 0)
+                
+                if isActive {
+                    Text("Active")
+                        .caption(.semibold)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.accentColor, in: .capsule)
+                }
+            }
             
             if sensors.isEmpty {
                 Text("No temperature sensors available")
@@ -42,15 +55,23 @@ struct FanCustomPresetEditor: View {
                         }
                     }
                 }
+                .labelsHidden()
+                .frame(maxWidth: .infinity)
                 
                 TemperatureRangeSlider(
                     bounds: FanCustomPreset.temperatureBounds,
                     minimumValue: $draft.minimumTemperature,
-                    maximumValue: $draft.maximumTemperature
+                    maximumValue: $draft.maximumTemperature,
+                    currentValue: selectedSensor?.celsius
                 )
                 
-                Button(isActive ? "Update" : "Apply", action: applyCurrentDraft)
-                    .buttonStyle(.borderedProminent)
+                Button(action: applyCurrentDraft) {
+                    Text(isActive ? "Update" : "Apply")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.capsule)
+                .controlSize(.large)
             }
         }
         .onChange(of: model.selectedCustomPresetDraft, initial: true) { _, newValue in
@@ -59,6 +80,10 @@ struct FanCustomPresetEditor: View {
         .onChange(of: model.temperatureSensors, initial: true) {
             draft = normalized(draft)
         }
+    }
+    
+    private var selectedSensor: TemperatureSensor? {
+        pickerSensors.first { $0.key == draft.sensorKey }
     }
     
     private var temperatureUnit: TemperatureUnit {

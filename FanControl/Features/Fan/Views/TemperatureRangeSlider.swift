@@ -6,59 +6,91 @@ struct TemperatureRangeSlider: View {
     let bounds: ClosedRange<Int>
     @Binding var minimumValue: Int
     @Binding var maximumValue: Int
+    var currentValue: Double?
     
-    private let thumbSize = 18.0
+    private let thumbSize = 20.0
     private let trackHeight = 6.0
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(displayTemperature(bounds.lowerBound))
-                
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
+        VStack(spacing: 12) {
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(trackGradient)
+                        .opacity(0.22)
+                        .frame(height: trackHeight)
+                    
+                    Capsule()
+                        .fill(trackGradient)
+                        .frame(height: trackHeight)
+                        .mask(alignment: .leading) {
+                            Capsule()
+                                .frame(width: selectedTrackWidth(in: geometry.size.width))
+                                .offset(x: minimumThumbPosition(in: geometry.size.width))
+                        }
+                    
+                    if let currentValue {
                         Capsule()
-                            .fill(.primary.opacity(0.12))
-                            .frame(height: trackHeight)
-                        
-                        Capsule()
-                            .fill(Color.accentColor)
-                            .frame(
-                                width: selectedTrackWidth(in: geometry.size.width),
-                                height: trackHeight
-                            )
-                            .offset(x: minimumThumbPosition(in: geometry.size.width))
-                        
-                        thumb(
-                            value: minimumValue,
-                            width: geometry.size.width,
-                            update: updateMinimumValue(_:width:)
-                        )
-                        
-                        thumb(
-                            value: maximumValue,
-                            width: geometry.size.width,
-                            update: updateMaximumValue(_:width:)
-                        )
+                            .fill(.primary)
+                            .frame(width: 2, height: 14)
+                            .offset(x: position(for: currentValue, width: geometry.size.width) - 1)
+                            .help("Current temperature")
+                            .animation(.smooth, value: currentValue)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    
+                    thumb(
+                        value: minimumValue,
+                        width: geometry.size.width,
+                        update: updateMinimumValue(_:width:)
+                    )
+                    
+                    thumb(
+                        value: maximumValue,
+                        width: geometry.size.width,
+                        update: updateMaximumValue(_:width:)
+                    )
                 }
-                
-                Text(displayTemperature(bounds.upperBound))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .coordinateSpace(.named(Self.coordinateSpace))
             }
-            .frame(height: 28)
+            .frame(height: thumbSize)
+            .padding(.horizontal, thumbSize / 2)
             
-            HStack {
-                Text("Min \(displayTemperature(minimumValue))")
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Quiet below")
+                        .caption()
+                        .secondary()
+                    
+                    Text(displayTemperature(minimumValue))
+                        .title3(.semibold)
+                        .foregroundStyle(Double(minimumValue).temperatureTint)
+                }
                 
                 Spacer(minLength: 0)
                 
-                Text("Max \(displayTemperature(maximumValue))")
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("Full speed above")
+                        .caption()
+                        .secondary()
+                    
+                    Text(displayTemperature(maximumValue))
+                        .title3(.semibold)
+                        .foregroundStyle(Double(maximumValue).temperatureTint)
+                }
             }
-            .secondary()
-            .caption()
             .monospacedDigit()
         }
+    }
+    
+    private var trackGradient: LinearGradient {
+        let span = Double(bounds.upperBound - bounds.lowerBound)
+        
+        let stops = stride(from: bounds.lowerBound, through: bounds.upperBound, by: 5).map {
+            Gradient.Stop(color: Double($0).temperatureTint, location: Double($0 - bounds.lowerBound) / span)
+        }
+        
+        return LinearGradient(stops: stops, startPoint: .leading, endPoint: .trailing)
     }
     
     private var temperatureUnit: TemperatureUnit {
@@ -71,20 +103,25 @@ struct TemperatureRangeSlider: View {
         update: @escaping (CGFloat, CGFloat) -> Void
     ) -> some View {
         Circle()
-            .fill(.background)
-            .overlay {
-                Circle()
-                    .stroke(.primary.opacity(0.18), lineWidth: 1)
-            }
+            .fill(.white)
             .frame(width: thumbSize, height: thumbSize)
-            .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
+            .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
             .offset(x: thumbPosition(for: value, width: width) - thumbSize / 2)
             .gesture(
-                DragGesture(minimumDistance: 0)
+                DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.coordinateSpace))
                     .onChanged { value in
                         update(value.location.x, width)
                     }
             )
+    }
+    
+    private static let coordinateSpace = "TemperatureRangeSlider"
+    
+    private func position(for celsius: Double, width: CGFloat) -> CGFloat {
+        guard bounds.upperBound > bounds.lowerBound, width > 0 else { return 0 }
+        
+        let progress = (celsius - Double(bounds.lowerBound)) / Double(bounds.upperBound - bounds.lowerBound)
+        return min(max(progress * width, 0), width)
     }
     
     private func minimumThumbPosition(in width: CGFloat) -> CGFloat {
