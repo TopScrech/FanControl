@@ -7,23 +7,11 @@ struct FanPresetMenu: View {
     @State private var showsLicenseAlert = false
     
     var body: some View {
-        Group {
-            if model.activeControlMode == .preset || model.activeControlMode == .custom {
-                Button(action: showPresetMenuOrLicenseAlert) {
-                    Label(buttonTitle, systemImage: "dial.low")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .keyboardShortcut("4")
-            } else {
-                Button(action: showPresetMenuOrLicenseAlert) {
-                    Label(buttonTitle, systemImage: "dial.low")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .keyboardShortcut("4")
-            }
+        Button(action: showPresetMenuOrLicenseAlert) {
+            Label(buttonTitle, systemImage: "dial.low")
         }
+        .buttonStyle(FanModeButtonStyle(isActive: model.activeControlMode == .preset || model.activeControlMode == .custom))
+        .keyboardShortcut("4")
         .monospacedDigit()
         .frame(maxWidth: .infinity)
         .disabled(model.controlPresetRPMs.isEmpty && model.temperatureSensors.isEmpty)

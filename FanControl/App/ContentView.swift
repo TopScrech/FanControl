@@ -7,21 +7,25 @@ struct ContentView: View {
     let showsUpdateAlert: Bool
     
     var body: some View {
-        VStack(spacing: 12) {
-            ContentViewHeader(model: model)
-            
-            ScrollView {
-                FanControlsView(model: model)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        ScrollView {
+            FanControlsView(model: model)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding([.horizontal, .bottom], 8)
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .navigationTitle("FanControl")
+        .toolbar {
+            ContentViewToolbar(model: model)
+        }
+        .transparentWindowToolbar()
         .frame(width: 400)
         .frame(maxHeight: .infinity)
         .background(MainWindowLevelView(keepsWindowOnTop: keepsWindowOnTop))
         .background(FanSelectionShortcutsView(changeSelectedFan: model.changeSelectedFan))
-        .background(ContentViewBackground())
+        .background {
+            ContentViewBackground()
+                .ignoresSafeArea()
+        }
         .alert("Error", isPresented: $model.isErrorAlertPresented, presenting: model.errorAlert) { _ in
             Button("Copy error message", action: model.copyErrorMessage)
             Button("OK", role: .cancel, action: model.dismissError)

@@ -3,4 +3,5 @@ struct TemperatureAverageRow: Identifiable {
     let title: String
     let systemImage: String
     let value: String
+    let celsius: Double?
 }

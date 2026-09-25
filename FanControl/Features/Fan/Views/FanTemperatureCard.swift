@@ -4,104 +4,96 @@ struct FanTemperatureCard: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     @AppStorage("showsTemperatureSensorIcons") private var showsTemperatureSensorIcons = false
-    
-    @State private var showsTemperatureSensorsSheet = false
-    
+
     @Bindable var model: FanVM
-    var showAllSensors = true
-    
+
+    @State private var isExpanded: Bool
+
+    init(model: FanVM, showAllSensors: Bool = true) {
+        self.model = model
+        _isExpanded = State(initialValue: showAllSensors)
+    }
+
     private var temperatureUnit: TemperatureUnit {
         TemperatureUnit(rawValue: temperatureUnitRawValue) ?? .celsius
     }
-    
+
     private var temperaturePrecision: TemperaturePrecision {
         TemperaturePrecision(rawValue: temperaturePrecisionRawValue) ?? .whole
     }
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 10) {
-                Label("Sensors", systemImage: "thermometer.medium")
+                Text("Sensors")
                     .headline()
-                
+
                 Spacer(minLength: 0)
-                
-                Button("Show more") {
-                    showsTemperatureSensorsSheet = true
+
+                Button(action: toggleExpanded) {
+                    HStack(spacing: 3) {
+                        Text(isExpanded ? "Show less" : "View all")
+
+                        Image(systemName: "chevron.down")
+                            .imageScale(.small)
+                            .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                    }
                 }
                 .buttonStyle(.plain)
-                .footnote()
-                .secondary()
+                .footnote(.medium)
+                .foregroundStyle(.tint)
                 .disabled(model.temperatureSensors.isEmpty)
             }
-            
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(averageRows) {
-                    FanMetricRow(
-                        $0.title,
-                        systemImage: showsTemperatureSensorIcons ? $0.systemImage : nil,
-                        value: $0.value
+
+            VStack(spacing: 0) {
+                let rows = averageRows
+                
+                ForEach(rows) { row in
+                    FanSensorRow(
+                        title: row.title,
+                        systemImage: showsTemperatureSensorIcons ? row.systemImage : nil,
+                        value: row.value,
+                        celsius: row.celsius,
+                        showsSeparator: row.id != rows.first?.id
                     )
                 }
-            }
-            .monospacedDigit()
-            
-            if showAllSensors {
-                Divider()
-                    .overlay(.primary.opacity(0.22))
-                
-                if model.temperatureSensors.isEmpty {
-                    Text("No sensors available")
-                        .secondary()
-                } else {
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 8) {
-                            ForEach(model.temperatureSensors.sorted()) {
-                                FanMetricRow(
-                                    $0.displayName,
-                                    systemImage: showsTemperatureSensorIcons ? $0.systemImage : nil,
-                                    value: $0.celsius.formattedTemperature(
-                                        in: temperatureUnit,
-                                        showsTenths: temperaturePrecision.showsTenths
-                                    ),
-                                    valueColor: $0.celsius.temperatureValueColor
-                                )
-                            }
-                        }
-                        .monospacedDigit()
-                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                if isExpanded {
+                    ForEach(model.temperatureSensors.sorted()) {
+                        FanSensorRow(
+                            title: $0.displayName,
+                            systemImage: showsTemperatureSensorIcons ? $0.systemImage : nil,
+                            value: $0.celsius.formattedTemperature(
+                                in: temperatureUnit,
+                                showsTenths: temperaturePrecision.showsTenths
+                            ),
+                            celsius: $0.celsius,
+                            showsSeparator: true
+                        )
                     }
-                    .scrollIndicators(.hidden)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .transition(.opacity)
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .sheet($showsTemperatureSensorsSheet) {
-            TemperatureSensorListSheet(sensors: model.temperatureSensors)
+    }
+
+    private func toggleExpanded() {
+        withAnimation(.smooth(duration: 0.32)) {
+            isExpanded.toggle()
         }
     }
-    
+
     private var averageRows: [TemperatureAverageRow] {
         TemperatureSensorCategory.averageCases(isMacBook: model.isMacBook).map { category in
-            let values = model.temperatureSensors
-                .filter { category.contains(sensor: $0) }
-                .map(\.celsius)
-            
-            let averageText: String
-            
-            if values.isEmpty {
-                averageText = "--"
-            } else {
-                let average = values.reduce(0, +) / Double(values.count)
-                averageText = average.formattedTemperature(in: temperatureUnit, showsTenths: temperaturePrecision.showsTenths)
-            }
-            
+            let average = category.averageCelsius(in: model.temperatureSensors)
+
             return TemperatureAverageRow(
                 id: category.rawValue,
                 title: category.title,
                 systemImage: category.systemImage,
-                value: averageText
+                value: average?.formattedTemperature(in: temperatureUnit, showsTenths: temperaturePrecision.showsTenths) ?? "--",
+                celsius: average
             )
         }
     }

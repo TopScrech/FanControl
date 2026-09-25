@@ -18,6 +18,10 @@ struct MenuBarContentViewHeader: View {
             
             Spacer(minLength: 0)
             
+            if model.fans.count > 1 {
+                FanSelectionChips(model: model)
+            }
+            
             Button("Show window", systemImage: "macwindow", action: showWindow)
                 .labelStyle(.iconOnly)
                 .help("Show window")

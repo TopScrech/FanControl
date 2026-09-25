@@ -2,17 +2,16 @@ import ScrechKit
 
 struct FanCardSurface: ViewModifier {
     let padding: CGFloat
-    
+
     func body(content: Content) -> some View {
         content
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.thinMaterial, in: .rect(cornerRadius: 14))
+            .background(.fill.tertiary, in: .rect(cornerRadius: 18))
             .overlay {
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(.white.opacity(0.16), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(.white.opacity(0.08), lineWidth: 0.5)
             }
-            .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
 }
 
