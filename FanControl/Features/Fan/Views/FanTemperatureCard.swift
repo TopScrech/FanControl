@@ -41,7 +41,7 @@ struct FanTemperatureCard: View {
                 }
                 .buttonStyle(.plain)
                 .footnote(.medium)
-                .foregroundStyle(.tint)
+                .secondary()
                 .disabled(model.temperatureSensors.isEmpty)
             }
 
