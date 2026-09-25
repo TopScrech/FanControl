@@ -6,10 +6,6 @@ struct FanSpeedRow: View {
     let isSelected: Bool
     let select: () -> Void
 
-    private var isAuto: Bool {
-        fan.mode == 0 || fan.mode == 3
-    }
-
     var body: some View {
         Button(action: select) {
             VStack(spacing: 10) {
@@ -22,7 +18,7 @@ struct FanSpeedRow: View {
 
                         Text(fan.localizedModeName)
                             .caption()
-                            .foregroundStyle(isAuto ? Color.secondary : .accentColor)
+                            .secondary()
                     }
 
                     Spacer(minLength: 0)
