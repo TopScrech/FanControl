@@ -1,4 +1,5 @@
 import ScrechKit
+import CoreSMC
 
 struct FanPresetMenu: View {
     @Bindable var model: FanVM
@@ -21,23 +22,22 @@ struct FanPresetMenu: View {
             : String(localized: "Preset control requires an active license")
         )
         .popover(isPresented: $showsPresetMenu, arrowEdge: .bottom) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(spacing: 8) {
                 FanCustomPresetEditor(model: model) {
                     setCustomPreset($0)
                     showsPresetMenu = false
                 }
+                .fanCardSurface()
                 
                 if !model.controlPresetRPMs.isEmpty {
-                    Divider()
-                        .overlay(.primary.opacity(0.18))
-                    
-                    FanFixedPresetList(presetRPMs: model.controlPresetRPMs) { rpm in
+                    FanFixedPresetList(presetRPMs: model.controlPresetRPMs, activeRPM: activePresetRPM) { rpm in
                         setPreset(rpm)
                         showsPresetMenu = false
                     }
+                    .fanCardSurface()
                 }
             }
-            .padding()
+            .padding(8)
             .frame(width: 320)
         }
         .alert(String(localized: "License required"), isPresented: $showsLicenseAlert) {
@@ -54,6 +54,16 @@ struct FanPresetMenu: View {
         }
         
         showsLicenseAlert = true
+    }
+    
+    private var activePresetRPM: Int? {
+        guard model.activeControlMode == .preset, let fan = model.selectedFan ?? model.fans.first else {
+            return nil
+        }
+        
+        return model.controlPresetRPMs.min {
+            abs(Double($0) - fan.targetRPM) < abs(Double($1) - fan.targetRPM)
+        }
     }
     
     private var buttonTitle: String {
