@@ -45,7 +45,7 @@ struct FanControlApp: App {
                 }
         }
         .windowResizability(.contentSize)
-        .windowStyle(.hiddenTitleBar)
+        .windowToolbarStyle(.unified(showsTitle: false))
         .commands {
             CommandGroup(after: .appSettings) {
                 AsyncButton("Check for updates") {

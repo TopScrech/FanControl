@@ -5,7 +5,7 @@ struct MenuBarContentView: View {
     let showsUpdateAlert: Bool
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             MenuBarContentViewHeader(model: model)
             
             ScrollView {
