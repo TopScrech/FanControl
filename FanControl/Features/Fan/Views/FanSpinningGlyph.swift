@@ -9,7 +9,7 @@ struct FanSpinningGlyph: View {
     let isSelected: Bool
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion || rpm <= 0)) { context in
+        TimelineView(.animation(paused: reduceMotion || rpm <= 0)) { context in
             Image(systemName: "fanblades.fill")
                 .title2()
                 .rotationEffect(spinClock.angle(at: context.date, rpm: reduceMotion ? 0 : rpm))
