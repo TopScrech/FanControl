@@ -18,7 +18,10 @@ struct FanControlsView: View {
             }
 
             FanTemperatureCard(model: model, showAllSensors: showSensors)
-                .fanCardSurface()
+                .padding(.horizontal, 14)
+                .padding(.top, 14)
+                .padding(.bottom, 8)
+                .fanCardSurface(padding: 0)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }

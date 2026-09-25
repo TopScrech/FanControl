@@ -21,7 +21,6 @@ struct ContentViewToolbar: ToolbarContent {
             
             if model.fans.count > 1 {
                 FanSelectionChips(model: model)
-                    // Toolbar inset is narrower than the 8pt card inset below
                     .padding(.trailing, 4)
             }
         }

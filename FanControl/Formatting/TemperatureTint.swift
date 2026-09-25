@@ -1,7 +1,6 @@
 import SwiftUI
 
 extension Double {
-    // Cold to hot ramp interpolated between fixed Celsius stops
     var temperatureTint: Color {
         let stops: [(celsius: Double, rgb: (Double, Double, Double))] = [
             (28, (100, 210, 255)),

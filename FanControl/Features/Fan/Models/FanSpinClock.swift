@@ -1,14 +1,8 @@
 import SwiftUI
 
-// Accumulates the glyph angle so speed changes don't make the blades jump
 final class FanSpinClock {
-    // Scaled down from real RPM to stay readable
     private static let degreesPerSecondPerRPM = 0.11
-    
-    // Above this the blades start to strobe at common refresh rates
     private static let maxDegreesPerSecond = 480.0
-    
-    // Mimics fan spool-up so RPM readings don't change the speed abruptly
     private static let spoolTimeConstant = 1.2
     
     private var degrees = 0.0
