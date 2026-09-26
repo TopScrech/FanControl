@@ -5,9 +5,9 @@
       <stop offset="0.6" stop-color="#0e1640"/>
       <stop offset="1" stop-color="#070b22"/>
     </radialGradient>
-    <linearGradient id="ln" gradientUnits="userSpaceOnUse" x1="0" y1="140" x2="0" y2="900">
+    <linearGradient id="ln" gradientUnits="userSpaceOnUse" x1="0" y1="-360" x2="0" y2="-60">
       <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#b9d2ff"/>
+      <stop offset="1" stop-color="#a9c6ff"/>
     </linearGradient>
     <path id="blade" d="M -24 -62 C -58 -140, -118 -232, -96 -296 C -74 -360, 56 -372, 120 -326 C 168 -292, 150 -246, 108 -222 C 66 -198, 40 -150, 28 -62"/>
   </defs>

@@ -5,7 +5,7 @@
       <stop offset="0.6" stop-color="#0d1433"/>
       <stop offset="1" stop-color="#060918"/>
     </radialGradient>
-    <linearGradient id="arc" gradientUnits="userSpaceOnUse" x1="230" y1="790" x2="820" y2="300">
+    <linearGradient id="arc" gradientUnits="userSpaceOnUse" x1="230" y1="790" x2="820" y2="300" gradientTransform="rotate(-135 512 512)">
       <stop offset="0" stop-color="#22d3ee"/>
       <stop offset="0.55" stop-color="#2ee6c4"/>
       <stop offset="1" stop-color="#6ef08a"/>
@@ -23,14 +23,14 @@
   <rect width="1024" height="1024" fill="url(#bg)"/>
 
   <!-- gauge: 270° track starting bottom-left, circumference 2π·340 = 2136.28 -->
-  <g transform="rotate(135 512 512)" fill="none" stroke-linecap="round" stroke-width="64">
-    <circle cx="512" cy="512" r="340" stroke="#ffffff" stroke-opacity="0.09" stroke-dasharray="1602.2 2136.28"/>
+  <g transform="translate(0 28) rotate(135 512 512)" fill="none" stroke-linecap="round" stroke-width="64">
+    <circle cx="512" cy="512" r="340" stroke="#ffffff" stroke-opacity="0.1" stroke-dasharray="1602.2 2136.28"/>
     <circle cx="512" cy="512" r="340" stroke="url(#arc)" stroke-opacity="0.55" filter="url(#glow)" stroke-dasharray="1121.5 2136.28"/>
     <circle cx="512" cy="512" r="340" stroke="url(#arc)" stroke-dasharray="1121.5 2136.28"/>
   </g>
 
   <!-- fan -->
-  <g transform="translate(512 512) rotate(12)" fill="url(#blade)">
+  <g transform="translate(512 540) rotate(12) scale(1.06)" fill="url(#blade)">
     <use xlink:href="#b"/>
     <use xlink:href="#b" transform="rotate(90)"/>
     <use xlink:href="#b" transform="rotate(180)"/>

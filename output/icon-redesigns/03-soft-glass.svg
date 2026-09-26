@@ -6,7 +6,7 @@
       <stop offset="1" stop-color="#0a0f2e"/>
     </radialGradient>
     <linearGradient id="glass" x1="0" y1="-360" x2="0" y2="-60" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#e4eaff" stop-opacity="0.40"/>
+      <stop offset="0" stop-color="#dcf0ff" stop-opacity="0.34"/>
       <stop offset="1" stop-color="#8f9cff" stop-opacity="0.10"/>
     </linearGradient>
     <radialGradient id="hub" cx="40%" cy="35%" r="70%">
@@ -22,7 +22,7 @@
   <rect width="1024" height="1024" fill="url(#bg)"/>
   <circle cx="512" cy="512" r="400" fill="url(#glow)"/>
   <g transform="translate(512 512) rotate(-14)">
-    <g fill="url(#glass)" stroke="#e6ecff" stroke-opacity="0.85" stroke-width="9" stroke-linejoin="round">
+    <g fill="url(#glass)" stroke="#e6ecff" stroke-opacity="0.8" stroke-width="8" stroke-linejoin="round">
       <use xlink:href="#blade"/>
       <use xlink:href="#blade" transform="rotate(90)"/>
       <use xlink:href="#blade" transform="rotate(180)"/>
