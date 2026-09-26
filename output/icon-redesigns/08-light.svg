@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E3ECF7"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A2F8F"/>
+      <stop offset="1" stop-color="#161A5C"/>
+    </linearGradient>
+    <path id="b" fill="url(#blade)" d="M -46,-70 C -96,-150 -118,-262 -76,-332 C -34,-400 92,-404 172,-342 C 234,-294 206,-236 142,-212 C 82,-190 44,-146 46,-70 Z"/>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g transform="translate(512 512) rotate(12)">
+    <use xlink:href="#b"/>
+    <use xlink:href="#b" transform="rotate(90)"/>
+    <use xlink:href="#b" transform="rotate(180)"/>
+    <use xlink:href="#b" transform="rotate(270)"/>
+    <circle r="100" fill="#161A5C"/>
+    <circle r="100" fill="none" stroke="#F1F5FB" stroke-width="14"/>
+    <circle r="40" fill="#5BC8F5"/>
+  </g>
+</svg>

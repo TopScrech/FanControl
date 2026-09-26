@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- one blade pointing up from the hub; rotated 4x -->
+    <path id="blade" d="M -46 -64
+      C -128 -126, -178 -256, -128 -336
+      C -88 -398, 34 -408, 114 -366
+      C 170 -337, 192 -296, 168 -262
+      C 148 -234, 104 -222, 78 -192
+      C 52 -162, 42 -118, 46 -64 Z"/>
+  </defs>
+  <rect width="1024" height="1024" fill="#0B1533"/>
+  <g transform="translate(512 512) rotate(-14) scale(0.94)" fill="#5CE1F2">
+    <use xlink:href="#blade"/>
+    <use xlink:href="#blade" transform="rotate(90)"/>
+    <use xlink:href="#blade" transform="rotate(180)"/>
+    <use xlink:href="#blade" transform="rotate(270)"/>
+    <circle r="116" fill="#0B1533"/>
+    <circle r="90"/>
+  </g>
+</svg>

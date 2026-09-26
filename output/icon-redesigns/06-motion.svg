@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="46%" r="72%">
+      <stop offset="0" stop-color="#27327a"/>
+      <stop offset="0.55" stop-color="#151c4a"/>
+      <stop offset="1" stop-color="#0a0e26"/>
+    </radialGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf4ff"/>
+      <stop offset="1" stop-color="#9cc4ff"/>
+    </linearGradient>
+    <linearGradient id="trail" gradientUnits="userSpaceOnUse" x1="162.4" y1="384.8" x2="479.6" y2="141.4">
+      <stop offset="0" stop-color="#8fb8ff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#bcd8ff" stop-opacity="0.95"/>
+    </linearGradient>
+    <path id="b" d="M494 470 C458 430 408 340 428 262 C446 196 540 176 604 208 C660 236 652 300 602 344 C566 376 546 420 536 466 Z" fill="url(#blade)"/>
+    <path id="arc" d="M162.4 384.8 A372 372 0 0 1 479.6 141.4" fill="none" stroke="url(#trail)" stroke-width="34" stroke-linecap="round"/>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g>
+    <use xlink:href="#arc"/>
+    <use xlink:href="#arc" transform="rotate(120 512 512)"/>
+    <use xlink:href="#arc" transform="rotate(240 512 512)"/>
+  </g>
+  <g transform="rotate(12 512 512)">
+    <use xlink:href="#b"/>
+    <use xlink:href="#b" transform="rotate(90 512 512)"/>
+    <use xlink:href="#b" transform="rotate(180 512 512)"/>
+    <use xlink:href="#b" transform="rotate(270 512 512)"/>
+    <circle cx="512" cy="512" r="66" fill="#eaf4ff"/>
+    <circle cx="512" cy="512" r="26" fill="#1b2460"/>
+  </g>
+</svg>

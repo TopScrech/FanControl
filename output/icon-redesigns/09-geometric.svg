@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#0F1B3D"/>
+  <defs>
+    <!-- One blade: a leaf bounded by two circle arcs (r=200 and r=300) meeting at the hub and the tip -->
+    <path id="blade" d="M512 500 A200 200 0 0 1 716 150 A300 300 0 0 1 512 500 Z"/>
+  </defs>
+  <g stroke="#0F1B3D" stroke-width="16" stroke-linejoin="round">
+    <use xlink:href="#blade" fill="#7CB2FF"/>
+    <use xlink:href="#blade" fill="#4C8DF6" transform="rotate(90 512 512)"/>
+    <use xlink:href="#blade" fill="#7CB2FF" transform="rotate(180 512 512)"/>
+    <use xlink:href="#blade" fill="#4C8DF6" transform="rotate(270 512 512)"/>
+  </g>
+  <circle cx="512" cy="512" r="96" fill="#0F1B3D"/>
+  <circle cx="512" cy="512" r="72" fill="#EAF2FF"/>
+</svg>

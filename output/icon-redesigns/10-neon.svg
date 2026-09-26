@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0" stop-color="#0b1424"/>
+      <stop offset="1" stop-color="#03050a"/>
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="26" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <path id="blade" d="M -52,-62 C -110,-140 -128,-250 -62,-318 C -2,-378 128,-372 160,-300 C 184,-244 128,-212 88,-168 C 58,-134 50,-100 52,-62 Z"/>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g transform="translate(512 512) rotate(12)" filter="url(#glow)">
+    <g fill="#22d3ff">
+      <use xlink:href="#blade"/>
+      <use xlink:href="#blade" transform="rotate(90)"/>
+      <use xlink:href="#blade" transform="rotate(180)"/>
+      <use xlink:href="#blade" transform="rotate(270)"/>
+    </g>
+    <circle r="104" fill="#05080f"/>
+    <circle r="64" fill="#05080f" stroke="#7ae8ff" stroke-width="18"/>
+  </g>
+</svg>

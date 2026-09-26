@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="70%">
+      <stop offset="0" stop-color="#1b2658"/>
+      <stop offset="0.6" stop-color="#0d1433"/>
+      <stop offset="1" stop-color="#060918"/>
+    </radialGradient>
+    <linearGradient id="arc" gradientUnits="userSpaceOnUse" x1="230" y1="790" x2="820" y2="300">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="0.55" stop-color="#2ee6c4"/>
+      <stop offset="1" stop-color="#6ef08a"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#b9d4ff"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <path id="b" d="M -34,-46 C -92,-104 -140,-196 -78,-238 C -18,-276 96,-252 100,-184 C 102,-132 50,-92 34,-46 Z"/>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- gauge: 270° track starting bottom-left, circumference 2π·340 = 2136.28 -->
+  <g transform="rotate(135 512 512)" fill="none" stroke-linecap="round" stroke-width="64">
+    <circle cx="512" cy="512" r="340" stroke="#ffffff" stroke-opacity="0.09" stroke-dasharray="1602.2 2136.28"/>
+    <circle cx="512" cy="512" r="340" stroke="url(#arc)" stroke-opacity="0.55" filter="url(#glow)" stroke-dasharray="1121.5 2136.28"/>
+    <circle cx="512" cy="512" r="340" stroke="url(#arc)" stroke-dasharray="1121.5 2136.28"/>
+  </g>
+
+  <!-- fan -->
+  <g transform="translate(512 512) rotate(12)" fill="url(#blade)">
+    <use xlink:href="#b"/>
+    <use xlink:href="#b" transform="rotate(90)"/>
+    <use xlink:href="#b" transform="rotate(180)"/>
+    <use xlink:href="#b" transform="rotate(270)"/>
+    <circle r="70"/>
+    <circle r="26" fill="#0d1433"/>
+  </g>
+</svg>

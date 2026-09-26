@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="46%" r="72%">
+      <stop offset="0" stop-color="#26307a"/>
+      <stop offset="0.6" stop-color="#141a4a"/>
+      <stop offset="1" stop-color="#0a0d2a"/>
+    </radialGradient>
+    <linearGradient id="disc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dbe4f5"/>
+    </linearGradient>
+    <path id="blade" d="M -30,-92 C -88,-150 -122,-232 -84,-294 C -46,-352 64,-358 140,-318 C 170,-302 166,-278 144,-256 C 112,-218 86,-180 60,-150 C 40,-126 30,-108 30,-92 A 94 94 0 0 1 -30,-92 Z"/>
+    <mask id="cut">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <g transform="translate(512 512) rotate(14)" fill="#000">
+        <use href="#blade"/>
+        <use href="#blade" transform="rotate(90)"/>
+        <use href="#blade" transform="rotate(180)"/>
+        <use href="#blade" transform="rotate(270)"/>
+        <circle r="94" fill="none" stroke="#000" stroke-width="22"/>
+      </g>
+    </mask>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <circle cx="512" cy="512" r="392" fill="url(#disc)" mask="url(#cut)"/>
+</svg>

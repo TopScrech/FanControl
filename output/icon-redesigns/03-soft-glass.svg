@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="46%" r="72%">
+      <stop offset="0" stop-color="#3a3fa8"/>
+      <stop offset="0.55" stop-color="#1c2266"/>
+      <stop offset="1" stop-color="#0a0f2e"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="-360" x2="0" y2="-60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e4eaff" stop-opacity="0.40"/>
+      <stop offset="1" stop-color="#8f9cff" stop-opacity="0.10"/>
+    </linearGradient>
+    <radialGradient id="hub" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#c3cfff" stop-opacity="0.18"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#8f9bff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#8f9bff" stop-opacity="0"/>
+    </radialGradient>
+    <path id="blade" d="M -46,-70 C -108,-150 -132,-262 -70,-328 C -8,-392 140,-372 196,-306 C 222,-274 200,-252 158,-240 C 88,-218 50,-156 46,-70 Z"/>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <circle cx="512" cy="512" r="400" fill="url(#glow)"/>
+  <g transform="translate(512 512) rotate(-14)">
+    <g fill="url(#glass)" stroke="#e6ecff" stroke-opacity="0.85" stroke-width="9" stroke-linejoin="round">
+      <use xlink:href="#blade"/>
+      <use xlink:href="#blade" transform="rotate(90)"/>
+      <use xlink:href="#blade" transform="rotate(180)"/>
+      <use xlink:href="#blade" transform="rotate(270)"/>
+    </g>
+    <path d="M -84,-268 C -70,-320 10,-352 90,-340" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="16" stroke-linecap="round"/>
+    <circle r="92" fill="#262c86"/>
+    <circle r="92" fill="url(#hub)" stroke="#e6ecff" stroke-opacity="0.9" stroke-width="9"/>
+    <ellipse cx="-26" cy="-34" rx="34" ry="20" transform="rotate(-30 -26 -34)" fill="#ffffff" fill-opacity="0.35"/>
+  </g>
+</svg>

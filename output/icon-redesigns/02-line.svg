@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="46%" r="70%">
+      <stop offset="0" stop-color="#1c2a6b"/>
+      <stop offset="0.6" stop-color="#0e1640"/>
+      <stop offset="1" stop-color="#070b22"/>
+    </radialGradient>
+    <linearGradient id="ln" gradientUnits="userSpaceOnUse" x1="0" y1="140" x2="0" y2="900">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#b9d2ff"/>
+    </linearGradient>
+    <path id="blade" d="M -24 -62 C -58 -140, -118 -232, -96 -296 C -74 -360, 56 -372, 120 -326 C 168 -292, 150 -246, 108 -222 C 66 -198, 40 -150, 28 -62"/>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g fill="none" stroke="url(#ln)" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(512 512) rotate(12)">
+    <use xlink:href="#blade"/>
+    <use xlink:href="#blade" transform="rotate(90)"/>
+    <use xlink:href="#blade" transform="rotate(180)"/>
+    <use xlink:href="#blade" transform="rotate(270)"/>
+    <circle r="66"/>
+    </g>
+  </g>
+</svg>
