@@ -1,6 +1,8 @@
 import ScrechKit
 
 struct MenuBarContentView: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     @Bindable var model: FanVM
     let showsUpdateAlert: Bool
     
@@ -19,6 +21,10 @@ struct MenuBarContentView: View {
         .frame(minHeight: 515, maxHeight: .infinity, alignment: .top)
         .background(FanSelectionShortcutsView(changeSelectedFan: model.changeSelectedFan))
         .background(ContentViewBackground())
+        .background {
+            Color(white: colorScheme == .dark ? 0.16 : 0.96)
+                .ignoresSafeArea()
+        }
         .alert("Error", isPresented: $model.isErrorAlertPresented, presenting: model.errorAlert) { _ in
             Button("Copy error message", action: model.copyErrorMessage)
             Button("OK", role: .cancel, action: model.dismissError)
