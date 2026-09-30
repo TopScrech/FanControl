@@ -10,14 +10,14 @@ struct ContentView: View {
         ScrollView {
             FanControlsView(model: model)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .padding([.horizontal, .bottom], 8)
+                .padding(8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .navigationTitle("FanControl")
         .toolbar {
             ContentViewToolbar(model: model)
         }
-        .transparentWindowToolbar()
+        .windowToolbarBackground()
         .frame(width: 400)
         .frame(maxHeight: .infinity)
         .background(MainWindowLevelView(keepsWindowOnTop: keepsWindowOnTop))

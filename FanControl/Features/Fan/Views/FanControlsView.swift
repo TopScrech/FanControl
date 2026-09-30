@@ -15,6 +15,11 @@ struct FanControlsView: View {
                 FanSpeedCard(model: model)
 
                 FanActionCard(model: model)
+                    .disabled(model.isStartingFanSpeedTimer)
+
+                if model.isLicenseActive || model.fanSpeedTimer != nil {
+                    FanSpeedTimerCardView()
+                }
             }
 
             FanTemperatureCard(model: model, showAllSensors: showSensors)
@@ -24,5 +29,6 @@ struct FanControlsView: View {
                 .fanCardSurface(padding: 0)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
+        .environment(model)
     }
 }
