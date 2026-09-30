@@ -33,6 +33,9 @@ final class FanVM {
     static let defaultGitHubProxyURLString = "https://gh-proxy.com"
     
     var fans: [Fan] = []
+    var fanSpeedTimer: FanSpeedTimer?
+    var isStartingFanSpeedTimer = false
+    private var isUpdatingFanSpeedTimer = false
     var temperatureSensors: [TemperatureSensor] = []
     var isSendingControlAttempts = false
     var controlAttemptTargetMode: FanControlMode?
@@ -105,6 +108,7 @@ final class FanVM {
             
             if !isLicenseActive {
                 Task {
+                    await cancelFanSpeedTimer()
                     await disableCustomPresetsForInactiveLicense()
                 }
             }
@@ -490,6 +494,8 @@ final class FanVM {
     
     
     func tick() async {
+        await updateFanSpeedTimer()
+
         if holdingManualOverride, let smc = writeService {
             do {
                 try await smc.keepAliveManualOverride()
@@ -777,6 +783,154 @@ final class FanVM {
         }
     }
     
+    /// Timer speed range: spans every selected fan, each fan is clamped to its own limits
+    var fanSpeedTimerRPMRange: ClosedRange<Double>? {
+        let targetFans = selectedFansForControl
+
+        guard let minimum = targetFans.map(\.minRPM).min(),
+              let maximum = targetFans.map(\.maxRPM).max(),
+              minimum <= maximum else { return nil }
+
+        return minimum...maximum
+    }
+
+    func startFanSpeedTimer(_ draft: FanSpeedTimerDraft) async {
+        guard isLicenseActive else {
+            presentError(String(localized: "Fan timers require an active license"))
+            return
+        }
+
+        guard fanSpeedTimer == nil,
+              !isStartingFanSpeedTimer,
+              let rpmRange = fanSpeedTimerRPMRange,
+              draft.isValid(minimumRPM: rpmRange.lowerBound, maximumRPM: rpmRange.upperBound) else { return }
+
+        let targetFans = selectedFansForControl
+        guard !targetFans.isEmpty else { return }
+
+        let rpm = draft.rpm.rounded()
+        let targetRPMs = Dictionary(uniqueKeysWithValues: targetFans.map {
+            ($0.id, min(max(rpm, $0.minRPM), $0.maxRPM))
+        })
+        let targetFanIDs = targetFans.map(\.id)
+
+        let actionToken = startControlAction()
+        isStartingFanSpeedTimer = true
+        defer { isStartingFanSpeedTimer = false }
+
+        let helperStatus = await ensureHelperConnected()
+        guard isControlActionCurrent(actionToken), isLicenseActive, fanSpeedTimer == nil else { return }
+        guard let smc = writeService else {
+            setWriteUnavailableError(status: helperStatus)
+            return
+        }
+
+        let previouslyEnabledPresetFanIDs = targetFanIDs.filter {
+            customPresetStore.preset(for: $0)?.isEnabled == true
+        }
+
+        customPresetStore.setEnabled(false, fanIDs: targetFanIDs)
+        fanSpeedTimer = FanSpeedTimer(
+            name: controlsAllFans ? String(localized: "All fans") : String(localized: "Fan \(targetFanIDs[0] + 1)"),
+            targetRPMs: targetRPMs,
+            endDate: .now.addingTimeInterval(draft.duration)
+        )
+
+        var failedFanIDs: [Int] = []
+        var lastError: Error?
+
+        for (fanID, fanRPM) in targetRPMs.sorted(by: { $0.key < $1.key }) {
+            do {
+                try await smc.setFanManualRPM(fanID: fanID, rpm: fanRPM)
+            } catch {
+                failedFanIDs.append(fanID)
+                lastError = error
+            }
+
+            guard isControlActionCurrent(actionToken) else {
+                await cancelFanSpeedTimer()
+                return
+            }
+        }
+
+        if failedFanIDs.count == targetFanIDs.count {
+            fanSpeedTimer = nil
+            customPresetStore.setEnabled(true, fanIDs: previouslyEnabledPresetFanIDs)
+        } else {
+            removeFanSpeedTimerFans(failedFanIDs)
+            holdingManualOverride = true
+        }
+
+        if let lastError {
+            presentError(lastError.localizedDescription)
+        }
+
+        if !isLicenseActive {
+            await cancelFanSpeedTimer()
+        }
+
+        await refresh()
+    }
+
+    func cancelFanSpeedTimer() async {
+        guard fanSpeedTimer != nil else { return }
+        fanSpeedTimer?.endDate = .now
+        await updateFanSpeedTimer()
+    }
+
+    private func removeFanSpeedTimerFans(_ fanIDs: [Int]) {
+        guard fanSpeedTimer != nil else { return }
+
+        for fanID in fanIDs {
+            fanSpeedTimer?.targetRPMs[fanID] = nil
+        }
+
+        if fanSpeedTimer?.targetRPMs.isEmpty == true {
+            fanSpeedTimer = nil
+        }
+    }
+
+    private func updateFanSpeedTimer() async {
+        guard let timerSnapshot = fanSpeedTimer, !isUpdatingFanSpeedTimer else { return }
+        isUpdatingFanSpeedTimer = true
+        defer { isUpdatingFanSpeedTimer = false }
+
+        let helperStatus = await ensureHelperConnected()
+        guard let smc = writeService else {
+            setWriteUnavailableError(status: helperStatus)
+            return
+        }
+
+        var didWrite = false
+
+        for (fanID, rpm) in timerSnapshot.targetRPMs.sorted(by: { $0.key < $1.key }) {
+            guard let speedTimer = fanSpeedTimer,
+                  speedTimer.id == timerSnapshot.id,
+                  speedTimer.targetRPMs[fanID] != nil else { continue }
+
+            do {
+                if speedTimer.hasEnded() || !isLicenseActive {
+                    try await smc.setFanAuto(fanID: fanID)
+                    removeFanSpeedTimerFans([fanID])
+                    didWrite = true
+                } else if let fan = fans.first(where: { $0.id == fanID }),
+                          fan.mode == 0 || fan.mode == 3 || !Self.rpmMatches(fan.targetRPM, rpm) {
+                    try await smc.setFanManualRPM(fanID: fanID, rpm: rpm)
+                    didWrite = true
+                }
+            } catch {
+                presentError(error.localizedDescription)
+            }
+        }
+
+        guard didWrite else { return }
+
+        await refresh()
+        holdingManualOverride = customPresetStore.hasEnabledPresets || fanSpeedTimer != nil || fans.contains {
+            $0.mode != 0 && $0.mode != 3
+        }
+    }
+
     func setManualRPM(_ rpm: Double, targetMode: FanControlMode = .preset) async {
         if targetMode == .preset, !isLicenseActive {
             presentError(String(localized: "Preset control requires an active license"))
@@ -859,6 +1013,7 @@ final class FanVM {
                     
                     do {
                         try await smc.setFanManualRPM(fanID: fan.id, rpm: targetRPM)
+                        removeFanSpeedTimerFans([fan.id])
                         successfulSignals += 1
                         
                         Self.logger.info(
@@ -892,6 +1047,7 @@ final class FanVM {
             }
             
             customPresetStore.setEnabled(true, fanIDs: targetFanIDs)
+            removeFanSpeedTimerFans(targetFanIDs)
             holdingManualOverride = true
             await refresh()
             
@@ -968,7 +1124,7 @@ final class FanVM {
         
         guard let smc = writeService else {
             customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-            holdingManualOverride = customPresetStore.hasEnabledPresets
+            holdingManualOverride = customPresetStore.hasEnabledPresets || fanSpeedTimer != nil
             setWriteUnavailableError(status: helperStatus)
             Self.logger.info("Manual request ignored: no writable SMC client")
             return
@@ -993,6 +1149,7 @@ final class FanVM {
                     
                     do {
                         try await smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
+                        removeFanSpeedTimerFans([fan.id])
                         successfulSignals += 1
                         Self.logger.info("Manual signal sent fan=\(fan.id) rpm=\(rpm) attempt=\(attempt)")
                     } catch {
@@ -1013,7 +1170,7 @@ final class FanVM {
             
             guard successfulSignals > 0 else {
                 customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-                holdingManualOverride = customPresetStore.hasEnabledPresets
+                holdingManualOverride = customPresetStore.hasEnabledPresets || fanSpeedTimer != nil
                 
                 if let lastAttemptError {
                     presentError(lastAttemptError.localizedDescription)
@@ -1028,12 +1185,12 @@ final class FanVM {
             
         } catch is CancellationError {
             customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-            holdingManualOverride = customPresetStore.hasEnabledPresets
+            holdingManualOverride = customPresetStore.hasEnabledPresets || fanSpeedTimer != nil
             Self.logger.info("Manual retries canceled")
             
         } catch {
             customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-            holdingManualOverride = customPresetStore.hasEnabledPresets
+            holdingManualOverride = customPresetStore.hasEnabledPresets || fanSpeedTimer != nil
             
             Self.logger.error("Manual failed error=\(error)")
             presentError(error.localizedDescription)
@@ -1061,7 +1218,7 @@ final class FanVM {
         
         guard let smc = writeService else {
             customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-            holdingManualOverride = customPresetStore.hasEnabledPresets
+            holdingManualOverride = customPresetStore.hasEnabledPresets || fanSpeedTimer != nil
             setWriteUnavailableError(status: helperStatus)
             Self.logger.info("Auto request ignored: missing writable SMC client")
             return
@@ -1075,6 +1232,7 @@ final class FanVM {
         for fan in targetFans {
             do {
                 try await smc.setFanAuto(fanID: fan.id)
+                removeFanSpeedTimerFans([fan.id])
                 successfulSignals += 1
             } catch {
                 lastAttemptError = error
@@ -1084,7 +1242,7 @@ final class FanVM {
         
         guard successfulSignals > 0 else {
             customPresetStore.setEnabled(true, fanIDs: previouslyEnabledCustomPresetFanIDs)
-            holdingManualOverride = customPresetStore.hasEnabledPresets
+            holdingManualOverride = customPresetStore.hasEnabledPresets || fanSpeedTimer != nil
             
             if let lastAttemptError {
                 presentError(lastAttemptError.localizedDescription)
@@ -1093,7 +1251,7 @@ final class FanVM {
             return
         }
         
-        holdingManualOverride = customPresetStore.hasEnabledPresets
+        holdingManualOverride = customPresetStore.hasEnabledPresets || fanSpeedTimer != nil
         await refresh()
         Self.logger.info("Auto applied fans=\(String(describing: fanIDs))")
     }
@@ -1182,16 +1340,18 @@ final class FanVM {
         case .automatic:
             for fan in targetFans {
                 try await smc.setFanAuto(fanID: fan.id)
+                removeFanSpeedTimerFans([fan.id])
             }
         case .minimum, .maximum:
             for fan in targetFans {
                 let rpm = command.action == .minimum ? fan.minRPM : fan.maxRPM
                 try await smc.setFanManualRPM(fanID: fan.id, rpm: rpm)
+                removeFanSpeedTimerFans([fan.id])
             }
         }
         
         holdingManualOverride = command.action == .automatic
-        ? customPresetStore.hasEnabledPresets
+        ? customPresetStore.hasEnabledPresets || fanSpeedTimer != nil
         : true
         await refresh()
         
@@ -1241,6 +1401,8 @@ final class FanVM {
     }
     
     private func resetFansForAutomaticControl(reason: String) async {
+        _ = startControlAction()
+        await cancelFanSpeedTimer()
         let targetFans = fans
         
         guard !targetFans.isEmpty else { return }
@@ -1268,7 +1430,7 @@ final class FanVM {
             }
         }
         
-        holdingManualOverride = customPresetStore.hasEnabledPresets
+        holdingManualOverride = customPresetStore.hasEnabledPresets || fanSpeedTimer != nil
         
         if successfulSignals == 0, let lastAttemptError {
             Self.logger.error("\(reason) auto reset failed error=\(lastAttemptError)")
@@ -1475,7 +1637,7 @@ final class FanVM {
         guard !activeFanIDs.isEmpty else { return }
         
         customPresetStore.setEnabled(false, fanIDs: activeFanIDs)
-        holdingManualOverride = customPresetStore.hasEnabledPresets
+        holdingManualOverride = customPresetStore.hasEnabledPresets || fanSpeedTimer != nil
         
         let helperStatus = await ensureHelperConnected()
         
@@ -1500,7 +1662,7 @@ final class FanVM {
             }
         }
         
-        holdingManualOverride = customPresetStore.hasEnabledPresets
+        holdingManualOverride = customPresetStore.hasEnabledPresets || fanSpeedTimer != nil
         
         if successfulSignals > 0 {
             await refresh()
