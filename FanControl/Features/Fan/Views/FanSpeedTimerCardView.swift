@@ -32,7 +32,7 @@ struct FanSpeedTimerCardView: View {
                     AsyncButton {
                         await model.startFanSpeedTimer(draft)
                     } label: {
-                        Label("Start timer", systemImage: "timer")
+                        Text("Start timer")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)

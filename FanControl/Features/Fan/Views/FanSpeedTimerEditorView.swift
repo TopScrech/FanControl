@@ -14,13 +14,9 @@ struct FanSpeedTimerEditorView: View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("Speed")
-                        .subheadline(.medium)
-
                     if model.showsAllFansOption {
                         Text(targetName)
                             .caption()
-                            .secondary()
                     }
 
                     Spacer(minLength: 0)
