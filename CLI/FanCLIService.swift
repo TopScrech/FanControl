@@ -90,7 +90,24 @@ final class FanCLIService {
             try await smc.setFanAuto(fanID: fan.id)
         }
     }
-    
+
+    func runTimer(_ request: FanTimerRequest) async throws {
+        let fans = try await readFans()
+        let targetFans = try resolveFans(from: fans, userFacingFanID: request.userFacingFanID)
+        guard !targetFans.isEmpty else {
+            throw FanCLIError.failure("No fans found")
+        }
+
+        let smc = try writableService()
+        let targetRPMs = Dictionary(uniqueKeysWithValues: targetFans.map {
+            ($0.id, min(max(Double(request.rpm), $0.minRPM), $0.maxRPM))
+        })
+
+        try await FanCLITimer.run(request, targetFans: targetFans, targetRPMs: targetRPMs, smc: smc, readFans: readFans) {
+            try await self.applyManualRPM(targetFans: targetFans, targetRPMsByFanID: targetRPMs, smc: smc, isTimer: true)
+        }
+    }
+
     private func connectHelperIfAvailable() {
         let service = SMAppService.daemon(plistName: FanControlXPCConstants.launchdPlistName)
         
@@ -156,12 +173,14 @@ final class FanCLIService {
         try await applyManualRPM(targetFans: targetFans, targetRPMsByFanID: targetRPMsByFanID, smc: smc)
     }
     
-    private func applyManualRPM(targetFans: [Fan], targetRPMsByFanID: [Int: Double], smc: SMCService) async throws {
+    private func applyManualRPM(targetFans: [Fan], targetRPMsByFanID: [Int: Double], smc: SMCService, isTimer: Bool = false) async throws {
         var lastAttemptError: Error?
         var latestFansByID = [Int: Fan]()
         
         for attempt in 1...Self.manualRetryAttempts {
+            if isTimer { try FanCLITimer.checkInterruption() }
             for fan in targetFans {
+                if isTimer { try FanCLITimer.checkInterruption() }
                 guard let targetRPM = targetRPMsByFanID[fan.id] else { continue }
                 
                 do {

@@ -305,6 +305,7 @@
         "PRODUCT_NAME": "fan",
         "SKIP_INSTALL": "YES",
         "SWIFT_DEFAULT_ACTOR_ISOLATION": "nonisolated",
+        "SWIFT_OBJC_BRIDGING_HEADER": "CLI/FanTimerSignal.h",
         "SWIFT_VERSION": "5.0",
       },
     }, {
