@@ -20,6 +20,7 @@ enum FanShellCompletion {
                 'max:Set all fans to maximum'
                 'auto:Set all fans to auto'
                 '-a:Set all fans to auto'
+                'timer:Run a fan speed timer'
                 '-id:Set a specific fan'
                 '--id:Set a specific fan'
                 '--version:Print app version'
@@ -36,6 +37,7 @@ enum FanShellCompletion {
                 'max:Set one fan to maximum'
                 'auto:Set one fan to auto'
                 '-a:Set one fan to auto'
+                'timer:Run a timer for one fan'
                 '1000:Set one fan to 1000 RPM'
                 '1500:Set one fan to 1500 RPM'
                 '2000:Set one fan to 2000 RPM'
@@ -53,24 +55,58 @@ enum FanShellCompletion {
                 '5k:Set one fan to 5000 RPM'
             )
 
+            local -a timerSpeedSpecs
+            timerSpeedSpecs=("${(@)fanValueSpecs[6,-1]}")
+
             case $CURRENT in
                 2)
                     _describe -t fan-commands 'fan commands' commandSpecs
                     return
                     ;;
                 3)
+                    if [[ ${words[2]} == timer ]]; then
+                        _describe -t fan-values 'timer speed' timerSpeedSpecs
+                        return
+                    fi
                     if [[ ${words[2]} == -id || ${words[2]} == --id ]]; then
                         _fan_ids
                         return
                     fi
                     ;;
                 4)
+                    if [[ ${words[2]} == timer ]]; then
+                        _fan_timer_durations
+                        return
+                    fi
                     if [[ ${words[2]} == -id || ${words[2]} == --id ]]; then
                         _describe -t fan-values 'fan values' fanValueSpecs
                         return
                     fi
                     ;;
+                5)
+                    if [[ ( ${words[2]} == -id || ${words[2]} == --id ) && ${words[4]} == timer ]]; then
+                        _describe -t fan-values 'timer speed' timerSpeedSpecs
+                        return
+                    fi
+                    ;;
+                6)
+                    if [[ ( ${words[2]} == -id || ${words[2]} == --id ) && ${words[4]} == timer ]]; then
+                        _fan_timer_durations
+                        return
+                    fi
+                    ;;
             esac
+        }
+
+        _fan_timer_durations() {
+            local -a durations
+            durations=(
+                '30m:30 minutes'
+                '1h:1 hour'
+                '1h30m:1 hour and 30 minutes'
+                '2h:2 hours'
+            )
+            _describe -t fan-durations 'timer duration' durations
         }
 
         _fan_ids() {

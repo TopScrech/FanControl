@@ -54,6 +54,10 @@ final class FanCLI {
         case .autoFan(let fanID):
             try await service.setAuto(userFacingFanID: fanID)
             print("Set fan \(fanID) to auto")
+
+        case .timer(let request):
+            try await service.runTimer(request)
+            print("Timer finished, returned fans to auto")
         }
     }
 }

@@ -42,12 +42,22 @@ Control a specific fan:
   -id [fan id] -a, auto         Set one fan to auto
   -id [fan id] [speed]          Set one fan to [speed]
 
+Timers:
+  timer [speed] [duration]      Run a timer for all fans, then return to auto
+  -id [fan id] timer [speed] [duration]
+                               Run a timer for one fan, then return to auto
+  Duration: 30m, 1h, 1h30m, or 60s (maximum 23h59m)
+
 Other:
   -h, --help                    Show this help
   -r, --report                  Print support report
   -v, --version                 Print app version
   -d, --device                  Print device model
 ```
+
+For example, `fan timer 4k 30m` runs all fans at 4000 RPM for 30 minutes, clamped to each fan's supported range
+
+Timers run in the foreground, independently of the app's timer UI, and return the selected fans to Auto on completion, Ctrl-C, termination, or terminal closure
 
 ## Shortcuts
 - Option + left/right arrows - change selected fan
@@ -59,6 +69,9 @@ Other:
 ## Build
 
 Requires Xcode 26.4+ and access to the private [CoreSMC](https://github.com/TopScrech/CoreSMC?tab=readme-ov-file) library
+
+Run CLI parser and timer lifecycle tests with `python3 Tests/CLI/run-tests.py /path/to/CoreSMC`
+The tests use a mock SMC service and keep build artifacts in a temporary directory
 
 ## Dependencies
 4/5 libraries are developed and maintained by me, which helps minimize risk across all projects in which they are used

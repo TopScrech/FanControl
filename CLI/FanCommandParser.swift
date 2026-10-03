@@ -16,6 +16,12 @@ Control a specific fan:
   -id [fan id] -a, auto         Set one fan to auto
   -id [fan id] [speed]          Set one fan to [speed]
 
+Timers:
+  timer [speed] [duration]      Run a timer for all fans, then return to auto
+  -id [fan id] timer [speed] [duration]
+                               Run a timer for one fan, then return to auto
+  Duration: 30m, 1h, 1h30m, or 60s (maximum 23h59m)
+
 Other:
   -h, --help                    Show this help
   -r, --report                  Print support report
@@ -84,6 +90,9 @@ Other:
             
         case "-id", "--id":
             return try parseFanScopedCommand(arguments)
+
+        case "timer":
+            return try parseTimerCommand(Array(arguments.dropFirst()), userFacingFanID: nil)
             
         default:
             if let rpm = parseRPM(firstArgument) {
@@ -99,12 +108,20 @@ Other:
     }
     
     private static func parseFanScopedCommand(_ arguments: [String]) throws -> FanCommand {
-        guard arguments.count == 3 else {
+        guard arguments.count >= 3 else {
             throw FanCLIError.usage("Fan commands require an id and a value")
         }
         
         guard let fanID = parsePositiveInteger(arguments[1]) else {
             throw FanCLIError.usage("Fan id must be a positive integer")
+        }
+
+        if arguments[2] == "timer" {
+            return try parseTimerCommand(Array(arguments.dropFirst(3)), userFacingFanID: fanID)
+        }
+
+        guard arguments.count == 3 else {
+            throw FanCLIError.usage("Fan commands require an id and a value")
         }
         
         if isAutoAlias(arguments[2]) {
@@ -124,6 +141,55 @@ Other:
         }
         
         return .setFanRPM(fanID, rpm)
+    }
+
+    private static func parseTimerCommand(_ arguments: [String], userFacingFanID: Int?) throws -> FanCommand {
+        guard arguments.count == 2 else {
+            throw FanCLIError.usage("Timer requires a speed and duration, for example: timer 4k 30m")
+        }
+
+        guard let rpm = parseRPM(arguments[0]) else {
+            throw FanCLIError.usage("Timer RPM must be a positive integer or use k suffix like 1.5k")
+        }
+
+        guard let duration = parseTimerDuration(arguments[1]) else {
+            throw FanCLIError.usage("Timer duration must be positive and at most 23h59m, using h, m, or s in order")
+        }
+
+        return .timer(FanTimerRequest(rpm: rpm, duration: duration, userFacingFanID: userFacingFanID))
+    }
+
+    private static func parseTimerDuration(_ value: String) -> TimeInterval? {
+        var digits = ""
+        var totalSeconds = 0
+        var previousMultiplier = Int.max
+
+        for character in value {
+            if character.isASCII && character.isNumber {
+                digits.append(character)
+                continue
+            }
+
+            let multiplier: Int
+            switch character {
+            case "h": multiplier = 3600
+            case "m": multiplier = 60
+            case "s": multiplier = 1
+            default: return nil
+            }
+
+            guard multiplier < previousMultiplier, let amount = Int(digits), amount <= 86_340 / multiplier else {
+                return nil
+            }
+
+            totalSeconds += amount * multiplier
+            guard totalSeconds <= 86_340 else { return nil }
+            previousMultiplier = multiplier
+            digits = ""
+        }
+
+        guard digits.isEmpty, totalSeconds > 0 else { return nil }
+        return TimeInterval(totalSeconds)
     }
     
     private static func parseRPM(_ value: String) -> Int? {
