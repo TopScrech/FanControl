@@ -33,6 +33,11 @@ struct FanControlApp: App {
             ContentView(model: model, showsUpdateAlert: true)
                 .environment(\.locale, appLocale)
                 .frame(minHeight: 460, idealHeight: 460, maxHeight: 600)
+                .onOpenURL { url in
+                    Task {
+                        await model.activateLicense(from: url)
+                    }
+                }
                 .task {
                     configureTerminationDelegate()
                     sendLaunchReportIfNeeded()

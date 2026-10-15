@@ -737,6 +737,14 @@ final class FanVM {
         }
     }
     
+    func activateLicense(from url: URL) async {
+        guard let request = LicenseActivationRequest(url: url) else { return }
+
+        licenseEmail = request.email
+        licenseKey = request.licenseKey
+        _ = await verifyLicenseNow()
+    }
+
     func verifyLicenseNow() async -> LicenseVerificationAlert? {
         let email = self.licenseEmail.trimmingCharacters(in: .whitespacesAndNewlines)
         let licenseKey = self.licenseKey.trimmingCharacters(in: .whitespacesAndNewlines)
