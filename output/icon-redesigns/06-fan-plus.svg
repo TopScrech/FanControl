@@ -12,7 +12,7 @@
     <path id="b" d="M494 470 C458 430 408 340 428 262 C446 196 540 176 604 208 C660 236 652 300 602 344 C566 376 546 420 536 466 Z" fill="url(#blade)"/>
   </defs>
   <rect width="1024" height="1024" fill="url(#bg)"/>
-  <g transform="rotate(-3.45 512 512)">
+  <g transform="translate(512 512) scale(1.27) translate(-512 -512) rotate(-3.45 512 512)">
     <use xlink:href="#b"/>
     <use xlink:href="#b" transform="rotate(90 512 512)"/>
     <use xlink:href="#b" transform="rotate(180 512 512)"/>
