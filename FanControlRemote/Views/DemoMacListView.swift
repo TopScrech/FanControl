@@ -9,7 +9,7 @@ struct DemoMacListView: View {
                 RemoteMacCard(mac: mac)
             }
         }
-        .navigationTitle("Demo")
+        .navigationTitle("FanControl")
         .navigationDestination(for: DemoMacDestination.self) {
             RemoteMacDetailView(macID: $0.macID, model: model)
         }
