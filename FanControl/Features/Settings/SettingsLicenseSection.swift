@@ -32,7 +32,9 @@ struct SettingsLicenseSection: View {
                 }
                 .onSubmit(verifyLicense)
             
-            LabeledContent("Status", value: model.licenseStatusText)
+            LabeledContent("Status") {
+                Text(model.licenseStatusText)
+            }
         } header: {
             HStack {
                 Text("License")

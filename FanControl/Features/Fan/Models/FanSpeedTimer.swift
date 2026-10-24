@@ -1,8 +1,8 @@
-import Foundation
+import SwiftUI
 
 struct FanSpeedTimer: Identifiable, Equatable {
     let id = UUID()
-    let name: String
+    let name: LocalizedStringKey
     var targetRPMs: [Int: Double]
     let startDate = Date.now
     var endDate: Date

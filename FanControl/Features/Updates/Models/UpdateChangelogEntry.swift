@@ -1,7 +1,9 @@
-struct UpdateChangelogEntry: Hashable, Identifiable {
+import SwiftUI
+
+struct UpdateChangelogEntry: Equatable, Identifiable {
     let tagName: String
     let isPrerelease: Bool
-    let notes: String
+    let notes: LocalizedStringKey
     
     var id: String {
         tagName
