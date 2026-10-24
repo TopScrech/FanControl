@@ -29,8 +29,7 @@
       "version": {
         "up-to-next-major-version": "1.0.4",
       },
-    },
-    {
+    }, {
       "kind": "remote",
       "repository": "https://github.com/TopScrech/AutoUpdate",
       "version": {
@@ -112,9 +111,7 @@
           ],
         },
       ],
-    },
-    { "path": "LICENSE.txt" },
-    {
+    }, {
       "kind": "folder",
       "path": "visionOS",
       "target-membership": [
@@ -128,7 +125,9 @@
           ],
         },
       ],
-    }, {
+    },
+    { "path": "LICENSE.txt" },
+    {
       "kind": "group",
       "name": "Products",
       "children": [
@@ -370,8 +369,7 @@
           "package": "Appearance",
           "product-name": "Appearance",
           "build-phase": { "build-phase": "frameworks" },
-        },
-        {
+        }, {
           "package": "ScrechKit",
           "product-name": "ScrechKit",
           "build-phase": { "build-phase": "frameworks" },
@@ -428,8 +426,7 @@
           "package": "Appearance",
           "product-name": "Appearance",
           "build-phase": { "build-phase": "frameworks" },
-        },
-        {
+        }, {
           "package": "ScrechKit",
           "product-name": "ScrechKit",
           "build-phase": { "build-phase": "frameworks" },
