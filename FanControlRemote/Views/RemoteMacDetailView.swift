@@ -2,19 +2,19 @@ import SwiftUI
 
 struct RemoteMacDetailView: View {
     let macID: String
-    @Bindable var model: RemoteControlViewModel
+    @Environment(RemoteControlViewModel.self) private var model
 
     var body: some View {
         Group {
             if let mac = model.mac(withID: macID) {
                 List {
                     Section {
-                        RemoteAllFansControlView(mac: mac, model: model)
+                        RemoteAllFansControlView(mac: mac)
                     }
 
                     Section("Fans") {
                         ForEach(mac.fans) {
-                            RemoteFanControlView(fan: $0, mac: mac, model: model)
+                            RemoteFanControlView(fan: $0, mac: mac)
                         }
                     }
                 }
@@ -29,9 +29,17 @@ struct RemoteMacDetailView: View {
         }
         .toolbar {
             if model.hasPendingCommand(for: macID) {
-                ToolbarItem(placement: .topBarTrailing) {
-                    ProgressView()
-                        .transition(.opacity)
+                if #available(anyAppleOS 27.1, *) {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        ProgressView()
+                            .transition(.opacity)
+                    }
+                    .axisBehavior(.verticalPreferred)
+                } else {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        ProgressView()
+                            .transition(.opacity)
+                    }
                 }
             }
         }
