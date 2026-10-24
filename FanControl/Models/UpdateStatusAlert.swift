@@ -1,7 +1,7 @@
-import Foundation
+import SwiftUI
 
 struct UpdateStatusAlert: Identifiable {
     let id = UUID()
-    let title: String
-    let message: String
+    let title: LocalizedStringKey
+    let message: LocalizedStringKey
 }

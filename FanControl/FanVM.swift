@@ -40,7 +40,7 @@ final class FanVM {
     var isSendingControlAttempts = false
     var controlAttemptTargetMode: FanControlMode?
     var isCheckingForUpdates = false
-    var updateStatusText = String(localized: "Not checked yet")
+    var updateStatusText: LocalizedStringKey = "Not checked yet"
     var updateChangelogEntries: [UpdateChangelogEntry] = []
     var isUpdatePromptPresented = false
     var isSettingsOpen = false
@@ -49,7 +49,7 @@ final class FanVM {
     var settingsUpdateStatusAlert: UpdateStatusAlert?
     var menuBarUpdateStatusAlert: UpdateStatusAlert?
     var helperConnectionStatus = HelperConnectionStatus.unavailable
-    var remoteControlStatusText = String(localized: "Disabled")
+    var remoteControlStatusText: LocalizedStringKey = "Disabled"
     
     var isRemoteControlEnabled = UserDefaults.standard.bool(forKey: FanVM.remoteControlEnabledDefaultsKey) {
         didSet {
@@ -115,7 +115,7 @@ final class FanVM {
         }
     }
     
-    var licenseStatusText = String(localized: "Not activated")
+    var licenseStatusText: LocalizedStringKey = "Not activated"
     let deviceName: String
     let isMacBook: Bool
     
@@ -163,15 +163,17 @@ final class FanVM {
         }
     }
     
-    var updatePromptTitle: String {
+    var updatePromptTitle: LocalizedStringKey {
         updatePromptTitle(for: updateTargetVersionTag)
     }
     
-    var updateTargetVersionTag: String {
+    var updateTargetVersionTag: LocalizedStringKey {
         if showsFakeUpdatePrompt {
-            "v2.0-rc.1"
+            "\("v2.0-rc.1")"
+        } else if let preparedUpdate {
+            "\(preparedUpdate.release.tagName)"
         } else {
-            preparedUpdate?.release.tagName ?? String(localized: "Unknown")
+            "Unknown"
         }
     }
     
@@ -566,18 +568,18 @@ final class FanVM {
         guard !isCheckingForUpdates else { return }
         isCheckingForUpdates = true
         
-        updateStatusText = String(localized: "Checking for updates")
+        updateStatusText = "Checking for updates"
         defer { isCheckingForUpdates = false }
         
         do {
             switch try await appUpdater.prepareUpdateIfAvailable() {
             case .upToDate:
                 clearPreparedUpdate()
-                updateStatusText = String(localized: "The latest version is already installed")
+                updateStatusText = "The latest version is already installed"
                 
                 presentUpdateStatusAlert(
-                    title: String(localized: "You’re up to date"),
-                    message: String(localized: "The latest version is already installed"),
+                    title: "You’re up to date",
+                    message: "The latest version is already installed",
                     presenter: presenter
                 )
                 
@@ -588,7 +590,7 @@ final class FanVM {
                 Self.logger.info("Update prepared tag=\(preparedUpdate.release.tagName)")
             }
         } catch {
-            updateStatusText = String(localized: "Update failed")
+            updateStatusText = "Update failed"
             Self.logger.error("Update check failed: \(error)")
             
             let template = String(localized: "Update failed: %@")
@@ -609,8 +611,7 @@ final class FanVM {
         guard let preparedUpdate else { return }
         
         isCheckingForUpdates = true
-        let installingTemplate = String(localized: "Installing %@")
-        updateStatusText = String(format: installingTemplate, locale: .current, preparedUpdate.release.tagName)
+        updateStatusText = "Installing \(preparedUpdate.release.tagName)"
         isUpdatePromptPresented = false
         defer { isCheckingForUpdates = false }
         
@@ -629,7 +630,7 @@ final class FanVM {
             await appUpdater.discardPreparedUpdate(preparedUpdate)
             
             clearPreparedUpdate()
-            updateStatusText = String(localized: "Update failed")
+            updateStatusText = "Update failed"
             Self.logger.error("Update install failed: \(error)")
             
             let template = String(localized: "Update failed: %@")
@@ -649,7 +650,7 @@ final class FanVM {
         guard let preparedUpdate else { return }
         await appUpdater.discardPreparedUpdate(preparedUpdate)
         clearPreparedUpdate()
-        updateStatusText = String(localized: "Update postponed")
+        updateStatusText = "Update postponed"
     }
     
     func dismissUpdateStatusAlert(for presenter: UpdateStatusAlertPresenter) {
@@ -661,8 +662,8 @@ final class FanVM {
     }
     
     private func presentUpdateStatusAlert(
-        title: String,
-        message: String,
+        title: LocalizedStringKey,
+        message: LocalizedStringKey,
         presenter: UpdateStatusAlertPresenter
     ) {
         let alert = UpdateStatusAlert(title: title, message: message)
@@ -696,27 +697,27 @@ final class FanVM {
             UpdateChangelogEntry(
                 tagName: "v2.0-rc.1",
                 isPrerelease: true,
-                notes: String(localized: "Some release notes")
+                notes: "Some release notes"
             ),
             UpdateChangelogEntry(
                 tagName: "v2.0-beta.1",
                 isPrerelease: true,
-                notes: String(localized: "Some release notes")
+                notes: "Some release notes"
             ),
             UpdateChangelogEntry(
                 tagName: "v1.2",
                 isPrerelease: false,
-                notes: String(localized: "Some release notes")
+                notes: "Some release notes"
             ),
             UpdateChangelogEntry(
                 tagName: "v1.1",
                 isPrerelease: false,
-                notes: String(localized: "Some release notes")
+                notes: "Some release notes"
             ),
             UpdateChangelogEntry(
                 tagName: "v1.0",
                 isPrerelease: false,
-                notes: String(localized: "Some release notes")
+                notes: "Some release notes"
             )
         ]
         
@@ -750,10 +751,10 @@ final class FanVM {
         let licenseKey = self.licenseKey.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !email.isEmpty, !licenseKey.isEmpty else {
-            licenseStatusText = String(localized: "Email and license key are required")
+            licenseStatusText = "Email and license key are required"
             isLicenseActive = false
             return LicenseVerificationAlert(
-                title: String(localized: "License verification failed"),
+                title: "License verification failed",
                 message: licenseStatusText
             )
         }
@@ -785,7 +786,7 @@ final class FanVM {
             licenseEmail = ""
             licenseKey = ""
             isLicenseActive = false
-            licenseStatusText = String(localized: "Not activated")
+            licenseStatusText = "Not activated"
         } catch {
             presentError(error.localizedDescription)
         }
@@ -839,7 +840,7 @@ final class FanVM {
 
         customPresetStore.setEnabled(false, fanIDs: targetFanIDs)
         fanSpeedTimer = FanSpeedTimer(
-            name: controlsAllFans ? String(localized: "All fans") : String(localized: "Fan \(targetFanIDs[0] + 1)"),
+            name: controlsAllFans ? "All fans" : "Fan \(targetFanIDs[0] + 1)",
             targetRPMs: targetRPMs,
             endDate: .now.addingTimeInterval(draft.duration)
         )
@@ -1276,7 +1277,7 @@ final class FanVM {
     private func configureRemoteControl() {
         guard isRemoteControlEnabled else {
             remoteControlHost.stop()
-            remoteControlStatusText = String(localized: "Disabled")
+            remoteControlStatusText = "Disabled"
             return
         }
         
@@ -1808,14 +1809,12 @@ final class FanVM {
         return max(0, nextAutomaticUpdateCheckDate.timeIntervalSinceNow)
     }
     
-    private func updatePromptTitle(for versionTag: String) -> String {
-        let template = String(localized: "Update %@ available")
-        return String(format: template, locale: .current, versionTag)
+    private func updatePromptTitle(for versionTag: LocalizedStringKey) -> LocalizedStringKey {
+        "Update \(Text(versionTag)) available"
     }
     
-    private func updateAvailableStatusText(for versionTag: String) -> String {
-        let template = String(localized: "Update available: %@")
-        return String(format: template, locale: .current, versionTag)
+    private func updateAvailableStatusText(for versionTag: String) -> LocalizedStringKey {
+        "Update available: \(versionTag)"
     }
     
     private func presentPreparedUpdate(
@@ -1935,14 +1934,14 @@ final class FanVM {
         return try? SemanticVersion(parsing: version)
     }
     
-    private func releaseNotesText(for release: Release) -> String {
+    private func releaseNotesText(for release: Release) -> LocalizedStringKey {
         let notes = release.body.trimmingCharacters(in: .whitespacesAndNewlines)
         
         if notes.isEmpty {
-            return String(localized: "No release notes")
+            return "No release notes"
         }
         
-        return notes
+        return "\(notes)"
     }
     
     private func verifyLicense(
@@ -1989,42 +1988,42 @@ final class FanVM {
 
             return LicenseVerificationAlert(
                 title: result.valid
-                    ? String(localized: "License verified")
-                    : String(localized: "License verification failed"),
+                    ? "License verified"
+                    : "License verification failed",
                 message: licenseStatusText
             )
         } catch {
             if applyOfflineGracePeriodIfAvailable() {
                 return LicenseVerificationAlert(
-                    title: String(localized: "License verification failed"),
-                    message: error.localizedDescription
+                    title: "License verification failed",
+                    message: "\(error.localizedDescription)"
                 )
             }
 
             isLicenseActive = false
-            licenseStatusText = expiredLicenseGracePeriodStatusText() ?? String(localized: "License check failed")
+            licenseStatusText = expiredLicenseGracePeriodStatusText() ?? "License check failed"
 
             if presentsServiceErrors {
                 presentError(error.localizedDescription)
             }
 
             return LicenseVerificationAlert(
-                title: String(localized: "License verification failed"),
-                message: error.localizedDescription
+                title: "License verification failed",
+                message: "\(error.localizedDescription)"
             )
         }
     }
     
     private func loadStoredLicenseState() {
         guard let savedCredentials = licenseCredentialStore.loadCredentials() else {
-            licenseStatusText = String(localized: "Not activated")
+            licenseStatusText = "Not activated"
             isLicenseActive = false
             return
         }
         
         licenseEmail = savedCredentials.email
         licenseKey = savedCredentials.licenseKey
-        licenseStatusText = String(localized: "Saved license will be checked on launch")
+        licenseStatusText = "Saved license will be checked on launch"
         
         if let reason = licenseCredentialStore.loadLastCheckReason(),
            let date = licenseCredentialStore.loadLastCheckDate() {
@@ -2035,14 +2034,14 @@ final class FanVM {
         if isLicenseActive {
             if !applyOfflineGracePeriodIfAvailable() {
                 isLicenseActive = false
-                licenseStatusText = expiredLicenseGracePeriodStatusText() ?? String(localized: "License check required")
+                licenseStatusText = expiredLicenseGracePeriodStatusText() ?? "License check required"
             }
         }
     }
     
-    private static func licenseStatusText(reason: LicenseVerificationReason, date: Date) -> String {
+    private static func licenseStatusText(reason: LicenseVerificationReason, date: Date) -> LocalizedStringKey {
         let checkedAtText = date.formatted(date: .abbreviated, time: .shortened)
-        return "\(reason.localizedStatusText) (\(checkedAtText))"
+        return "\(Text(reason.localizedStatusText)) (\(checkedAtText))"
     }
     
     private func applyOfflineGracePeriodIfAvailable() -> Bool {
@@ -2067,7 +2066,7 @@ final class FanVM {
         return true
     }
     
-    private func expiredLicenseGracePeriodStatusText() -> String? {
+    private func expiredLicenseGracePeriodStatusText() -> LocalizedStringKey? {
         guard let lastActiveValidationDate = licenseCredentialStore.loadLastActiveValidationDate() else {
             return nil
         }
@@ -2081,21 +2080,17 @@ final class FanVM {
     private static func offlineGracePeriodStatusText(
         lastActiveValidationDate: Date,
         gracePeriodDeadline: Date
-    ) -> String {
+    ) -> LocalizedStringKey {
         let lastVerifiedText = lastActiveValidationDate.formatted(date: .abbreviated, time: .shortened)
         let deadlineText = gracePeriodDeadline.formatted(date: .abbreviated, time: .shortened)
         
-        return String(
-            localized: "License active offline until \(deadlineText) (last verified \(lastVerifiedText))"
-        )
+        return "License active offline until \(deadlineText) (last verified \(lastVerifiedText))"
     }
     
-    private static func offlineGracePeriodExpiredStatusText(gracePeriodDeadline: Date) -> String {
+    private static func offlineGracePeriodExpiredStatusText(gracePeriodDeadline: Date) -> LocalizedStringKey {
         let deadlineText = gracePeriodDeadline.formatted(date: .abbreviated, time: .shortened)
         
-        return String(
-            localized: "License deactivated after no verification for 7 days (deadline \(deadlineText))"
-        )
+        return "License deactivated after no verification for 7 days (deadline \(deadlineText))"
     }
     
     private func ensureHelperConnected() async -> SMAppService.Status {

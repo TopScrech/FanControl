@@ -1,4 +1,6 @@
+import SwiftUI
+
 struct LicenseVerificationAlert {
-    let title: String
-    let message: String
+    let title: LocalizedStringKey
+    let message: LocalizedStringKey
 }

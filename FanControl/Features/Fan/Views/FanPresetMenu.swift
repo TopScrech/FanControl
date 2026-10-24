@@ -18,8 +18,8 @@ struct FanPresetMenu: View {
         .disabled(model.controlPresetRPMs.isEmpty && model.temperatureSensors.isEmpty)
         .help(
             model.canUsePresetControl
-            ? String(localized: "Preset control")
-            : String(localized: "Preset control requires an active license")
+            ? Text("Preset control")
+            : Text("Preset control requires an active license")
         )
         .popover(isPresented: $showsPresetMenu, arrowEdge: .bottom) {
             VStack(spacing: 8) {
@@ -40,7 +40,7 @@ struct FanPresetMenu: View {
             .padding(8)
             .frame(width: 320)
         }
-        .alert(String(localized: "License required"), isPresented: $showsLicenseAlert) {
+        .alert("License required", isPresented: $showsLicenseAlert) {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Activate your license in Settings to use presets")
@@ -66,11 +66,11 @@ struct FanPresetMenu: View {
         }
     }
     
-    private var buttonTitle: String {
+    private var buttonTitle: LocalizedStringKey {
         if model.activeControlMode == .custom, let customPresetPercentageText = model.selectedCustomPresetPercentageText {
-            String(localized: "Preset \(customPresetPercentageText)")
+            "Preset \(customPresetPercentageText)"
         } else {
-            String(localized: "Presets")
+            "Presets"
         }
     }
 
