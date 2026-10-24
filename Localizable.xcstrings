@@ -8365,6 +8365,7 @@
     },
     "Mode" : {
       "comment" : "A label describing the control mode for a fan.",
+      "extractionState" : "stale",
       "localizations" : {
         "da" : {
           "stringUnit" : {

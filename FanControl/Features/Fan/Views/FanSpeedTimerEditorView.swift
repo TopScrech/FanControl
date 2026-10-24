@@ -51,11 +51,11 @@ struct FanSpeedTimerEditorView: View {
         }
     }
 
-    private var targetName: String {
+    private var targetName: LocalizedStringKey {
         if model.controlsAllFans {
-            String(localized: "All fans")
+            "All fans"
         } else {
-            String(localized: "Fan \(model.selectedFanID + 1)")
+            "Fan \(model.selectedFanID + 1)"
         }
     }
 }
