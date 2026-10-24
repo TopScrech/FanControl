@@ -23,7 +23,7 @@ struct RemoteHomeView: View {
                     case .mac(let macID):
                         RemoteMacDetailView(macID: macID)
                     case .settings:
-                        RemoteSettingsView()
+                        RemoteSettings()
                     case nil:
                         ContentUnavailableView("Select a Mac", systemImage: "desktopcomputer", description: Text("Choose a Mac to control its fans"))
                     }
@@ -31,7 +31,7 @@ struct RemoteHomeView: View {
                 .navigationDestination(for: RemoteNavigationDestination.self) {
                     switch $0 {
                     case .settings:
-                        RemoteSettingsView()
+                        RemoteSettings()
                     case .demo:
                         DemoMacListView()
                     }
