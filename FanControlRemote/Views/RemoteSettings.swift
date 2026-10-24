@@ -1,7 +1,7 @@
 import SwiftUI
 import Appearance
 
-struct RemoteSettingsView: View {
+struct RemoteSettings: View {
     @AppStorage("appearance") private var appearance: Appearance = .system
 
     var body: some View {
