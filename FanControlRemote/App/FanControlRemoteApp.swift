@@ -9,9 +9,8 @@ struct FanControlRemoteApp: App {
         WindowGroup {
             ZStack {
                 if hasEnabledRemoteControl {
-                    NavigationStack {
-                        RemoteMacList(model: model)
-                    }
+                    RemoteHomeView()
+                    .environment(model)
                     .task {
                         await model.observe()
                     }

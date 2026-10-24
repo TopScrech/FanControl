@@ -2,14 +2,14 @@ import ScrechKit
 
 struct RemoteAllFansControlView: View {
     let mac: RemoteMacState
-    @Bindable var model: RemoteControlViewModel
+    @Environment(RemoteControlViewModel.self) private var model
 
     var body: some View {
         VStack(alignment: .leading) {
             Text("All fans")
                 .headline()
             
-            RemoteFanActionButtons(fanID: RemoteFanCommand.allFansID, mac: mac, model: model)
+            RemoteFanActionButtons(fanID: RemoteFanCommand.allFansID, mac: mac)
         }
     }
 }

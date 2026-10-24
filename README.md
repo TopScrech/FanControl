@@ -21,6 +21,8 @@ Control fan speed with ease on any Apple Silicon Mac
 
 The `FanControl Remote` iOS target uses the private CloudKit database shared with the macOS app, so it works across the internet and only for devices signed in to the same iCloud account
 
+The iOS target explicitly uses the Production CloudKit environment so local builds can connect to the App Store macOS app — for schema development, temporarily set both apps to Development, which has separate records
+
 1. Create `iCloud.dev.topscrech.FanControl` in the Apple Developer portal
 2. Associate the container with `dev.topscrech.FanControl` and `dev.topscrech.FanControl.remote`
 3. Run both apps with the development environment once, then deploy the CloudKit schema to production before distribution

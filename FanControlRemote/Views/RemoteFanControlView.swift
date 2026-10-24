@@ -3,7 +3,7 @@ import ScrechKit
 struct RemoteFanControlView: View {
     let fan: RemoteFanState
     let mac: RemoteMacState
-    @Bindable var model: RemoteControlViewModel
+    @Environment(RemoteControlViewModel.self) private var model
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -23,7 +23,7 @@ struct RemoteFanControlView: View {
             Text("Range \(fan.minRPM.formatted(.number.precision(.fractionLength(0))))–\(fan.maxRPM.formatted(.number.precision(.fractionLength(0)))) RPM")
                 .secondary()
             
-            RemoteFanActionButtons(fanID: fan.id, mac: mac, model: model)
+            RemoteFanActionButtons(fanID: fan.id, mac: mac)
         }
     }
 }

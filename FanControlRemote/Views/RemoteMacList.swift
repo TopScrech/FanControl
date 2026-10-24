@@ -3,8 +3,10 @@ import SwiftUI
 struct RemoteMacList: View {
     @AppStorage("hasEnabledRemoteControl") private var hasEnabledRemoteControl = false
 
-    @Bindable var model: RemoteControlViewModel
+    @Environment(RemoteControlViewModel.self) private var model
     
+    @Binding var selection: RemoteHomeDestination?
+
     var body: some View {
         Group {
             if model.macs.isEmpty {
@@ -16,38 +18,22 @@ struct RemoteMacList: View {
                     ProgressView()
                 }
             } else {
-                List(model.macs) { mac in
-                    NavigationLink(value: mac.id) {
-                        RemoteMacCard(mac: mac)
+                List(selection: $selection) {
+                    ForEach(model.macs) { mac in
+                        NavigationLink(value: RemoteHomeDestination.mac(mac.id)) {
+                            RemoteMacCard(mac: mac)
+                        }
                     }
                 }
             }
         }
         .navigationTitle("FanControl")
-        .navigationDestination(for: String.self) {
-            RemoteMacDetailView(macID: $0, model: model)
-        }
-        .navigationDestination(for: RemoteNavigationDestination.self) {
-            switch $0 {
-            case .settings:
-                RemoteSettingsView()
-            case .demo:
-                DemoMacListView()
-            }
-        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Show Setup", systemImage: "questionmark.circle") {
                     hasEnabledRemoteControl = false
                 }
                 .labelStyle(.iconOnly)
-            }
-
-            ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink(value: RemoteNavigationDestination.settings) {
-                    Label("Settings", systemImage: "gearshape")
-                        .labelStyle(.iconOnly)
-                }
             }
         }
         .refreshable {

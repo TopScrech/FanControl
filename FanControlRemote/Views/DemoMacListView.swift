@@ -34,7 +34,8 @@ struct DemoMacListView: View {
             dismiss()
         }
         .navigationDestination(for: DemoMacDestination.self) {
-            RemoteMacDetailView(macID: $0.macID, model: model)
+            RemoteMacDetailView(macID: $0.macID)
+                .environment(model)
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
