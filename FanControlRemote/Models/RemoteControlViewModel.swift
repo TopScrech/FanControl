@@ -5,6 +5,9 @@ import SwiftUI
 final class RemoteControlViewModel {
     var macs: [RemoteMacState] = []
     var isRefreshing = false
+    private(set) var deletingMacIDs: Set<String> = []
+    private var displayNames = UserDefaults.standard.dictionary(forKey: "remoteMacDisplayNames") as? [String: String] ?? [:]
+    private var macRevision = 0
     var pendingCommand: RemoteFanCommand?
 
     private static let refreshInterval: Duration = .seconds(1)
@@ -42,11 +45,13 @@ final class RemoteControlViewModel {
     func refresh() async {
         guard !isDemo else { return }
 
+        let revision = macRevision
         isRefreshing = true
         defer { isRefreshing = false }
 
         do {
             let refreshedMacs = try await store.fetchMacs()
+            guard revision == macRevision, deletingMacIDs.isEmpty else { return }
             
             withAnimation(.easeInOut(duration: 0.2)) {
                 macs = refreshedMacs
@@ -54,6 +59,36 @@ final class RemoteControlViewModel {
         } catch {
             Self.logger.error("Mac discovery failed: \(error)")
             return
+        }
+    }
+
+    func displayName(for mac: RemoteMacState) -> String {
+        displayNames[mac.id] ?? mac.name
+    }
+
+    func renameMac(id: String, name: String) {
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        displayNames[id] = name
+        if !isDemo {
+            UserDefaults.standard.set(displayNames, forKey: "remoteMacDisplayNames")
+        }
+    }
+
+    func deleteMac(id: String) async throws {
+        guard deletingMacIDs.insert(id).inserted else { return }
+        macRevision += 1
+        defer {
+            deletingMacIDs.remove(id)
+            macRevision += 1
+        }
+
+        if !isDemo {
+            try await store.deleteMac(deviceID: id)
+        }
+
+        withAnimation {
+            macs.removeAll { $0.id == id }
         }
     }
 

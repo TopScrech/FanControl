@@ -9,6 +9,7 @@ struct DemoMacListView: View {
         List(model.macs) { mac in
             NavigationLink(value: DemoMacDestination(macID: mac.id)) {
                 RemoteMacCard(mac: mac)
+                    .environment(model)
             }
         }
         .navigationTitle("FanControl")

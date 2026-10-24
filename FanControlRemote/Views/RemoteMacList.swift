@@ -20,9 +20,7 @@ struct RemoteMacList: View {
             } else {
                 List(selection: $selection) {
                     ForEach(model.macs) { mac in
-                        NavigationLink(value: RemoteHomeDestination.mac(mac.id)) {
-                            RemoteMacCard(mac: mac)
-                        }
+                        RemoteMacRowView(mac: mac, selection: $selection)
                     }
                 }
             }

@@ -66,6 +66,34 @@ final class RemoteCloudStore {
         try await registerMac(deviceID: deviceID)
     }
     
+    func deleteMac(deviceID: String) async throws {
+        try await verifyAccount()
+        let recordID = CKRecord.ID(recordName: RemoteCloudSchema.macRecordName(deviceID: deviceID))
+
+        do {
+            _ = try await database.deleteRecord(withID: recordID)
+        } catch let error as CKError where error.code == .unknownItem {
+            // Already removed by another device
+        }
+
+        let registryID = CKRecord.ID(recordName: RemoteCloudSchema.registryRecordName)
+
+        for attempt in 0..<3 {
+            guard let registry = try await existingRecord(withID: registryID),
+                  let deviceIDs = registry[RemoteCloudSchema.Field.deviceIDs] as? [String],
+                  deviceIDs.contains(deviceID) else { return }
+
+            registry[RemoteCloudSchema.Field.deviceIDs] = deviceIDs.filter { $0 != deviceID }
+
+            do {
+                _ = try await database.save(registry)
+                return
+            } catch let error as CKError where error.code == .serverRecordChanged && attempt < 2 {
+                continue
+            }
+        }
+    }
+
     func sendCommand(deviceID: String, fanID: Int, action: RemoteFanAction) async throws -> RemoteFanCommand {
         try await verifyAccount()
         let recordID = CKRecord.ID(recordName: RemoteCloudSchema.commandRecordName(deviceID: deviceID))
