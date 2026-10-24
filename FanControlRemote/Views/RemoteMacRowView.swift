@@ -20,6 +20,7 @@ struct RemoteMacRowView: View {
             Button("Delete", systemImage: "trash", role: .destructive) {
                 isConfirmingDeletion = true
             }
+            .labelStyle(.iconOnly)
         }
         .contextMenu {
             Button("Rename", systemImage: "pencil") {
@@ -33,7 +34,6 @@ struct RemoteMacRowView: View {
         }
         .alert("Rename Mac", isPresented: $isRenaming) {
             TextField("Name", text: $renameDraft)
-
             Button("Cancel", role: .cancel) {}
 
             Button("Save") {
