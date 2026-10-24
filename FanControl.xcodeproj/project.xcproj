@@ -25,6 +25,13 @@
   "packages": [
     {
       "kind": "remote",
+      "repository": "https://github.com/TopScrech/Appearance",
+      "version": {
+        "up-to-next-major-version": "1.0.4",
+      },
+    },
+    {
+      "kind": "remote",
       "repository": "https://github.com/TopScrech/AutoUpdate",
       "version": {
         "up-to-next-major-version": "1.0.0",
@@ -360,6 +367,11 @@
       ],
       "package-product-members": [
         {
+          "package": "Appearance",
+          "product-name": "Appearance",
+          "build-phase": { "build-phase": "frameworks" },
+        },
+        {
           "package": "ScrechKit",
           "product-name": "ScrechKit",
           "build-phase": { "build-phase": "frameworks" },
@@ -412,6 +424,11 @@
         "resources",
       ],
       "package-product-members": [
+        {
+          "package": "Appearance",
+          "product-name": "Appearance",
+          "build-phase": { "build-phase": "frameworks" },
+        },
         {
           "package": "ScrechKit",
           "product-name": "ScrechKit",

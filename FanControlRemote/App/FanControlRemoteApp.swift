@@ -1,7 +1,9 @@
 import SwiftUI
+import Appearance
 
 @main
 struct FanControlRemoteApp: App {
+    @AppStorage("appearance") private var appearance: Appearance = .system
     @AppStorage("hasEnabledRemoteControl") private var hasEnabledRemoteControl = false
     @State private var model = RemoteControlViewModel()
     
@@ -23,6 +25,7 @@ struct FanControlRemoteApp: App {
                 }
             }
             .animation(.smooth, value: hasEnabledRemoteControl)
+            .preferredColorScheme(appearance.scheme)
         }
     }
 }
