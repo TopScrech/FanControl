@@ -1,4 +1,4 @@
-import Foundation
+import SwiftUI
 import CoreSMC
 
 extension Fan {
@@ -17,12 +17,12 @@ extension Fan {
         }
     }
     
-    var localizedModeName: String {
+    var localizedModeName: LocalizedStringKey {
         switch mode {
-        case 0: String(localized: "Auto")
-        case 1: String(localized: "Manual")
-        case 3: String(localized: "System")
-        default: "\(String(localized: "Mode")) \(mode)"
+        case 0: "Auto"
+        case 1: "Manual"
+        case 3: "System"
+        default: "Mode \(mode)"
         }
     }
 }
