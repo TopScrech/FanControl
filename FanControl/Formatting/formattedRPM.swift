@@ -1,7 +1,7 @@
-import Foundation
+import SwiftUI
 
 extension Double {
-    var formattedRPM: String {
-        String(localized: "\(Int64(rounded())) RPM")
+    var formattedRPM: LocalizedStringKey {
+        "\(Int64(rounded())) RPM"
     }
 }

@@ -1,11 +1,11 @@
-import Foundation
+import SwiftUI
 import OSLog
 
 @MainActor
 final class RemoteControlHostService {
     typealias FanProvider = @MainActor () -> [RemoteFanState]
     typealias CommandHandler = @MainActor (RemoteFanCommand) async throws -> Void
-    typealias StatusHandler = @MainActor (String) -> Void
+    typealias StatusHandler = @MainActor (LocalizedStringKey) -> Void
     
     private static let refreshInterval: Duration = .seconds(1)
     private static let logger = Logger(subsystem: "FanControl", category: "RemoteControl")
@@ -25,7 +25,7 @@ final class RemoteControlHostService {
         updateStatus: @escaping StatusHandler
     ) {
         stop()
-        updateStatus(String(localized: "Connecting to iCloud"))
+        updateStatus("Connecting to iCloud")
         let store = store
         
         task = Task {
@@ -69,11 +69,11 @@ final class RemoteControlHostService {
                         }
                     }
                     
-                    updateStatus(String(localized: "Available remotely"))
+                    updateStatus("Available remotely")
                 } catch is CancellationError {
                     return
                 } catch {
-                    updateStatus(error.localizedDescription)
+                    updateStatus("\(error.localizedDescription)")
                     Self.logger.error("Remote control update failed: \(error)")
                 }
                 
