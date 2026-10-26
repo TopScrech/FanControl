@@ -21,7 +21,9 @@ struct RemoteMacDetailView: View {
                         }
                     }
 
-                    RemoteTimerSectionView(mac: mac)
+                    if !model.isDemo {
+                        RemoteTimerSectionView(mac: mac)
+                    }
                 }
                 .alert("Command failed", isPresented: $showsCommandError) {
                     Button("OK", role: .cancel) { model.commandError = nil }
