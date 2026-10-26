@@ -15,7 +15,7 @@ final class RemoteControlViewModel {
     private static let refreshInterval: Duration = .seconds(1)
     private static let logger = Logger(subsystem: "FanControlRemote", category: "Discovery")
     private let store = RemoteCloudStore()
-    private let isDemo: Bool
+    let isDemo: Bool
 
     init() {
         isDemo = false
