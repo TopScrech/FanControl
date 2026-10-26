@@ -7,6 +7,7 @@ final class RemoteCloudStore {
     private let database: CKDatabase
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
+
     
     init(containerIdentifier: String? = nil) {
         container = CKContainer(identifier: containerIdentifier ?? RemoteCloudSchema.containerIdentifier)
@@ -94,7 +95,7 @@ final class RemoteCloudStore {
         }
     }
 
-    func sendCommand(deviceID: String, fanID: Int, action: RemoteFanAction) async throws -> RemoteFanCommand {
+    func sendCommand(deviceID: String, fanID: Int, action: RemoteFanAction, timerRPM: Double? = nil, timerDuration: TimeInterval? = nil) async throws -> RemoteFanCommand {
         try await verifyAccount()
         let recordID = CKRecord.ID(recordName: RemoteCloudSchema.commandRecordName(deviceID: deviceID))
         
@@ -110,9 +111,13 @@ final class RemoteCloudStore {
             action: action,
             createdAt: Date(),
             status: .pending,
-            errorMessage: nil
+            errorMessage: nil,
+            timerRPM: timerRPM,
+            timerDuration: timerDuration
         )
         
+        record[RemoteCloudSchema.Field.timerRPM] = command.timerRPM
+        record[RemoteCloudSchema.Field.timerDuration] = command.timerDuration
         record[RemoteCloudSchema.Field.requestID] = command.id
         record[RemoteCloudSchema.Field.deviceID] = command.deviceID
         record[RemoteCloudSchema.Field.fanID] = command.fanID
@@ -219,7 +224,9 @@ final class RemoteCloudStore {
             action: action,
             createdAt: createdAt,
             status: status,
-            errorMessage: record[RemoteCloudSchema.Field.errorMessage] as? String
+            errorMessage: record[RemoteCloudSchema.Field.errorMessage] as? String,
+            timerRPM: record[RemoteCloudSchema.Field.timerRPM] as? Double,
+            timerDuration: record[RemoteCloudSchema.Field.timerDuration] as? Double
         )
     }
 }

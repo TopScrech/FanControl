@@ -1,4 +1,4 @@
-import SwiftUI
+import ScrechKit
 
 struct SetupStepView<Actions: View>: View {
     var number: Int
@@ -9,18 +9,18 @@ struct SetupStepView<Actions: View>: View {
     var body: some View {
         HStack(alignment: .top) {
             Text(number, format: .number)
-                .font(.headline)
+                .headline()
                 .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
+                .frame(32)
                 .background(.tint, in: .circle)
                 .accessibilityLabel("Step \(number)")
 
             VStack(alignment: .leading) {
                 Text(title)
-                    .font(.headline)
+                    .headline()
 
                 Text(detail)
-                    .foregroundStyle(.secondary)
+                    .secondary()
 
                 actions
                     .padding(.top, 4)

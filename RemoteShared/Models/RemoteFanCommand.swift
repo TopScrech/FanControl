@@ -12,6 +12,9 @@ struct RemoteFanCommand: Identifiable, Hashable, Sendable {
     let status: Status
     let errorMessage: String?
 
+    var timerRPM: Double? = nil
+    var timerDuration: TimeInterval? = nil
+
     var isExpired: Bool {
         Date().timeIntervalSince(createdAt) > Self.validityInterval
     }

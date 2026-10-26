@@ -804,18 +804,23 @@ final class FanVM {
     }
 
     func startFanSpeedTimer(_ draft: FanSpeedTimerDraft) async {
-        guard isLicenseActive else {
-            presentError(String(localized: "Fan timers require an active license"))
-            return
+        do {
+            try await startFanSpeedTimer(draft, targetFans: selectedFansForControl)
+        } catch {
+            presentError(error.localizedDescription)
         }
+    }
 
-        guard fanSpeedTimer == nil,
-              !isStartingFanSpeedTimer,
-              let rpmRange = fanSpeedTimerRPMRange,
-              draft.isValid(minimumRPM: rpmRange.lowerBound, maximumRPM: rpmRange.upperBound) else { return }
-
-        let targetFans = selectedFansForControl
-        guard !targetFans.isEmpty else { return }
+    private func startFanSpeedTimer(_ draft: FanSpeedTimerDraft, targetFans: [Fan]) async throws {
+        guard isLicenseActive else { throw RemoteControlHostError.licenseRequired }
+        guard fanSpeedTimer == nil, !isStartingFanSpeedTimer else {
+            throw RemoteControlHostError.timerAlreadyRunning
+        }
+        guard let minimum = targetFans.map(\.minRPM).min(),
+              let maximum = targetFans.map(\.maxRPM).max(),
+              draft.isValid(minimumRPM: minimum, maximumRPM: maximum) else {
+            throw RemoteControlHostError.invalidTimer
+        }
 
         let rpm = draft.rpm.rounded()
         let targetRPMs = Dictionary(uniqueKeysWithValues: targetFans.map {
@@ -828,10 +833,12 @@ final class FanVM {
         defer { isStartingFanSpeedTimer = false }
 
         let helperStatus = await ensureHelperConnected()
-        guard isControlActionCurrent(actionToken), isLicenseActive, fanSpeedTimer == nil else { return }
+        guard isControlActionCurrent(actionToken), isLicenseActive, fanSpeedTimer == nil else {
+            throw RemoteControlHostError.timerInterrupted
+        }
         guard let smc = writeService else {
             setWriteUnavailableError(status: helperStatus)
-            return
+            throw RemoteControlHostError.helperUnavailable
         }
 
         let previouslyEnabledPresetFanIDs = targetFanIDs.filter {
@@ -840,7 +847,7 @@ final class FanVM {
 
         customPresetStore.setEnabled(false, fanIDs: targetFanIDs)
         fanSpeedTimer = FanSpeedTimer(
-            name: controlsAllFans ? "All fans" : "Fan \(targetFanIDs[0] + 1)",
+            name: targetFans.count > 1 ? "All fans" : "Fan \(targetFanIDs[0] + 1)",
             targetRPMs: targetRPMs,
             endDate: .now.addingTimeInterval(draft.duration)
         )
@@ -858,7 +865,7 @@ final class FanVM {
 
             guard isControlActionCurrent(actionToken) else {
                 await cancelFanSpeedTimer()
-                return
+                throw RemoteControlHostError.timerInterrupted
             }
         }
 
@@ -870,19 +877,18 @@ final class FanVM {
             holdingManualOverride = true
         }
 
-        if let lastError {
-            presentError(lastError.localizedDescription)
-        }
-
         if !isLicenseActive {
             await cancelFanSpeedTimer()
+            throw RemoteControlHostError.licenseRequired
         }
 
         await refresh()
+        if let lastError { throw lastError }
     }
 
     func cancelFanSpeedTimer() async {
         guard fanSpeedTimer != nil else { return }
+        _ = startControlAction()
         fanSpeedTimer?.endDate = .now
         await updateFanSpeedTimer()
     }
@@ -1306,7 +1312,10 @@ final class FanVM {
                 currentRPM: $0.currentRPM,
                 targetRPM: $0.targetRPM,
                 mode: $0.mode,
-                activeAction: remoteActiveAction(for: $0)
+                activeAction: remoteActiveAction(for: $0),
+                supportsTimers: true,
+                timerEndDate: fanSpeedTimer?.targetRPMs[$0.id] != nil ? fanSpeedTimer?.endDate : nil,
+                timerRPM: fanSpeedTimer?.targetRPMs[$0.id]
             )
         }
     }
@@ -1330,11 +1339,33 @@ final class FanVM {
     private func handleRemoteCommand(_ command: RemoteFanCommand) async throws {
         guard isRemoteControlEnabled else { return }
         
-        let actionToken = startControlAction()
         let targetFans = command.fanID == RemoteFanCommand.allFansID
         ? fans
         : fans.filter { $0.id == command.fanID }
         guard !targetFans.isEmpty else { throw RemoteControlHostError.fanUnavailable }
+
+        if command.action == .startTimer {
+            guard let rpm = command.timerRPM, let duration = command.timerDuration,
+                  duration.isFinite, duration >= 60, duration <= 86340,
+                  duration.truncatingRemainder(dividingBy: 60) == 0 else {
+                throw RemoteControlHostError.invalidTimer
+            }
+            let draft = FanSpeedTimerDraft(
+                rpm: rpm,
+                hours: Int(duration) / 3600,
+                minutes: Int(duration) % 3600 / 60
+            )
+            try await startFanSpeedTimer(draft, targetFans: targetFans)
+            return
+        }
+
+        if command.action == .cancelTimer {
+            await cancelFanSpeedTimer()
+            guard fanSpeedTimer == nil else { throw RemoteControlHostError.timerInterrupted }
+            return
+        }
+
+        let actionToken = startControlAction()
         
         let helperStatus = await ensureHelperConnected()
         guard let smc = writeService else {
@@ -1346,6 +1377,8 @@ final class FanVM {
         customPresetStore.setEnabled(false, fanIDs: targetFanIDs)
         
         switch command.action {
+        case .startTimer, .cancelTimer:
+            return
         case .automatic:
             for fan in targetFans {
                 try await smc.setFanAuto(fanID: fan.id)

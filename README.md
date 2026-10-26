@@ -28,6 +28,15 @@ The iOS target explicitly uses the Production CloudKit environment so local buil
 3. Run both apps with the development environment once, then deploy the CloudKit schema to production before distribution
 4. Enable **Allow control from iPhone** in the macOS app settings and keep FanControl running on the Mac
 
+### Remote timers
+
+The Timer section on a Mac's detail screen starts the macOS app's fan timer for one fan or all fans, with a speed and duration from 1 minute to 23 hours 59 minutes
+The Mac requires an active license and runs the timer independently of the remote app, returning fans to Auto when it ends or is cancelled
+Only one timer runs per Mac, and timers started locally also appear in the remote app
+
+Before distributing remote timers, deploy the `timerRPM` and `timerDuration` Double fields on the `RemoteFanCommand` CloudKit record type to Production
+Timer state and capability information use the existing `fans` data field, and older hosts display an update prompt
+
 ## CLI commands (fan)
 
 ```bash
@@ -74,6 +83,8 @@ Requires Xcode 26.4+ and access to the private [CoreSMC](https://github.com/TopS
 
 Run CLI parser and timer lifecycle tests with `python3 Tests/CLI/run-tests.py /path/to/CoreSMC`
 The tests use a mock SMC service and keep build artifacts in a temporary directory
+
+Run remote timer validation and backward compatibility tests with `python3 Tests/Remote/run-tests.py`
 
 ## Dependencies
 4/5 libraries are developed and maintained by me, which helps minimize risk across all projects in which they are used

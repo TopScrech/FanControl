@@ -17,6 +17,8 @@ enum RemoteCloudSchema {
         static let createdAt = "createdAt"
         static let status = "status"
         static let errorMessage = "errorMessage"
+        static let timerRPM = "timerRPM"
+        static let timerDuration = "timerDuration"
         static let completedAt = "completedAt"
     }
 

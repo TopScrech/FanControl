@@ -15,7 +15,7 @@ struct FanSpinningGlyph: View {
                 .rotationEffect(spinClock.angle(at: context.date, rpm: reduceMotion ? 0 : rpm))
         }
         .foregroundStyle(isSelected ? .white : .primary)
-        .frame(width: 44, height: 44)
+        .frame(44)
         .background(isSelected ? Color.accentColor : .primary.opacity(0.12), in: .circle)
         .shadow(color: isSelected ? .accentColor.opacity(0.35) : .clear, radius: 4, y: 2)
         .accessibilityHidden(true)

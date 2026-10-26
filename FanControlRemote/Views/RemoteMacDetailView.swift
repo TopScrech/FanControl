@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RemoteMacDetailView: View {
     let macID: String
+    @State private var showsCommandError = false
     @State private var isRenaming = false
     @State private var renameDraft = ""
     @Environment(RemoteControlViewModel.self) private var model
@@ -19,6 +20,13 @@ struct RemoteMacDetailView: View {
                             RemoteFanControlView(fan: $0, mac: mac)
                         }
                     }
+
+                    RemoteTimerSectionView(mac: mac)
+                }
+                .alert("Command failed", isPresented: $showsCommandError) {
+                    Button("OK", role: .cancel) { model.commandError = nil }
+                } message: {
+                    Text(model.commandError ?? "")
                 }
                 .navigationTitle(model.displayName(for: mac))
                 .navigationBarTitleDisplayMode(.inline)
@@ -28,6 +36,9 @@ struct RemoteMacDetailView: View {
             } else {
                 ContentUnavailableView("Mac unavailable", systemImage: "desktopcomputer.trianglebadge.exclamationmark")
             }
+        }
+        .onChange(of: model.commandError) {
+            showsCommandError = model.commandError != nil
         }
         .alert("Rename Mac", isPresented: $isRenaming) {
             TextField("Name", text: $renameDraft)
