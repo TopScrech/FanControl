@@ -43,7 +43,7 @@ struct FanSpeedTimerEditorView: View {
                     .labelsHidden()
                     .caption2()
                     .monospacedDigit()
-                    .foregroundStyle(.secondary)
+                    .secondary()
                 }
             }
 

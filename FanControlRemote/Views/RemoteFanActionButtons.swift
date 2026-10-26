@@ -29,7 +29,7 @@ struct RemoteFanActionButtons: View {
             )
         }
         .foregroundStyle(.primary)
-        .disabled(!mac.isOnline || model.pendingCommand != nil)
+        .disabled(!mac.isOnline || model.isSendingCommand || model.pendingCommand != nil)
     }
     
     private var activeAction: RemoteFanAction? {

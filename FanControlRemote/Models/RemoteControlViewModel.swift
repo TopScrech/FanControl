@@ -8,6 +8,8 @@ final class RemoteControlViewModel {
     private(set) var deletingMacIDs: Set<String> = []
     private var displayNames = UserDefaults.standard.dictionary(forKey: "remoteMacDisplayNames") as? [String: String] ?? [:]
     private var macRevision = 0
+    var commandError: String?
+    private(set) var isSendingCommand = false
     var pendingCommand: RemoteFanCommand?
 
     private static let refreshInterval: Duration = .seconds(1)
@@ -92,8 +94,11 @@ final class RemoteControlViewModel {
         }
     }
 
-    func send(action: RemoteFanAction, fanID: Int, to mac: RemoteMacState) async {
-        guard pendingCommand == nil else { return }
+    func send(action: RemoteFanAction, fanID: Int, to mac: RemoteMacState, timerRPM: Double? = nil, timerDuration: TimeInterval? = nil) async {
+        guard !isSendingCommand, pendingCommand == nil else { return }
+        isSendingCommand = true
+        commandError = nil
+        defer { isSendingCommand = false }
 
         if isDemo {
             await sendDemo(action: action, fanID: fanID, to: mac)
@@ -101,7 +106,7 @@ final class RemoteControlViewModel {
         }
 
         do {
-            let command = try await store.sendCommand(deviceID: mac.id, fanID: fanID, action: action)
+            let command = try await store.sendCommand(deviceID: mac.id, fanID: fanID, action: action, timerRPM: timerRPM, timerDuration: timerDuration)
             
             withAnimation(.easeInOut(duration: 0.2)) {
                 pendingCommand = command
@@ -109,8 +114,24 @@ final class RemoteControlViewModel {
             
             try await waitForCommandResult(deviceID: mac.id)
         } catch {
+            commandError = error.localizedDescription
             clearPendingCommand()
         }
+    }
+
+    func timerRPMRange(fanID: Int, in mac: RemoteMacState) -> ClosedRange<Double>? {
+        let fans = mac.fans.filter { fanID == RemoteFanCommand.allFansID || $0.id == fanID }
+        guard !fans.isEmpty, fans.allSatisfy({ $0.supportsTimers == true }),
+              let minimum = fans.map(\.minRPM).min(),
+              let maximum = fans.map(\.maxRPM).max(),
+              minimum.isFinite, maximum.isFinite, minimum <= maximum else { return nil }
+        return minimum...maximum
+    }
+
+    func startTimer(_ draft: FanSpeedTimerDraft, fanID: Int, on mac: RemoteMacState) async {
+        guard let range = timerRPMRange(fanID: fanID, in: mac),
+              draft.isValid(minimumRPM: range.lowerBound, maximumRPM: range.upperBound) else { return }
+        await send(action: .startTimer, fanID: fanID, to: mac, timerRPM: draft.rpm, timerDuration: draft.duration)
     }
 
     func mac(withID id: String) -> RemoteMacState? {
@@ -189,6 +210,8 @@ final class RemoteControlViewModel {
             let rpm = switch action {
             case .automatic:
                 $0.minRPM + (($0.maxRPM - $0.minRPM) * 0.2)
+            case .startTimer, .cancelTimer:
+                $0.targetRPM
             case .minimum:
                 $0.minRPM
             case .maximum:

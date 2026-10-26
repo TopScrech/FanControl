@@ -45,7 +45,7 @@ struct FanSpeedTimerRowView: View {
                     }
                     .labelStyle(.iconOnly)
                     .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
+                    .secondary()
                     .help("Cancel timer and return to Auto")
                     .disabled(hasEnded)
                 }

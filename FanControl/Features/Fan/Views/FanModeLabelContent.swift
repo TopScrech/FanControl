@@ -13,7 +13,7 @@ struct FanModeLabelContent<Icon: View, Title: View>: View {
             icon
                 .title3(.semibold)
                 .foregroundStyle(isActive ? .white : .primary)
-                .frame(width: 50, height: 50)
+                .frame(50)
                 .background(isActive ? Color.accentColor : .primary.opacity(isPressed ? 0.19 : 0.13), in: .circle)
                 .shadow(color: isActive ? .accentColor.opacity(0.45) : .clear, radius: 6, y: 3)
                 .scaleEffect(isPressed ? 0.94 : 1)
