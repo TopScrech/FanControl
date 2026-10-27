@@ -11,25 +11,35 @@ struct FanSpeedSlider: View {
     @State private var isEditing = false
 
     var body: some View {
-        Slider(value: $rpm, in: fan.minRPM...fan.maxRPM, step: 50) {
-            Text("Fan \(fan.userFacingID) speed")
-        } onEditingChanged: { editing in
-            isEditing = editing
+        VStack(spacing: 4) {
+            FanCurrentSpeedDot(
+                currentRPM: fan.currentRPM,
+                minRPM: fan.minRPM,
+                maxRPM: fan.maxRPM,
+                isSelected: isSelected
+            )
 
-            if editing {
-                model.includeFanInSelection(fan.id)
-            } else {
-                apply()
+            Slider(value: $rpm, in: fan.minRPM...fan.maxRPM, step: 50) {
+                Text("Fan \(fan.userFacingID) speed")
+            } onEditingChanged: { editing in
+                isEditing = editing
+
+                if editing {
+                    model.includeFanInSelection(fan.id)
+                } else {
+                    apply()
+                }
+            }
+            .labelsHidden()
+            .controlSize(.small)
+            .tint(isSelected ? Color.accentColor : .secondary)
+            .help(Text("Drag to set a fixed fan speed"))
+            .onAppear(perform: syncWithFan)
+            .onChange(of: fan.targetRPM) {
+                syncWithFan()
             }
         }
-        .labelsHidden()
-        .controlSize(.small)
-        .tint(isSelected ? Color.accentColor : .secondary)
-        .help(Text("Drag to set a fixed fan speed"))
-        .onAppear(perform: syncWithFan)
-        .onChange(of: fan.targetRPM) {
-            syncWithFan()
-        }
+        .padding(.top, 6)
     }
 
     private func syncWithFan() {
