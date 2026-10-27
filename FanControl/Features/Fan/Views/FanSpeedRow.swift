@@ -7,8 +7,8 @@ struct FanSpeedRow: View {
     let select: () -> Void
 
     var body: some View {
-        Button(action: select) {
-            VStack(spacing: 10) {
+        VStack(spacing: 10) {
+            Button(action: select) {
                 HStack(spacing: 12) {
                     FanSpinningGlyph(rpm: fan.currentRPM, isSelected: isSelected)
 
@@ -34,32 +34,28 @@ struct FanSpeedRow: View {
                     }
                     .monospacedDigit()
                 }
-
-                FanSpeedBar(
-                    currentRPM: fan.currentRPM,
-                    targetRPM: fan.targetRPM,
-                    maxRPM: fan.maxRPM,
-                    isSelected: isSelected
-                )
-
-                HStack {
-                    Text(fan.minRPM.rounded(), format: .number.precision(.fractionLength(0)))
-
-                    Spacer()
-
-                    Text(fan.maxRPM.rounded(), format: .number.precision(.fractionLength(0)))
-                }
-                .caption2()
-                .tertiary()
-                .monospacedDigit()
+                .contentShape(.rect)
             }
-            .padding(12)
-            .contentShape(.rect)
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+
+            FanSpeedControl(fan: fan, isSelected: isSelected)
+
+            HStack {
+                Text(fan.minRPM.rounded(), format: .number.precision(.fractionLength(0)))
+
+                Spacer()
+
+                Text(fan.maxRPM.rounded(), format: .number.precision(.fractionLength(0)))
+            }
+            .caption2()
+            .tertiary()
+            .monospacedDigit()
+            .accessibilityHidden(true)
         }
-        .buttonStyle(.plain)
+        .padding(12)
         .opacity(isSelected ? 1 : 0.42)
         .animation(.smooth(duration: 1.2), value: fan.currentRPM)
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
