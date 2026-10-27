@@ -1,0 +1,80 @@
+# Prefer ScrechKit's adaptive font modifiers
+only_rules:
+  - custom_rules
+
+excluded:
+  - .build
+  - DerivedData
+  - ThirdParty
+
+custom_rules:
+  screchkit_large_title:
+    name: "ScrechKit largeTitle"
+    regex: '\.font\s*\(\s*\.largeTitle\s*\)'
+    match_kinds:
+      - identifier
+    message: "Replace .font(.largeTitle) with .largeTitle()"
+    severity: warning
+  screchkit_title:
+    name: "ScrechKit title"
+    regex: '\.font\s*\(\s*\.title\s*\)'
+    match_kinds:
+      - identifier
+    message: "Replace .font(.title) with .title()"
+    severity: warning
+  screchkit_title2:
+    name: "ScrechKit title2"
+    regex: '\.font\s*\(\s*\.title2\s*\)'
+    match_kinds:
+      - identifier
+    message: "Replace .font(.title2) with .title2()"
+    severity: warning
+  screchkit_title3:
+    name: "ScrechKit title3"
+    regex: '\.font\s*\(\s*\.title3\s*\)'
+    match_kinds:
+      - identifier
+    message: "Replace .font(.title3) with .title3()"
+    severity: warning
+  screchkit_headline:
+    name: "ScrechKit headline"
+    regex: '\.font\s*\(\s*\.headline\s*\)'
+    match_kinds:
+      - identifier
+    message: "Replace .font(.headline) with .headline()"
+    severity: warning
+  screchkit_subheadline:
+    name: "ScrechKit subheadline"
+    regex: '\.font\s*\(\s*\.subheadline\s*\)'
+    match_kinds:
+      - identifier
+    message: "Replace .font(.subheadline) with .subheadline()"
+    severity: warning
+  screchkit_callout:
+    name: "ScrechKit callout"
+    regex: '\.font\s*\(\s*\.callout\s*\)'
+    match_kinds:
+      - identifier
+    message: "Replace .font(.callout) with .callout()"
+    severity: warning
+  screchkit_footnote:
+    name: "ScrechKit footnote"
+    regex: '\.font\s*\(\s*\.footnote\s*\)'
+    match_kinds:
+      - identifier
+    message: "Replace .font(.footnote) with .footnote()"
+    severity: warning
+  screchkit_caption:
+    name: "ScrechKit caption"
+    regex: '\.font\s*\(\s*\.caption\s*\)'
+    match_kinds:
+      - identifier
+    message: "Replace .font(.caption) with .caption()"
+    severity: warning
+  screchkit_caption2:
+    name: "ScrechKit caption2"
+    regex: '\.font\s*\(\s*\.caption2\s*\)'
+    match_kinds:
+      - identifier
+    message: "Replace .font(.caption2) with .caption2()"
+    severity: warning

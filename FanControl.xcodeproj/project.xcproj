@@ -25,6 +25,13 @@
   "packages": [
     {
       "kind": "remote",
+      "repository": "https://github.com/SimplyDanny/SwiftLintPlugins",
+      "version": {
+        "up-to-next-major-version": "0.65.1",
+      },
+    },
+    {
+      "kind": "remote",
       "repository": "https://github.com/TopScrech/Appearance",
       "version": {
         "up-to-next-major-version": "1.0.4",
@@ -56,6 +63,7 @@
     },
   ],
   "files": [
+    { "path": ".swiftlint.yml" },
     { "path": "README.md" },
     { "path": "AGENTS.md" },
     {
@@ -147,6 +155,7 @@
       "product": "Products/FanControl.app",
       "product-type": "application",
       "dependencies": [
+        { "kind": "package", "package": "SwiftLintPlugins", "product-name": "SwiftLintBuildToolPlugin", "product-type": "build-tool-plugin" },
         "fan",
         "FanControlHelper",
       ],
@@ -277,6 +286,9 @@
       "id": "F401000A2FA0000100C10001",
       "product": "Products/fan",
       "product-type": "tool",
+      "dependencies": [
+        { "kind": "package", "package": "SwiftLintPlugins", "product-name": "SwiftLintBuildToolPlugin", "product-type": "build-tool-plugin" },
+      ],
       "build-phases": [
         "compile-sources",
         "frameworks",
@@ -319,6 +331,9 @@
       "id": "F3B0001A2F5A000100000005",
       "product": "Products/FanControlHelper",
       "product-type": "tool",
+      "dependencies": [
+        { "kind": "package", "package": "SwiftLintPlugins", "product-name": "SwiftLintBuildToolPlugin", "product-type": "build-tool-plugin" },
+      ],
       "build-phases": [
         "compile-sources",
         "frameworks",
@@ -359,6 +374,9 @@
       "id": "F42000082FC0000100D00001",
       "product": "Products/iOS.app",
       "product-type": "application",
+      "dependencies": [
+        { "kind": "package", "package": "SwiftLintPlugins", "product-name": "SwiftLintBuildToolPlugin", "product-type": "build-tool-plugin" },
+      ],
       "build-phases": [
         "compile-sources",
         "frameworks",
@@ -416,6 +434,9 @@
       "id": "F3F79A643063C9A5009F31C9",
       "product": "Products/visionOS.app",
       "product-type": "application",
+      "dependencies": [
+        { "kind": "package", "package": "SwiftLintPlugins", "product-name": "SwiftLintBuildToolPlugin", "product-type": "build-tool-plugin" },
+      ],
       "build-phases": [
         "compile-sources",
         "frameworks",
