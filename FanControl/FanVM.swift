@@ -350,7 +350,14 @@ final class FanVM {
         let nextIndex = rawNextIndex >= 0 ? rawNextIndex : rawNextIndex + selectionIDs.count
         selectedFanID = selectionIDs[nextIndex]
     }
-    
+
+    func includeFanInSelection(_ fanID: Int) {
+        guard showsAllFansOption, !controlsAllFans, selectedFanID != fanID else { return }
+
+        // Selection is either one fan or all fans, so adding a second fan of two means all
+        selectedFanID = fans.count == 2 ? allFansID : fanID
+    }
+
     func resetGitHubProxyURL() {
         gitHubProxyURLString = Self.defaultGitHubProxyURLString
     }
@@ -946,16 +953,17 @@ final class FanVM {
         }
     }
 
-    func setManualRPM(_ rpm: Double, targetMode: FanControlMode = .preset) async {
+    func setManualRPM(_ rpm: Double, targetMode: FanControlMode = .preset, fanID: Int? = nil) async {
         if targetMode == .preset, !isLicenseActive {
             presentError(String(localized: "Preset control requires an active license"))
             return
         }
-        
+
         await applyManualRPM(
             requestSummary: "Manual request rpm=\(rpm)",
             actionSummary: "Manual applied rpm=\(rpm)",
-            targetMode: targetMode
+            targetMode: targetMode,
+            targetFans: fanID.map { id in fans.filter { $0.id == id } }
         ) { _ in
             rpm
         }
@@ -1117,10 +1125,11 @@ final class FanVM {
         requestSummary: String,
         actionSummary: String,
         targetMode: FanControlMode,
+        targetFans: [Fan]? = nil,
         rpmForFan: (Fan) -> Double
     ) async {
         let actionToken = startControlAction()
-        let targetFans = selectedFansForControl
+        let targetFans = targetFans ?? selectedFansForControl
         
         guard !targetFans.isEmpty else {
             Self.logger.info("Manual request ignored: no selected fan targets")
