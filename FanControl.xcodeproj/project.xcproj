@@ -25,6 +25,13 @@
   "packages": [
     {
       "kind": "remote",
+      "repository": "https://github.com/TopScrech/swift-update.git",
+      "version": {
+        "up-to-next-major-version": "1.1.0",
+      },
+    },
+    {
+      "kind": "remote",
       "repository": "https://github.com/SimplyDanny/SwiftLintPlugins",
       "version": {
         "up-to-next-major-version": "0.65.1",
@@ -139,6 +146,7 @@
       "kind": "group",
       "name": "Products",
       "children": [
+        { "path": "<PRODUCTS>/Package Update Tools.bundle", "id": "5684FD7DF3BE6A193BE2E2FF", "type": "wrapper.cfbundle", "index": false },
         { "path": "<PRODUCTS>/fan", "id": "F40100052FA0000100C10001", "type": "compiled.mach-o.executable", "index": false, "target-membership": [ "FanControl/copy/Copy CLI" ] },
         { "path": "<PRODUCTS>/FanControl.app", "id": "F3A812002F2180AA00D96952", "type": "wrapper.application", "index": false },
         { "path": "<PRODUCTS>/FanControlHelper", "id": "F3B0001A2F5A000100000001", "type": "compiled.mach-o.executable", "index": false, "target-membership": [ "FanControl/copy/Copy Helper" ] },
@@ -150,16 +158,37 @@
   ],
   "targets": [
     {
+      "name": "Package Update Tools",
+      "id": "0D8EEC90887C0F997007CBEF",
+      "product": "id:5684FD7DF3BE6A193BE2E2FF",
+      "product-type": "bundle",
+      "dependencies": [
+        { "kind": "package", "package": "swift-update", "product-name": "swift-update" },
+      ],
+      "build-phases": [],
+      "build-settings": {
+        "SDKROOT": "macosx",
+        "SUPPORTED_PLATFORMS": "macosx",
+        "MACOSX_DEPLOYMENT_TARGET": "13.0",
+        "CODE_SIGNING_ALLOWED": "NO",
+        "GENERATE_INFOPLIST_FILE": "YES",
+        "PRODUCT_BUNDLE_IDENTIFIER": "dev.topscrech.PackageUpdateTools",
+        "PRODUCT_NAME": "Package Update Tools",
+        "SKIP_INSTALL": "YES",
+      },
+    },
+    {
       "name": "Check Package Updates",
       "id": "D9837768D26641189B7A47FA",
       "kind": "aggregate",
+      "dependencies": [ "Package Update Tools" ],
       "build-phases": [
         {
           "kind": "script",
           "name": "Check Package Updates",
           "run-on-every-build": true,
           "shell": "/bin/sh",
-          "script": "/usr/bin/python3 \"$SRCROOT/Scripts/check-package-updates.py\""
+          "script": "\"$BUILT_PRODUCTS_DIR/swift-update\" --xcode --path \"$PROJECT_FILE_PATH\" || true"
         }
       ],
       "build-settings": {
