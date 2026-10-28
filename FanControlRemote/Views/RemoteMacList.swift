@@ -27,11 +27,13 @@ struct RemoteMacList: View {
         }
         .navigationTitle("FanControl")
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Show Setup", systemImage: "questionmark.circle") {
-                    hasEnabledRemoteControl = false
+            if !model.isDemo {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Show Setup", systemImage: "questionmark.circle") {
+                        hasEnabledRemoteControl = false
+                    }
+                    .labelStyle(.iconOnly)
                 }
-                .labelStyle(.iconOnly)
             }
         }
         .refreshable {
