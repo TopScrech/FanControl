@@ -1,6 +1,8 @@
 import ScrechKit
 
 struct FanCurrentSpeedDot: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     let currentRPM: Double
     let minRPM: Double
     let maxRPM: Double
@@ -17,6 +19,7 @@ struct FanCurrentSpeedDot: View {
             .fill(isSelected ? Color.accentColor : .secondary)
             .frame(width: size, height: size)
             .offset(x: thumbInset + (width - thumbInset * 2) * progress - size / 2)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.3), value: progress)
             .frame(maxWidth: .infinity, alignment: .leading)
             .onGeometryChange(for: Double.self) {
                 $0.size.width
