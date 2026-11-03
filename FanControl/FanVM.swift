@@ -204,6 +204,8 @@ final class FanVM {
     private var debugDelayedUpdateCheckTask: Task<Void, Never>?
     private var remoteManualRetryTask: Task<Void, Never>?
     private var timer: Timer?
+    private var isTicking = false
+    private var refreshTask: Task<Void, Never>?
     private var holdingManualOverride = false
     private var helperInstallInProgress = false
     private var customPresetStore = FanCustomPresetStore()
@@ -503,6 +505,10 @@ final class FanVM {
     
     
     func tick() async {
+        guard !isTicking else { return }
+        isTicking = true
+        defer { isTicking = false }
+
         await updateFanSpeedTimer()
 
         if holdingManualOverride, let smc = writeService {
@@ -519,6 +525,20 @@ final class FanVM {
     }
     
     func refresh() async {
+        // Control actions need a fresh snapshot after any earlier refresh finishes
+        while let refreshTask {
+            await refreshTask.value
+        }
+
+        let task = Task {
+            await performRefresh()
+            refreshTask = nil
+        }
+        refreshTask = task
+        await task.value
+    }
+
+    private func performRefresh() async {
         Self.logger.info("Refresh starting")
         
         var refreshError: Error?
