@@ -17,6 +17,5 @@ struct TemperaturePill: View {
             .padding(.vertical, 3)
             .frame(minWidth: 58)
             .background(tint.opacity(0.16), in: .capsule)
-            .animation(.easeInOut(duration: 0.6), value: celsius)
     }
 }

@@ -56,6 +56,5 @@ struct FanSpeedRow: View {
         }
         .padding(12)
         .opacity(isSelected ? 1 : 0.42)
-        .animation(.smooth(duration: 1.2), value: fan.currentRPM)
     }
 }
