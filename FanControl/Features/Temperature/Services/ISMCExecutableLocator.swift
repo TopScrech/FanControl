@@ -8,6 +8,13 @@ enum ISMCExecutableLocator {
             }
         }
         
+        if let goPath = try? goEnvironmentPath(), !goPath.isEmpty {
+            let candidate = URL(filePath: goPath).appending(path: "bin/iSMC")
+            if FileManager.default.isExecutableFile(atPath: candidate.path()) {
+                return candidate
+            }
+        }
+
         if let executableURL = try whichExecutableURL() {
             return executableURL
         }
@@ -32,10 +39,6 @@ enum ISMCExecutableLocator {
         candidates.append(URL.homeDirectory.appending(path: "go/bin/iSMC"))
         candidates.append(URL(filePath: "/opt/homebrew/bin/iSMC"))
         candidates.append(URL(filePath: "/usr/local/bin/iSMC"))
-        
-        if let goPath = try? goEnvironmentPath(), !goPath.isEmpty {
-            candidates.append(URL(filePath: goPath).appending(path: "bin/iSMC"))
-        }
         
         return uniqueURLs(candidates)
     }

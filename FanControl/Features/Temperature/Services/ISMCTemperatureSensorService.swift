@@ -1,12 +1,22 @@
 import Foundation
 
-struct ISMCTemperatureSensorService {
-    nonisolated func readTemperatureSensors() async throws -> [TemperatureSensor] {
-        try await Task.detached(priority: .userInitiated) {
-            let executableURL = try ISMCExecutableLocator.executableURL()
+actor ISMCTemperatureSensorService {
+    private var cachedExecutableURL: URL?
+
+    func readTemperatureSensors() async throws -> [TemperatureSensor] {
+        let cachedURL = cachedExecutableURL
+        let (executableURL, sensors) = try await Task.detached(priority: .userInitiated) {
+            let executableURL: URL
+            if let cachedURL, FileManager.default.isExecutableFile(atPath: cachedURL.path()) {
+                executableURL = cachedURL
+            } else {
+                executableURL = try ISMCExecutableLocator.executableURL()
+            }
             let output = try Self.run(executableURL: executableURL, arguments: ["temp"])
-            return try ISMCTemperatureSensorParser.parse(output)
+            return (executableURL, try ISMCTemperatureSensorParser.parse(output))
         }.value
+        cachedExecutableURL = executableURL
+        return sensors
     }
     
     nonisolated private static func run(executableURL: URL, arguments: [String]) throws -> String {

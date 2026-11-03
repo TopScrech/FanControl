@@ -4,15 +4,27 @@ struct MenuBarTemperatureExtraLabel: View {
     @AppStorage("temperatureUnit") private var temperatureUnitRawValue = TemperatureUnit.celsius.rawValue
     @AppStorage("temperaturePrecision") private var temperaturePrecisionRawValue = TemperaturePrecision.whole.rawValue
     
+    @Environment(\.displayScale) private var displayScale
+    @State private var renderedLabelImage: NSImage?
+    @State private var renderedCPUText: String?
+    @State private var renderedGPUText: String?
+    @State private var renderedScale: CGFloat?
+
     let sensors: [TemperatureSensor]
     
     var body: some View {
-        if let renderedLabelImage {
-            Image(nsImage: renderedLabelImage)
-                .renderingMode(.template)
-        } else {
-            Image(systemName: "thermometer.medium")
+        Group {
+            if let renderedLabelImage {
+                Image(nsImage: renderedLabelImage)
+                    .renderingMode(.template)
+            } else {
+                Image(systemName: "thermometer.medium")
+            }
         }
+        .onChange(of: cpuText, initial: true) { updateRenderedLabel() }
+        .onChange(of: gpuText) { updateRenderedLabel() }
+        .onChange(of: sensors.isEmpty) { updateRenderedLabel() }
+        .onChange(of: displayScale) { updateRenderedLabel() }
     }
     
     private var temperatureUnit: TemperatureUnit {
@@ -31,21 +43,35 @@ struct MenuBarTemperatureExtraLabel: View {
         formattedTemperature(for: .gpu)
     }
     
-    private var renderedLabelImage: NSImage? {
-        guard !sensors.isEmpty else { return nil }
-        
+    private func updateRenderedLabel() {
+        guard !sensors.isEmpty else {
+            renderedLabelImage = nil
+            renderedCPUText = nil
+            renderedGPUText = nil
+            renderedScale = nil
+            return
+        }
+
+        let cpuText = cpuText
+        let gpuText = gpuText
+        guard renderedLabelImage == nil || renderedCPUText != cpuText ||
+                renderedGPUText != gpuText || renderedScale != displayScale else { return }
+
         let renderer = ImageRenderer(
             content: MenuBarTemperatureRenderedLabel(
                 cpuText: cpuText,
                 gpuText: gpuText
             )
         )
-        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
+        renderer.scale = displayScale
         
-        guard let image = renderer.nsImage else { return nil }
+        guard let image = renderer.nsImage else { return }
         
         image.isTemplate = true
-        return image
+        renderedLabelImage = image
+        renderedCPUText = cpuText
+        renderedGPUText = gpuText
+        renderedScale = displayScale
     }
     
     private func formattedTemperature(for category: TemperatureSensorCategory) -> String {
