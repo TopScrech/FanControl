@@ -84,6 +84,7 @@ enum ISMCTemperatureSensorParser {
         
         return line
             .replacing(ansiPattern, with: "")
+            .replacing(#/[│┃|]/#, with: "  ")
             .replacing("℃", with: "°C")
             .replacing("ºC", with: "°C")
     }
