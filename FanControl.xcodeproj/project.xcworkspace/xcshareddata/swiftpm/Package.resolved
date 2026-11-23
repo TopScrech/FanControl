@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/TopScrech/swift-update.git",
       "state" : {
-        "revision" : "a3dedb962391ed50c774e3fc6966098ed5b0d3b0",
-        "version" : "1.1.2"
+        "revision" : "1eb021069ba08719bb8f2cb068418c7fa2d18b4b",
+        "version" : "1.1.3"
       }
     },
     {
